@@ -1,0 +1,127 @@
+package de.selfmade4u.tucanplus.connector
+
+import android.util.Log
+import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.nodes.TextNode
+import de.selfmade4u.tucanplus.Body
+import de.selfmade4u.tucanplus.Html
+import de.selfmade4u.tucanplus.Root
+import de.selfmade4u.tucanplus.a
+import de.selfmade4u.tucanplus.body
+import de.selfmade4u.tucanplus.connector.Common.parseBase
+import de.selfmade4u.tucanplus.div
+import de.selfmade4u.tucanplus.doctype
+import de.selfmade4u.tucanplus.fieldset
+import de.selfmade4u.tucanplus.form
+import de.selfmade4u.tucanplus.h1
+import de.selfmade4u.tucanplus.head
+import de.selfmade4u.tucanplus.header
+import de.selfmade4u.tucanplus.html
+import de.selfmade4u.tucanplus.img
+import de.selfmade4u.tucanplus.input
+import de.selfmade4u.tucanplus.label
+import de.selfmade4u.tucanplus.legend
+import de.selfmade4u.tucanplus.li
+import de.selfmade4u.tucanplus.link
+import de.selfmade4u.tucanplus.meta
+import de.selfmade4u.tucanplus.p
+import de.selfmade4u.tucanplus.peek
+import de.selfmade4u.tucanplus.response
+import de.selfmade4u.tucanplus.root
+import de.selfmade4u.tucanplus.script
+import de.selfmade4u.tucanplus.title
+import de.selfmade4u.tucanplus.ul
+import io.ktor.client.HttpClient
+import io.ktor.client.request.forms.submitForm
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.parameters
+
+object TucanLogin {
+
+    sealed class LoginResponse {
+        data class Success(val sessionId: String, val sessionSecret: String) : LoginResponse()
+        data object InvalidCredentials : LoginResponse()
+        data object TooManyAttempts : LoginResponse()
+    }
+
+    suspend fun doLogin(client: HttpClient, username: String, password: String): LoginResponse {
+        val r = client.submitForm(
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll",
+            formParameters = parameters {
+                append("usrname", username)
+                append("pass", password)
+                append("APPNAME", "CampusNet")
+                append("PRGNAME", "LOGINCHECK")
+                append("ARGUMENTS", "clino,usrname,pass,menuno,menu_type,browser,platform")
+                append("clino", "000000000000001")
+                append("menuno", "000344")
+                append("menu_type", "classic")
+                append("browser", "")
+                append("platform", "")
+            })
+        return response(r) {
+            status(HttpStatusCode.OK)
+            header(
+                "Content-Security-Policy",
+                "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+            )
+            header("Content-Type", "text/html")
+            header("X-Content-Type-Options", "nosniff")
+            header("X-XSS-Protection", "1; mode=block")
+            header("Referrer-Policy", "strict-origin")
+            header("X-Frame-Options", "SAMEORIGIN")
+            maybeHeader("X-Powered-By", listOf("ASP.NET"))
+            header("Server", "Microsoft-IIS/10.0")
+            header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+            ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
+            ignoreHeader("Date")
+            ignoreHeader("Content-Length")
+            if (hasHeader("Set-cookie")) {
+                val cookie = extractHeader("Set-cookie")[0].removePrefix("cnsc =")
+                val sessionId = extractHeader("REFRESH")[0]
+                val sessionIdMatch =
+                    Regex("""0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\d+),-N000019,-N000000000000000""").matchEntire(
+                        sessionId
+                    )!!
+                root {
+                    parseLoginSuccess()
+                }
+                LoginResponse.Success(sessionIdMatch.groupValues[1], cookie)
+            } else {
+                root {
+                    parseLoginFailure()
+                }
+            }
+        }
+    }
+
+    fun Root.parseLoginFailure(): LoginResponse {
+        return parseBase("accessdenied", "000000000000001", "000000", {}) {
+            script { attribute("type", "text/javascript"); }
+            val child = peek()?.firstChild();
+            if (child is TextNode && child.text()
+                    .trim() == "Sie konnten nicht angemeldet werden"
+            ) {
+                h1 { text("Sie konnten nicht angemeldet werden") }
+                p { text("Bitte versuchen Sie es erneut. Überprüfen Sie ggf. Ihre Zugangsdaten.") }
+                LoginResponse.InvalidCredentials
+            } else {
+                h1 { text("Anmeldung zur Zeit nicht möglich") }
+                p { text("Aufgrund einer Häufung fehlgeschlagener Einloggversuche ist dieses Benutzerkonto vorübergehend gesperrt.") }
+                LoginResponse.TooManyAttempts
+            }
+        }
+    }
+
+    fun Root.parseLoginSuccess() {
+        html {
+            head {
+            }
+            body {
+                header {
+                }
+            }
+        }
+    }
+}
