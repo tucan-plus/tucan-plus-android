@@ -179,9 +179,9 @@ fun Main(backStack: NavBackStack<NavKey>) {
 
 
 @Composable
-fun loadModules(): State<List<ModuleResults.Module>> {
+fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
     val context = LocalContext.current
-    return produceState(initialValue = listOf()) {
+    return produceState(initialValue = null) {
         val credentialSettings: CredentialSettings = context.credentialSettingsDataStore.data.first().inner!!
         val client = HttpClient()
         value = ModuleResults.getModuleResults(context, client, credentialSettings.sessionId,
@@ -196,11 +196,23 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
     val modules = loadModules()
     DetailedDrawerExample(backStack) { innerPadding ->
         Column(Modifier.padding(innerPadding)) {
-            modules.value.forEach { module ->
-                key(module.id) {
-                    ModuleComposable(module)
+            val values = modules.value
+            when (values) {
+                null -> {
+                    Text("Loading")
+                }
+                is ModuleResults.ModuleResultsResponse.SessionTimeout -> {
+                    Text("Session timeout")
+                }
+                is ModuleResults.ModuleResultsResponse.Success -> {
+                    values.modules.forEach { module ->
+                        key(module.id) {
+                            ModuleComposable(module)
+                        }
+                    }
                 }
             }
+
         }
     }
 }

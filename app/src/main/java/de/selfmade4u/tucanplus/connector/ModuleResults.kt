@@ -4,6 +4,7 @@ import android.content.Context
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
+import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
 import de.selfmade4u.tucanplus.connector.TucanLogin.LoginResponse
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginFailure
@@ -15,6 +16,7 @@ import de.selfmade4u.tucanplus.h1
 import de.selfmade4u.tucanplus.input
 import de.selfmade4u.tucanplus.label
 import de.selfmade4u.tucanplus.option
+import de.selfmade4u.tucanplus.p
 import de.selfmade4u.tucanplus.peek
 import de.selfmade4u.tucanplus.response
 import de.selfmade4u.tucanplus.script
@@ -110,8 +112,18 @@ object ModuleResults {
             }
         }) { pageType ->
             if (pageType == "timeout") {
-                // TODO handle timeout
-
+                script {
+                    attribute("type", "text/javascript")
+                    // empty
+                }
+                h1 { text("Timeout!") }
+                p {
+                    b {
+                        text("Es wurde seit den letzten 30 Minuten keine Abfrage mehr abgesetzt.")
+                        br {}
+                        text("Bitte melden Sie sich erneut an.")
+                    }
+                }
                 return@parseBase ModuleResultsResponse.SessionTimeout
             }
             check(pageType == "course_results")
