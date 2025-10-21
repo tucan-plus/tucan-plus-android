@@ -1,6 +1,7 @@
+@file:OptIn(ExperimentalContracts::class)
+
 package de.selfmade4u.tucanplus
 
-import android.R
 import android.content.Context
 import androidx.room.Room
 import com.fleeksoft.ksoup.Ksoup
@@ -150,7 +151,7 @@ class Response(val response: HttpResponse, var headers: MutableMap<String, List<
 }
 
 @OptIn(ExperimentalUuidApi::class)
-suspend fun <T> response(context: Context, response: HttpResponse, init: suspend Response.() -> T): T {
+suspend fun <T> response(context: Context? = null, response: HttpResponse, init: suspend Response.() -> T): T {
     try {
         return Response(response, response.headers.toMap().toMutableMap()).init()
     } catch (e: IllegalStateException) {
@@ -158,14 +159,23 @@ suspend fun <T> response(context: Context, response: HttpResponse, init: suspend
         // cd app/src/test/resource
         val filename = "error${Uuid.random()}.html"
         val fileContents = response.bodyAsText()
-        context.openFileOutput(filename, Context.MODE_PRIVATE).use {
-            it.write(fileContents.toByteArray())
+        if (context != null) {
+            context.openFileOutput(filename, Context.MODE_PRIVATE).use {
+                it.write(fileContents.toByteArray())
+            }
+            val db = Room.databaseBuilder(
+                context,
+                ParsingErrorsDatabase::class.java, "parsing-errors"
+            ).build()
+            db.parsingErrorDao().insertAll(
+                ParsingError(
+                    0,
+                    response.request.url.toString(),
+                    e.toString(),
+                    response.bodyAsText()
+                )
+            )
         }
-        val db = Room.databaseBuilder(
-            context,
-            ParsingErrorsDatabase::class.java, "parsing-errors"
-        ).build()
-        db.parsingErrorDao().insertAll(ParsingError(0, response.request.url.toString(), e.toString(), response.bodyAsText()))
         throw e
     }
 }
@@ -191,7 +201,11 @@ fun <R> Head.style(init: Head.() -> R): R = initTag("style", ::Head, init)
 
 fun <R> Body.script(init: Script.() -> R): R = initTag("script", ::Script, init)
 fun <R> Body.style(init: Body.() -> R): R = initTag("style", ::Body, init)
-fun <R> Body.a(init: Body.() -> R): R = initTag("a", ::Body, init)
+fun <R> Body.a(init: Body.() -> R): R {
+    contract { callsInPlace(init, InvocationKind.EXACTLY_ONCE) }
+    return initTag("a", ::Body, init)
+}
+
 fun <R> Body.div(init: Body.() -> R): R = initTag("div", ::Body, init)
 fun <R> Body.form(init: Body.() -> R): R = initTag("form", ::Body, init)
 fun <R> Body.fieldset(init: Body.() -> R): R = initTag("fieldset", ::Body, init)

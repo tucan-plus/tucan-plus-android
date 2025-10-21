@@ -67,10 +67,25 @@ object ModuleResults {
         }
     }
 
-    data class Module(val name: String)
+    // https://github.com/tucan-plus/tucan-plus/blob/640bb9cbb9e3f8d22e8b9d6ddaabb5256b2eb0e6/crates/tucan-types/src/lib.rs#L366
+    enum class ModuleGrade(val representation: String) {
+        G1_0("1,0"),
+        G1_3("1,3"),
+        G1_7("1,7"),
+        G2_0("2,0"),
+        G2_3("2,3"),
+        G2_7("2,7"),
+        G3_0("3,0"),
+        G3_3("3,3"),
+        G3_7("3,7"),
+        G4_0("4,0"),
+        G5_0("5,0"),
+    }
+
+    data class Module(val id: String, val name: String, val grade: ModuleGrade, val credits: Int, val resultdetailsUrl: String, val gradeoverviewUrl: String)
 
     fun Root.parseModuleResults(sessionId: String): List<Module> {
-        var modules = mutableListOf<Module>()
+        val modules = mutableListOf<Module>()
         parseBase("course_results", sessionId,"000324", {
             style {
                 attribute("type", "text/css")
@@ -180,22 +195,27 @@ object ModuleResults {
                     tbody {
                         while (peek()?.childNodes()?.filterNot(::shouldIgnore)?.first()?.normalName() == "td") {
                             val moduleId: String;
+                            val moduleName: String
+                            val moduleGrade: ModuleGrade
+                            val moduleCredits: Int
+                            val resultdetailsUrl: String
+                            val gradeoverviewUrl: String
                             tr {
                                 td { attribute("class", "tbdata"); moduleId = extractText() }
-                                td { attribute("class", "tbdata"); val moduleName = extractText() }
+                                moduleName = td { attribute("class", "tbdata"); extractText() }
                                 td {
                                     attribute("class", "tbdata_numeric")
                                     attribute("style", "vertical-align:top;")
-                                    val moduleGrade = extractText()
+                                    moduleGrade = ModuleGrade.valueOf(extractText())
                                 }
-                                td { attribute("class", "tbdata_numeric"); val moduleCredits = extractText() }
+                                td { attribute("class", "tbdata_numeric"); moduleCredits = extractText().toInt() }
                                 td { attribute("class", "tbdata"); val status = extractText() }
                                 td {
                                     attribute("class", "tbdata")
                                     attribute("style", "vertical-align:top;")
                                     a {
                                         attributeValue("id")
-                                        val resultdetailsUrl = attributeValue(
+                                        resultdetailsUrl = attributeValue(
                                             "href",
                                         )
                                         text("Prüfungen")
@@ -209,7 +229,7 @@ object ModuleResults {
                                     attribute("class", "tbdata")
                                     a {
                                         attributeValue("id")
-                                        val gradeoverviewUrl = attributeValue(
+                                        gradeoverviewUrl = attributeValue(
                                             "href",
                                         )
                                         attribute("class", "link")
@@ -222,11 +242,10 @@ object ModuleResults {
                                     }
                                 }
                             }
-                            val module = Module(moduleId)
+                            val module = Module(moduleId, moduleName, moduleGrade, moduleCredits, resultdetailsUrl, gradeoverviewUrl)
                             modules.add(module)
                         }
 
-                        // --- Summary Row ---
                         tr {
                             th {
                                 attribute("colspan", "2")

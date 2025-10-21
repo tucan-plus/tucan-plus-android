@@ -187,7 +187,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
     DetailedDrawerExample(backStack) { innerPadding ->
         Column(Modifier.padding(innerPadding)) {
             modules.value.forEach { module ->
-                Text("module $module.name")
+                Text("${module.name}")
             }
         }
     }

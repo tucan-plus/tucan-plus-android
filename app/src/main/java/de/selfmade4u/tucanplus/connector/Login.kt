@@ -78,7 +78,7 @@ object TucanLogin {
         }
     }
 
-    suspend fun doLogin(context: Context, client: HttpClient, username: String, password: String): LoginResponse {
+    suspend fun doLogin(client: HttpClient, username: String, password: String, context: Context? = null): LoginResponse {
         return response(context, doFetch(client, username, password)) {
             status(HttpStatusCode.OK)
             header(
