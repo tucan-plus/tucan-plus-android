@@ -1,12 +1,15 @@
 package de.selfmade4u.tucanplus
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,15 +25,22 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.UiMode
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.runtime.NavBackStack
@@ -161,7 +171,7 @@ fun Main(backStack: NavBackStack<NavKey>) {
         Button(
             modifier = Modifier.padding(innerPadding),
             onClick = {
-                backStack.add(LoginNavKey)
+                backStack[backStack.size - 1] = LoginNavKey
             }) { Text("Logout") }
     }
 }
@@ -187,8 +197,26 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
     DetailedDrawerExample(backStack) { innerPadding ->
         Column(Modifier.padding(innerPadding)) {
             modules.value.forEach { module ->
-                Text("${module.name}")
+                key(module.id) {
+                    ModuleComposable(module)
+                }
             }
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, widthDp = 200)
+@Composable
+fun ModuleComposable(module: ModuleResults.Module = ModuleResults.Module("id", "name", ModuleResults.ModuleGrade.G1_0, 1, "url", "url")) {
+    // https://developer.android.com/develop/ui/compose/layouts/basics
+    Row(horizontalArrangement = Arrangement.SpaceBetween) {
+        Column() {
+            Text("${module.name}")
+            Text("${module.id}", fontSize = 10.sp, color = Color.Gray)
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            Text("${module.credits} CP")
+            Text("Note ${module.grade.representation}")
         }
     }
 }

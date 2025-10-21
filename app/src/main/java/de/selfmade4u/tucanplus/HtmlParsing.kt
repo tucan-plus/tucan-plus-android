@@ -16,12 +16,15 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.toMap
+import java.io.File
+import java.io.FileOutputStream
 import java.security.MessageDigest
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+
 
 // https://kotlinlang.org/docs/type-safe-builders.html#how-it-works
 // https://kotlinlang.org/docs/ksp-overview.html
@@ -155,18 +158,19 @@ suspend fun <T> response(context: Context? = null, response: HttpResponse, init:
     try {
         return Response(response, response.headers.toMap().toMutableMap()).init()
     } catch (e: IllegalStateException) {
-        // TODO store error to disk
-        // cd app/src/test/resource
-        val filename = "error${Uuid.random()}.html"
-        val fileContents = response.bodyAsText()
+        // cd app/src/test/resources
+        // adb pull /data/data/de.selfmade4u.tucanplus/files/parsingerrors/
         if (context != null) {
-            context.openFileOutput(filename, Context.MODE_PRIVATE).use {
-                it.write(fileContents.toByteArray())
+            val dir = File(context.filesDir, "parsingerrors")
+            dir.mkdirs()
+            val fileOutputStream = FileOutputStream(File(dir,  "error${Uuid.random()}.html"))
+            fileOutputStream.use {
+                it.write( response.bodyAsText().toByteArray())
             }
             val db = Room.databaseBuilder(
                 context,
                 ParsingErrorsDatabase::class.java, "parsing-errors"
-            ).build()
+            ).fallbackToDestructiveMigration(true).build()
             db.parsingErrorDao().insertAll(
                 ParsingError(
                     0,

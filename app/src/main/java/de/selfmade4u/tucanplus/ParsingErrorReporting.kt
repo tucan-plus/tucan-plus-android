@@ -15,7 +15,7 @@ import androidx.room.RoomDatabase
 
 @Entity
 data class ParsingError(
-    @PrimaryKey val uid: Int,
+    @PrimaryKey(autoGenerate = true) val uid: Int,
     val url: String?,
     val error: String?,
     val source: String?
@@ -30,7 +30,7 @@ interface ParsingErrorDao {
     suspend fun insertAll(vararg users: ParsingError)
 }
 
-@Database(entities = [ParsingError::class], version = 1)
+@Database(entities = [ParsingError::class], version = 2)
 abstract class ParsingErrorsDatabase : RoomDatabase() {
     abstract fun parsingErrorDao(): ParsingErrorDao
 }
