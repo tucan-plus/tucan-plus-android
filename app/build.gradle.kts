@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    id("kotlin-android")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -34,6 +36,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    kotlin {
+        jvmToolchain(11)
+    }
     buildFeatures {
         compose = true
     }
@@ -57,6 +62,9 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation("com.fleeksoft.ksoup:ksoup:0.2.5")
+    implementation(libs.room)
+    ksp(libs.room.compiler)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

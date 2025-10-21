@@ -1,5 +1,6 @@
 package de.selfmade4u.tucanplus.connector
 
+import android.content.Context
 import android.util.Log
 import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.TextNode
@@ -45,7 +46,7 @@ object TucanLogin {
         data object TooManyAttempts : LoginResponse()
     }
 
-    suspend fun doLogin(client: HttpClient, username: String, password: String): LoginResponse {
+    suspend fun doLogin(context: Context, client: HttpClient, username: String, password: String): LoginResponse {
         val r = client.submitForm(
             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll",
             formParameters = parameters {
@@ -60,7 +61,7 @@ object TucanLogin {
                 append("browser", "")
                 append("platform", "")
             })
-        return response(r) {
+        return response(context, r) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",

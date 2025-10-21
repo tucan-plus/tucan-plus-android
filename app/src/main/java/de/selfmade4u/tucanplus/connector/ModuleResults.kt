@@ -1,5 +1,6 @@
 package de.selfmade4u.tucanplus.connector
 
+import android.content.Context
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
@@ -35,11 +36,11 @@ import io.ktor.http.parameters
 
 object ModuleResults {
 
-    suspend fun getModuleResults(client: HttpClient, sessionId: String, sessionCookie: String): List<Module> {
+    suspend fun getModuleResults(context: Context, client: HttpClient, sessionId: String, sessionCookie: String): List<Module> {
         val r = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,") {
             cookie("cnsc", sessionCookie)
         }
-        return response(r) {
+        return response(context, r) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",

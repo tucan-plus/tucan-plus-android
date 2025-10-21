@@ -174,7 +174,7 @@ fun loadModules(): State<List<ModuleResults.Module>> {
     return produceState(initialValue = listOf()) {
         val credentialSettings: CredentialSettings = context.credentialSettingsDataStore.data.first().inner!!
         val client = HttpClient()
-        value = ModuleResults.getModuleResults(client, credentialSettings.sessionId,
+        value = ModuleResults.getModuleResults(context, client, credentialSettings.sessionId,
             CipherManager.decrypt(credentialSettings.encryptedSessionCookie))
         Log.e("LOADED", value.toString())
     }

@@ -1,6 +1,8 @@
 package de.selfmade4u.tucanplus
 
 import android.R
+import android.content.Context
+import androidx.room.Room
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Attribute
 import com.fleeksoft.ksoup.nodes.Comment
@@ -10,6 +12,7 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.TextNode
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.toMap
 import java.security.MessageDigest
@@ -144,8 +147,18 @@ class Response(val response: HttpResponse, var headers: MutableMap<String, List<
 
 }
 
-suspend fun <T> response(response: HttpResponse, init: suspend Response.() -> T): T {
-    return Response(response, response.headers.toMap().toMutableMap()).init()
+suspend fun <T> response(context: Context, response: HttpResponse, init: suspend Response.() -> T): T {
+    try {
+        return Response(response, response.headers.toMap().toMutableMap()).init()
+    } catch (e: IllegalStateException) {
+        // TODO store error to disk
+        val db = Room.databaseBuilder(
+            context,
+            ParsingErrorsDatabase::class.java, "parsing-errors"
+        ).build()
+        db.parsingErrorDao().insertAll(ParsingError(0, response.request.url.toString(), e.toString(), response.bodyAsText()))
+        throw e
+    }
 }
 
 fun <T> root(document: Document, init: Root.() -> T): T {
@@ -215,6 +228,9 @@ fun HtmlTag.peek(): Node? {
 fun <P: HtmlTag, C, R> P.initTag(tag: String, createTag: (iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) -> C, init: C.() -> R): R {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+    }
+    if (this.children.isEmpty()) {
+        throw IllegalStateException("actual no children, expected at least one")
     }
     val next = this.children.removeAt(0)
     check(next.nameIs(tag)) { "actual   ${next.normalName()} expected $tag" }
