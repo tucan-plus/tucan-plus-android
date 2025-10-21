@@ -116,7 +116,8 @@ object TucanLogin {
     }
 
     fun Root.parseLoginFailure(): LoginResponse {
-        return parseBase("accessdenied", "000000000000001", "000000", {}) {
+        return parseBase("000000000000001", "000000", {}) { pageType ->
+            check(pageType == "accessdenied")
             script { attribute("type", "text/javascript"); }
             val child = peek()?.firstChild();
             if (child is TextNode && child.text()

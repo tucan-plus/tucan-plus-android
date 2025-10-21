@@ -26,7 +26,9 @@ import de.selfmade4u.tucanplus.title
 import de.selfmade4u.tucanplus.ul
 
 object Common {
-    fun <T> Root.parseBase(page: String, sessionId: String, menuId: String, headInit: Head.() -> Unit, inner: Body.() -> T): T {
+    fun <T> Root.parseBase(sessionId: String, menuId: String, headInit: Head.() -> Unit, inner: Body.(pageType: String) -> T): T {
+        var sessionId = sessionId
+        var menuId = menuId
         doctype {
             attribute("#doctype", "html")
             attribute("name", "html")
@@ -146,7 +148,11 @@ object Common {
                 headInit()
             }
             body {
-                attribute("class", page)
+                val pageType = attributeValue("class")
+                if (pageType == "timeout") {
+                    sessionId = "000000000000001"
+                    menuId = "000000"
+                }
 
                 div {
                     attribute("id", "Cn-system-desc")
@@ -612,7 +618,7 @@ object Common {
                                 "class",
                                 "pageElementTop"
                             )
-                                inner()
+                                inner(pageType)
                             }
                         }
                         result

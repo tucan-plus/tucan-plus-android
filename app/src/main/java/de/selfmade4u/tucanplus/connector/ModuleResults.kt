@@ -86,20 +86,25 @@ object ModuleResults {
 
     fun Root.parseModuleResults(sessionId: String): List<Module> {
         val modules = mutableListOf<Module>()
-        parseBase("course_results", sessionId,"000324", {
-            style {
-                attribute("type", "text/css")
-                dataHash("8359c082fbd232a6739e5e2baec433802e3a0e2121ff2ff7d5140de3955fa905")
+        parseBase(sessionId,"000324", {
+            if (peek() != null) {
+                style {
+                    attribute("type", "text/css")
+                    dataHash("8359c082fbd232a6739e5e2baec433802e3a0e2121ff2ff7d5140de3955fa905")
+                }
+                style {
+                    attribute("type", "text/css")
+                    dataHash("c7cbaeb4c3ca010326679083d945831e5a08d230c5542d335e297a524f1e9b61")
+                }
+                style {
+                    attribute("type", "text/css")
+                    dataHash("7fa9b301efd5a3e8f3a1c11c4283cbcf24ab1d7090b1bad17e8246e46bc31c45")
+                }
+            } else {
+                print("not the normal page")
             }
-            style {
-                attribute("type", "text/css")
-                dataHash("c7cbaeb4c3ca010326679083d945831e5a08d230c5542d335e297a524f1e9b61")
-            }
-            style {
-                attribute("type", "text/css")
-                dataHash("7fa9b301efd5a3e8f3a1c11c4283cbcf24ab1d7090b1bad17e8246e46bc31c45")
-            }
-        }) {
+        }) { pageType ->
+            check(pageType == "course_results")
             script {
                 attribute("type", "text/javascript")
                 // empty
