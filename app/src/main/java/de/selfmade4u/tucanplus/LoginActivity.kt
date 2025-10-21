@@ -83,7 +83,6 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                                 "Falscher Nutzername oder Passwort"
                             )
                         }
-
                         is TucanLogin.LoginResponse.Success -> {
                             context.credentialSettingsDataStore.updateData { currentSettings ->
                                 OptionalCredentialSettings(
@@ -92,7 +91,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                                             usernameState.text.toString()
                                         ),
                                         encryptedPassword = CipherManager.encrypt(passwordState.text.toString()),
-                                        sessionId = response.sessionId,
+                                        encryptedSessionId = CipherManager.encrypt(response.sessionId),
                                         encryptedSessionCookie = CipherManager.encrypt(response.sessionSecret)
                                     )
                                 )

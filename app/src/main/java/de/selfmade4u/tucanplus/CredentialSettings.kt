@@ -23,7 +23,7 @@ import java.util.Optional
 data class CredentialSettings(
     val encryptedUserName: Pair<String, String>,
     val encryptedPassword: Pair<String, String>,
-    val sessionId: String,
+    val encryptedSessionId: Pair<String, String>,
     val encryptedSessionCookie: Pair<String, String>,
 )
 

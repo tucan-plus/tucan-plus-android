@@ -3,6 +3,7 @@ package de.selfmade4u.tucanplus
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -49,6 +50,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import de.selfmade4u.tucanplus.connector.ModuleResults
+import de.selfmade4u.tucanplus.connector.TucanLogin
 import de.selfmade4u.tucanplus.ui.theme.TUCaNPlusTheme
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.first
@@ -184,8 +186,47 @@ fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
     return produceState(initialValue = null) {
         val credentialSettings: CredentialSettings = context.credentialSettingsDataStore.data.first().inner!!
         val client = HttpClient()
-        value = ModuleResults.getModuleResults(context, client, credentialSettings.sessionId,
+        var response = ModuleResults.getModuleResults(context, client, CipherManager.decrypt(credentialSettings.encryptedSessionId),
             CipherManager.decrypt(credentialSettings.encryptedSessionCookie))
+        if (response is ModuleResults.ModuleResultsResponse.SessionTimeout) {
+            Toast.makeText(context, "Reauthenticating", Toast.LENGTH_SHORT).show()
+            val loginResponse = TucanLogin.doLogin(
+                client,
+                CipherManager.decrypt(credentialSettings.encryptedUserName),
+                CipherManager.decrypt(credentialSettings.encryptedPassword),
+                context,
+            )
+            when (loginResponse) {
+                is TucanLogin.LoginResponse.InvalidCredentials -> launch {
+                    Toast.makeText(context, "Ungültiger Username oder Password", Toast.LENGTH_LONG).show()
+                    // backStack[backStack.size - 1] = MainNavKey
+                    // TODO clear store
+                }
+                is TucanLogin.LoginResponse.Success -> {
+                    context.credentialSettingsDataStore.updateData { currentSettings ->
+                        OptionalCredentialSettings(
+                            CredentialSettings(
+                                encryptedUserName = CipherManager.encrypt(
+                                    CipherManager.decrypt(credentialSettings.encryptedUserName)
+                                ),
+                                encryptedPassword = CipherManager.encrypt(
+                                    CipherManager.decrypt(credentialSettings.encryptedPassword)
+                                ),
+                                encryptedSessionId = CipherManager.encrypt(loginResponse.sessionId),
+                                encryptedSessionCookie = CipherManager.encrypt(loginResponse.sessionSecret)
+                            )
+                        )
+                    }
+                    response = ModuleResults.getModuleResults(context, client, loginResponse.sessionId,
+                        loginResponse.sessionSecret)
+                }
+                is TucanLogin.LoginResponse.TooManyAttempts -> launch {
+                    // bad
+                    Toast.makeText(context, "Zu viele Anmeldeversuche", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+        value = response
         Log.e("LOADED", value.toString())
     }
 }
