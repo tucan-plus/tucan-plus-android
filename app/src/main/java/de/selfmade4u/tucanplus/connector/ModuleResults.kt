@@ -36,7 +36,7 @@ import io.ktor.http.parameters
 
 object ModuleResults {
 
-    suspend fun getModuleResults(context: Context, client: HttpClient, sessionId: String, sessionCookie: String): List<Module> {
+    suspend fun getModuleResults(context: Context, client: HttpClient, sessionId: String, sessionCookie: String): ModuleResultsResponse {
         val r = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,") {
             cookie("cnsc", sessionCookie)
         }
@@ -84,9 +84,14 @@ object ModuleResults {
 
     data class Module(val id: String, val name: String, val grade: ModuleGrade, val credits: Int, val resultdetailsUrl: String, val gradeoverviewUrl: String)
 
-    fun Root.parseModuleResults(sessionId: String): List<Module> {
+    sealed class ModuleResultsResponse {
+        data class Success(var modules: List<Module>) : ModuleResultsResponse()
+        data object SessionTimeout : ModuleResultsResponse()
+    }
+
+    fun Root.parseModuleResults(sessionId: String): ModuleResultsResponse {
         val modules = mutableListOf<Module>()
-        parseBase(sessionId,"000324", {
+        val response = parseBase(sessionId,"000324", {
             if (peek() != null) {
                 style {
                     attribute("type", "text/css")
@@ -104,6 +109,11 @@ object ModuleResults {
                 print("not the normal page")
             }
         }) { pageType ->
+            if (pageType == "timeout") {
+                // TODO handle timeout
+
+                return@parseBase ModuleResultsResponse.SessionTimeout
+            }
             check(pageType == "course_results")
             script {
                 attribute("type", "text/javascript")
@@ -272,7 +282,8 @@ object ModuleResults {
                     }
                 }
             }
+            return@parseBase ModuleResultsResponse.Success(modules)
         }
-        return modules
+        return response
     }
 }
