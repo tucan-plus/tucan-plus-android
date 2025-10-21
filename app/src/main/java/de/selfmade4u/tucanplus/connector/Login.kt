@@ -33,7 +33,9 @@ import de.selfmade4u.tucanplus.script
 import de.selfmade4u.tucanplus.title
 import de.selfmade4u.tucanplus.ul
 import io.ktor.client.HttpClient
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.forms.submitForm
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
@@ -46,22 +48,38 @@ object TucanLogin {
         data object TooManyAttempts : LoginResponse()
     }
 
+    private suspend fun doFetch(client: HttpClient, username: String, password: String): HttpResponse {
+        var i = 0;
+        while (true) {
+            try {
+                val r = client.submitForm(
+                    "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll",
+                    formParameters = parameters {
+                        append("usrname", username)
+                        append("pass", password)
+                        append("APPNAME", "CampusNet")
+                        append("PRGNAME", "LOGINCHECK")
+                        append("ARGUMENTS", "clino,usrname,pass,menuno,menu_type,browser,platform")
+                        append("clino", "000000000000001")
+                        append("menuno", "000344")
+                        append("menu_type", "classic")
+                        append("browser", "")
+                        append("platform", "")
+                    })
+                return r
+            } catch (e: ConnectTimeoutException) {
+                Log.e("TucanLogin", "ConnectTimeoutException", e)
+                // TODO FIXME generalize
+                if (i == 5) {
+                    throw e
+                }
+            }
+            i += 1;
+        }
+    }
+
     suspend fun doLogin(context: Context, client: HttpClient, username: String, password: String): LoginResponse {
-        val r = client.submitForm(
-            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll",
-            formParameters = parameters {
-                append("usrname", username)
-                append("pass", password)
-                append("APPNAME", "CampusNet")
-                append("PRGNAME", "LOGINCHECK")
-                append("ARGUMENTS", "clino,usrname,pass,menuno,menu_type,browser,platform")
-                append("clino", "000000000000001")
-                append("menuno", "000344")
-                append("menu_type", "classic")
-                append("browser", "")
-                append("platform", "")
-            })
-        return response(context, r) {
+        return response(context, doFetch(client, username, password)) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",

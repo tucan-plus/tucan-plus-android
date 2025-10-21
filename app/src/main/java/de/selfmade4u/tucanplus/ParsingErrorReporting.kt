@@ -9,6 +9,10 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
+// https://developer.android.com/training/data-storage/app-specific#create-storage-management-activity
+
+// we could automatically recheck if this still fails to parse on updates
+
 @Entity
 data class ParsingError(
     @PrimaryKey val uid: Int,
@@ -20,10 +24,10 @@ data class ParsingError(
 @Dao
 interface ParsingErrorDao {
     @Query("SELECT * FROM parsingerror")
-    fun getAll(): List<ParsingError>
+    suspend fun getAll(): List<ParsingError>
 
     @Insert
-    fun insertAll(vararg users: ParsingError)
+    suspend fun insertAll(vararg users: ParsingError)
 }
 
 @Database(entities = [ParsingError::class], version = 1)

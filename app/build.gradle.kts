@@ -61,8 +61,9 @@ dependencies {
     implementation(libs.splashscreen)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
-    implementation("com.fleeksoft.ksoup:ksoup:0.2.5")
+    implementation(libs.ksoup)
     implementation(libs.room)
+    implementation(libs.androidx.room.ktx)
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)

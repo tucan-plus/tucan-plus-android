@@ -19,6 +19,8 @@ import java.security.MessageDigest
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 // https://kotlinlang.org/docs/type-safe-builders.html#how-it-works
 // https://kotlinlang.org/docs/ksp-overview.html
@@ -147,11 +149,18 @@ class Response(val response: HttpResponse, var headers: MutableMap<String, List<
 
 }
 
+@OptIn(ExperimentalUuidApi::class)
 suspend fun <T> response(context: Context, response: HttpResponse, init: suspend Response.() -> T): T {
     try {
         return Response(response, response.headers.toMap().toMutableMap()).init()
     } catch (e: IllegalStateException) {
         // TODO store error to disk
+        // cd app/src/test/resource
+        val filename = "error${Uuid.random()}.html"
+        val fileContents = response.bodyAsText()
+        context.openFileOutput(filename, Context.MODE_PRIVATE).use {
+            it.write(fileContents.toByteArray())
+        }
         val db = Room.databaseBuilder(
             context,
             ParsingErrorsDatabase::class.java, "parsing-errors"
