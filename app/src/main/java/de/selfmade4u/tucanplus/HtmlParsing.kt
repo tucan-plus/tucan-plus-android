@@ -63,7 +63,7 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableI
         check(!attributes.hasNext()) { attributes.next() }
         val next = this.children.removeAt(0)
         check(next is TextNode) { next }
-        return next.text()
+        return next.text().trim()
     }
     fun text(text: String) {
         check(text.trim().isNotEmpty()) { "expected text cannot be empty" }

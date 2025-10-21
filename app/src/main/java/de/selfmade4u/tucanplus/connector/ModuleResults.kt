@@ -206,9 +206,12 @@ object ModuleResults {
                                 td {
                                     attribute("class", "tbdata_numeric")
                                     attribute("style", "vertical-align:top;")
-                                    moduleGrade = ModuleGrade.valueOf(extractText())
+                                    val moduleGradeText = extractText()
+                                    moduleGrade = ModuleGrade.entries.find { it.representation == moduleGradeText } ?: run {
+                                        throw IllegalStateException("Unknown grade `$moduleGradeText`")
+                                    }
                                 }
-                                td { attribute("class", "tbdata_numeric"); moduleCredits = extractText().toInt() }
+                                td { attribute("class", "tbdata_numeric"); moduleCredits = extractText().replace(",0", "").toInt() }
                                 td { attribute("class", "tbdata"); val status = extractText() }
                                 td {
                                     attribute("class", "tbdata")
