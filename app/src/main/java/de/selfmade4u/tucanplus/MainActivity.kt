@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -262,7 +263,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
 @Composable
 fun ModuleComposable(module: ModuleResults.Module = ModuleResults.Module("id", "name", ModuleResults.ModuleGrade.G1_0, 1, "url", "url")) {
     // https://developer.android.com/develop/ui/compose/layouts/basics
-    Row(horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Column() {
             Text("${module.name}")
             Text("${module.id}", fontSize = 10.sp, color = Color.Gray)
