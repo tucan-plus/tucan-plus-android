@@ -42,9 +42,9 @@ fun String.hashedWithSha256() =
 annotation class HtmlTagMarker
 
 @HtmlTagMarker
-abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableIterator<Attribute>) {
+abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableList<Attribute>) {
     fun attribute(key: String, value: String?) {
-        val attribute = attributes.next()
+        val attribute = attributes.removeAt(0)
         if (attribute.key == "class") {
             attribute.setValue(attribute.value.trim())
         }
@@ -55,7 +55,7 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableI
         }
     }
     fun attributeValue(key: String): String {
-        val attribute = attributes.next()
+        val attribute = attributes.removeAt(0)
         if (attribute.key == "class") {
             attribute.setValue(attribute.value.trim())
         }
@@ -63,41 +63,41 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableI
         return attribute.value
     }
     fun extractText(): String {
-        check(!attributes.hasNext()) { attributes.next() }
+        check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is TextNode) { next }
         return next.text().trim()
     }
     fun text(text: String) {
         check(text.trim().isNotEmpty()) { "expected text cannot be empty" }
-        check(!attributes.hasNext()) { attributes.next() }
+        check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is TextNode) { next }
         check(next.text().trim() == text) { "actual   $${next.text().trim()}$\nexpected $${text}$" }
     }
     fun dataHash(hash: String) {
-        check(!attributes.hasNext()) { attributes.next() }
+        check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is DataNode) { next }
         check(next.getWholeData().hashedWithSha256() == hash) { "${next.getWholeData().hashedWithSha256()} $${next.getWholeData()}$" }
     }
     fun extractData(): String {
-        check(!attributes.hasNext()) { attributes.next() }
+        check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is DataNode) { next }
         return next.getWholeData()
     }
 }
 
-class Root(iterator: MutableList<Node>) : HtmlTag(iterator, mutableListOf<Attribute>().iterator())
-class Doctype(iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) : HtmlTag(iterator, attributes)
-class Html(iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) : HtmlTag(iterator, attributes)
-class Head(iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) : HtmlTag(iterator, attributes)
-class Body(iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) : HtmlTag(iterator, attributes)
-class Title(iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) : HtmlTag(iterator, attributes)
-class Meta(iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) : HtmlTag(iterator, attributes)
-class Link(iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) : HtmlTag(iterator, attributes)
-class Script(iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) : HtmlTag(iterator, attributes)
+class Root(nodeList: MutableList<Node>) : HtmlTag(nodeList, mutableListOf())
+class Doctype(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
+class Html(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
+class Head(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
+class Body(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
+class Title(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
+class Meta(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
+class Link(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
+class Script(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
 
 fun shouldIgnore(node: Node): Boolean =
     node is Comment || (node is TextNode && node.text().replace("\\r\\n", "").trim().isEmpty())
@@ -252,8 +252,12 @@ fun HtmlTag.peek(): Node? {
     return this.children.firstOrNull()
 }
 
+fun HtmlTag.peekAttribute(): Attribute? {
+    return this.attributes.firstOrNull()
+}
+
 @OptIn(ExperimentalContracts::class)
-fun <P: HtmlTag, C, R> P.initTag(tag: String, createTag: (iterator: MutableList<Node>, attributes: MutableIterator<Attribute>) -> C, init: C.() -> R): R {
+fun <P: HtmlTag, C, R> P.initTag(tag: String, createTag: (iterator: MutableList<Node>, attributes: MutableList<Attribute>) -> C, init: C.() -> R): R {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
     }
@@ -262,11 +266,11 @@ fun <P: HtmlTag, C, R> P.initTag(tag: String, createTag: (iterator: MutableList<
     }
     val next = this.children.removeAt(0)
     check(next.nameIs(tag)) { "actual   ${next.normalName()} expected $tag" }
-    val attributes = next.attributes().iterator()
+    val attributes = next.attributes().toMutableList()
     val childIterator = next.childNodes().filterNot(::shouldIgnore).toMutableList();
     val node = createTag(childIterator, attributes)
     val ret = node.init()
-    check(!attributes.hasNext()) { "${next.normalName()} unparsed attributes ${attributes.next()}" }
+    check(attributes.isEmpty()) { "${next.normalName()} unparsed attributes ${attributes.removeAt(0)}" }
     check(childIterator.isEmpty()) { "unparsed children in $tag ${childIterator}" }
     return ret
 }

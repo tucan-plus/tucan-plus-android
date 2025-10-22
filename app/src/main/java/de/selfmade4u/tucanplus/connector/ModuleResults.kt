@@ -18,6 +18,7 @@ import de.selfmade4u.tucanplus.label
 import de.selfmade4u.tucanplus.option
 import de.selfmade4u.tucanplus.p
 import de.selfmade4u.tucanplus.peek
+import de.selfmade4u.tucanplus.peekAttribute
 import de.selfmade4u.tucanplus.response
 import de.selfmade4u.tucanplus.script
 import de.selfmade4u.tucanplus.select
@@ -168,19 +169,17 @@ object ModuleResults {
                                     )
                                     attribute("class", "tabledata")
 
-                                    option {
-                                        attribute("value", "000000015176000")
-                                        attribute("selected", "selected")
-                                        text("SoSe 2025")
+                                    // we can predict the value so we could use this at some places do directly get correct value
+                                    // maybe do everywhere for consistency
+                                    while (peek() != null) {
+                                        option {
+                                            val value = attributeValue("value")
+                                            if (peekAttribute()?.key == "selected") {
+                                                attribute("selected", "selected")
+                                            }
+                                            val semesterName = extractText() // SoSe 2025; WiSe 2024/25
+                                        }
                                     }
-                                    option { attribute("value", "000000015166000"); text("WiSe 2024/25") }
-                                    option { attribute("value", "000000015156000"); text("SoSe 2024") }
-                                    option { attribute("value", "000000015136000"); text("SoSe 2023") }
-                                    option { attribute("value", "000000015126000"); text("WiSe 2022/23") }
-                                    option { attribute("value", "000000015116000"); text("SoSe 2022") }
-                                    option { attribute("value", "000000015106000"); text("WiSe 2021/22") }
-                                    option { attribute("value", "000000015096000"); text("SoSe 2021") }
-                                    option { attribute("value", "000000015086000"); text("WiSe 2020/21") }
                                 }
 
                                 input {
