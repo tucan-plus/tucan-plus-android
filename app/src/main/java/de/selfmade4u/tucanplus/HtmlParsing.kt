@@ -224,7 +224,7 @@ fun <R> Body.header(init: Body.() -> R): R = initTag("header", ::Body, init)
 fun <R> Body.span(init: Body.() -> R): R = initTag("span", ::Body, init)
 fun <R> Body.b(init: Body.() -> R): R = initTag("b", ::Body, init)
 fun <R> Body.br(init: Body.() -> R): R = initTag("br", ::Body, init)
-fun <R> Body.option(init: Body.() -> R): R = initTag("option", ::Body, init)
+fun <R> Body.option(init: Body.() -> R): R { contract { callsInPlace(init, InvocationKind.EXACTLY_ONCE) }; return initTag("option", ::Body, init) }
 fun <R> Body.input(init: Body.() -> R): R = initTag("input", ::Body, init)
 fun <R> Body.select(init: Body.() -> R): R = initTag("select", ::Body, init)
 fun <R> Body.table(init: Body.() -> R): R = initTag("table", ::Body, init)

@@ -87,13 +87,21 @@ object ModuleResults {
 
     data class Module(val id: String, val name: String, val grade: ModuleGrade, val credits: Int, val resultdetailsUrl: String, val gradeoverviewUrl: String)
 
+    enum class Semester {
+        Sommersemester,
+        Wintersemester
+    }
+
+    data class Semesterauswahl(val id: Int, val selected: Boolean, val year: Int, val semester: Semester)
+
     sealed class ModuleResultsResponse {
-        data class Success(var modules: List<Module>) : ModuleResultsResponse()
+        data class Success(var semesters: List<Semesterauswahl>, var modules: List<Module>) : ModuleResultsResponse()
         data object SessionTimeout : ModuleResultsResponse()
     }
 
     fun Root.parseModuleResults(sessionId: String): ModuleResultsResponse {
         val modules = mutableListOf<Module>()
+        val semesters = mutableListOf<Semesterauswahl>()
         val response = parseBase(sessionId,"000324", {
             if (peek() != null) {
                 style {
@@ -172,13 +180,28 @@ object ModuleResults {
                                     // we can predict the value so we could use this at some places do directly get correct value
                                     // maybe do everywhere for consistency
                                     while (peek() != null) {
+                                        val value: Int
+                                        val selected: Boolean
+                                        val semester: Semester
+                                        val year: Int
                                         option {
-                                            val value = attributeValue("value")
-                                            if (peekAttribute()?.key == "selected") {
+                                            value = attributeValue("value").trimStart('0').toInt()
+                                            selected = if (peekAttribute()?.key == "selected") {
                                                 attribute("selected", "selected")
+                                                true
+                                            } else {
+                                                false
                                             }
                                             val semesterName = extractText() // SoSe 2025; WiSe 2024/25
+                                             if (semesterName.startsWith(("SoSe "))) {
+                                                year = semesterName.removePrefix("SoSe ").toInt();
+                                                semester = Semester.Sommersemester
+                                            } else {
+                                                year = semesterName.removePrefix("WiSe ").substringBefore("/").toInt();
+                                                semester = Semester.Wintersemester
+                                            }
                                         }
+                                        semesters.add(Semesterauswahl(value, selected, year, semester))
                                     }
                                 }
 
@@ -293,7 +316,7 @@ object ModuleResults {
                     }
                 }
             }
-            return@parseBase ModuleResultsResponse.Success(modules)
+            return@parseBase ModuleResultsResponse.Success(semesters, modules)
         }
         return response
     }
