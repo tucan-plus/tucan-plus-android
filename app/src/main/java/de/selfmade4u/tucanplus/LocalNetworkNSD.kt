@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import java.net.ConnectException
 import java.net.InetAddress
 import java.net.ServerSocket
 import kotlin.uuid.ExperimentalUuidApi
@@ -78,6 +79,12 @@ fun ShowLocalServices() {
                 val server = embeddedServer(CIO, port = 0) {
                     routing {
                         get("/") {
+                            Toast.makeText(
+                                context,
+                                "Responded to someone",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
                             call.respondText("Hello, world!")
                         }
                     }
@@ -94,19 +101,35 @@ fun ShowLocalServices() {
         discovered.forEach { peer ->
             key(peer.serviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }
-                Text("$currentPeer", modifier = Modifier
-                    .clickable(enabled = true) {
-                        coroutineScope.launch {
-                            currentPeer = nsdManager.resolveService(peer)
-                            @Suppress("DEPRECATION")
-                            // Official Fairphone 3 OS does not support the new registerServiceInfoCallback API
-                            val host = currentPeer.host
-                            val port: Int = currentPeer.port
-                            val client = HttpClient()
-                            val response = client.get("http://$host:$port/")
-                            Toast.makeText(context, response.bodyAsText(), Toast.LENGTH_SHORT).show()
-                        }
-                    })
+                Text(
+                    "$currentPeer", modifier = Modifier
+                        .clickable(enabled = true) {
+                            coroutineScope.launch {
+                                currentPeer = nsdManager.resolveService(peer)
+                                @Suppress("DEPRECATION")
+                                // Official Fairphone 3 OS does not support the new registerServiceInfoCallback API
+                                val host = currentPeer.host
+                                val port: Int = currentPeer.port
+                                val client = HttpClient()
+                                try {
+                                    val response = client.get("http://$host:$port/")
+                                    Toast.makeText(
+                                        context,
+                                        response.bodyAsText(),
+                                        Toast.LENGTH_SHORT
+                                    )
+                                        .show()
+                                } catch (e: ConnectException) {
+                                    Log.e("TucanLogin", "ConnectException", e)
+                                    Toast.makeText(
+                                        context,
+                                        "ConnectException $e",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                        .show()
+                                }
+                            }
+                        })
             }
         }
     }
