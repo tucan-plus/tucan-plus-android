@@ -126,10 +126,12 @@ suspend fun NsdManager.resolveService(serviceInfo: NsdServiceInfo): NsdServiceIn
             serviceInfo: NsdServiceInfo?,
             errorCode: Int
         ) {
+            Log.d(TAG, "onResolveFailed $serviceInfo $errorCode")
             continuation.resumeWithException(Exception("Resolve failed for $serviceInfo with error code $errorCode"))
         }
 
         override fun onServiceResolved(serviceInfo: NsdServiceInfo?) {
+            Log.d(TAG, "onServiceResolved")
             continuation.resume(serviceInfo!!)
         }
     }

@@ -32,8 +32,13 @@ import de.selfmade4u.tucanplus.ext.resolveService
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.server.application.ApplicationEnvironment
+import io.ktor.server.application.serverConfig
 import io.ktor.server.cio.CIO
+import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.engine.ApplicationEnvironmentBuilder
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.engine.loadCommonConfiguration
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -45,6 +50,7 @@ import kotlinx.coroutines.launch
 import java.net.ConnectException
 import java.net.InetAddress
 import java.net.ServerSocket
+import kotlin.collections.listOf
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -76,12 +82,14 @@ fun ShowLocalServices() {
             val info = NsdServiceInfo().apply {
                 serviceName = "TucanPlus ${Uuid.random()}"
                 serviceType = SERVICE_TYPE
-                val server = embeddedServer(CIO, port = 0) {
+                System.setProperty("io.ktor.development", "true")
+                val server = embeddedServer(CIO, port = 0, watchPaths = listOf()) {
                     routing {
                         get("/") {
+                            Log.d(TAG, "Responding to someone")
                             Toast.makeText(
                                 context,
-                                "Responded to someone",
+                                "Responding to someone",
                                 Toast.LENGTH_SHORT
                             )
                                 .show()
@@ -112,10 +120,12 @@ fun ShowLocalServices() {
                                 val port: Int = currentPeer.port
                                 val client = HttpClient()
                                 try {
+                                    Log.d(TAG, "Trying to connect to http://$host:$port/")
                                     val response = client.get("http://$host:$port/")
+                                    Log.d(TAG, "Got response $response ${response.bodyAsText()}")
                                     Toast.makeText(
                                         context,
-                                        response.bodyAsText(),
+                                        "Got response $response ${response.bodyAsText()}",
                                         Toast.LENGTH_SHORT
                                     )
                                         .show()
@@ -123,7 +133,7 @@ fun ShowLocalServices() {
                                     Log.e("TucanLogin", "ConnectException", e)
                                     Toast.makeText(
                                         context,
-                                        "ConnectException $e",
+                                        "ConnectException http://$host:$port/ $e",
                                         Toast.LENGTH_SHORT
                                     )
                                         .show()
