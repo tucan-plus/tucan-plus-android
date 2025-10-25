@@ -87,13 +87,8 @@ fun ShowLocalServices() {
                     routing {
                         get("/") {
                             Log.d(TAG, "Responding to someone")
-                            Toast.makeText(
-                                context,
-                                "Responding to someone",
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
                             call.respondText("Hello, world!")
+                            Log.d(TAG, "Responded to someone")
                         }
                     }
                 }.startSuspend(false)
