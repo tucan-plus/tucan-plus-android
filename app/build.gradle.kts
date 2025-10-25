@@ -69,6 +69,8 @@ dependencies {
     implementation(libs.splashscreen)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.cio)
     implementation(libs.ksoup)
     implementation(libs.room)
     implementation(libs.androidx.room.ktx)

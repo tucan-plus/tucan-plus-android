@@ -28,8 +28,12 @@ import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ext.awaitRegisterService
 import de.selfmade4u.tucanplus.ext.registerAndDiscoverServicesFlow
 import de.selfmade4u.tucanplus.ext.resolveService
+import io.ktor.server.cio.CIO
+import io.ktor.server.engine.embeddedServer
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.launch
+import java.net.InetAddress
+import java.net.ServerSocket
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -57,9 +61,12 @@ fun ShowLocalServices() {
     val context = LocalContext.current
     val nsdManager = getSystemService(context, NsdManager::class.java)!!
     val flow = remember { nsdManager.registerAndDiscoverServicesFlow(NsdServiceInfo().apply {
+        val serverSocket = ServerSocket(0)
         serviceName = "TucanPlus ${Uuid.random()}"
         serviceType = SERVICE_TYPE
-        port = 42
+        port = serverSocket.localPort
+        embeddedServer(CIO)
+
     }, SERVICE_TYPE) };
     val discovered by flow.collectAsStateWithLifecycle(listOf())
     val coroutineScope = rememberCoroutineScope()
@@ -71,6 +78,9 @@ fun ShowLocalServices() {
                     .clickable(enabled = true) {
                         coroutineScope.launch {
                             currentPeer = nsdManager.resolveService(peer)
+                            // name host port and network are safe
+                            val port: Int = currentPeer.port
+                            val host: InetAddress = currentPeer.host
                         }
                     })
             }
