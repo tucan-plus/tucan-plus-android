@@ -17,7 +17,11 @@ import kotlin.coroutines.resumeWithException
 
 // https://kotlinlang.org/docs/cancellation-and-timeouts.html#closing-resources-with-finally
 
-data class RegisteredService(val nsdManager: NsdManager, val listener: NsdManager.RegistrationListener, val serviceInfo: NsdServiceInfo) : Closeable {
+data class RegisteredService(
+    val nsdManager: NsdManager,
+    val listener: NsdManager.RegistrationListener,
+    val serviceInfo: NsdServiceInfo
+) : Closeable {
 
     override fun close() {
         nsdManager.unregisterService(listener)
@@ -30,7 +34,13 @@ suspend fun NsdManager.awaitRegisterService(serviceInfo: NsdServiceInfo): Regist
 
             override fun onServiceRegistered(nsdServiceInfo: NsdServiceInfo) {
                 Log.d(TAG, "onServiceRegistered $nsdServiceInfo")
-                continuation.resume(RegisteredService(this@awaitRegisterService, this, nsdServiceInfo)) { cause, resourceToClose, context ->
+                continuation.resume(
+                    RegisteredService(
+                        this@awaitRegisterService,
+                        this,
+                        nsdServiceInfo
+                    )
+                ) { cause, resourceToClose, context ->
                     unregisterService(this)
                 }
             }
@@ -57,9 +67,13 @@ suspend fun NsdManager.awaitRegisterService(serviceInfo: NsdServiceInfo): Regist
     }
 
 // TODO important: https://developer.android.com/reference/kotlin/androidx/lifecycle/package-summary#(kotlinx.coroutines.flow.Flow).asLiveData(kotlin.coroutines.CoroutineContext,%20kotlin.Long)
-fun NsdManager.discoverServicesFlow(serviceType: String): Flow<List<NsdServiceInfo>> = callbackFlow {
-     val discoveryListener = object : NsdManager.DiscoveryListener {
-         var discoveredServices: List<NsdServiceInfo> = listOf()
+fun NsdManager.registerAndDiscoverServicesFlow(
+    serviceInfo: NsdServiceInfo,
+    serviceType: String
+): Flow<List<NsdServiceInfo>> = callbackFlow {
+    val ourServiceInfo = awaitRegisterService(serviceInfo)
+    val discoveryListener = object : NsdManager.DiscoveryListener {
+        var discoveredServices: List<NsdServiceInfo> = listOf()
 
         override fun onDiscoveryStarted(regType: String) {
             Log.d(TAG, "onDiscoveryStarted $regType")
@@ -68,7 +82,7 @@ fun NsdManager.discoverServicesFlow(serviceType: String): Flow<List<NsdServiceIn
         override fun onServiceFound(service: NsdServiceInfo) {
             Log.d(TAG, "onServiceFound $service")
             when {
-                service.serviceType == SERVICE_TYPE -> {
+                service.serviceType == SERVICE_TYPE && service.serviceName != ourServiceInfo.serviceInfo.serviceName -> {
                     discoveredServices = discoveredServices + service;
                     Log.w(TAG, "updating flow")
                     trySendBlocking(discoveredServices)

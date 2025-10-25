@@ -18,7 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.SERVICE_TYPE
 import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ext.awaitRegisterService
-import de.selfmade4u.tucanplus.ext.discoverServicesFlow
+import de.selfmade4u.tucanplus.ext.registerAndDiscoverServicesFlow
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -44,20 +44,12 @@ class LocalNetworkNSD {
 @Composable
 fun ShowLocalServices() {
     val context = LocalContext.current
-    LaunchedEffect(true) {
-        val nsdManager = getSystemService(context, NsdManager::class.java)!!
-
-        val result = nsdManager.awaitRegisterService(NsdServiceInfo().apply {
-            serviceName = "TucanPlus ${Uuid.random()}"
-            serviceType = SERVICE_TYPE
-            port = 42
-        })
-        Log.w(TAG, "my own name ${result.serviceInfo.serviceName}")
-
-        // TODO FIXME closable not closed
-    }
     val nsdManager = getSystemService(context, NsdManager::class.java)!!
-    val flow = remember { nsdManager.discoverServicesFlow(SERVICE_TYPE) };
+    val flow = remember { nsdManager.registerAndDiscoverServicesFlow(NsdServiceInfo().apply {
+        serviceName = "TucanPlus ${Uuid.random()}"
+        serviceType = SERVICE_TYPE
+        port = 42
+    }, SERVICE_TYPE) };
     val discovered by flow.collectAsStateWithLifecycle(listOf())
     Column() {
         discovered.forEach { peer ->
