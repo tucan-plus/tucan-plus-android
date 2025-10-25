@@ -201,7 +201,7 @@ object Common {
                         attribute(
                             "name",
                             "top"
-                        ); attribute("class", "invAnchor");
+                        ); attribute("class", "invAnchor")
                     }
                     }
 
@@ -274,7 +274,7 @@ object Common {
                                 attribute("id", "pageHeadRight"); attribute(
                                 "class",
                                 "pageElementRight"
-                            );
+                            )
                             }
                         }
 
@@ -331,7 +331,7 @@ object Common {
                                 ); attribute("id", "extraNav_link5"); attribute(
                                     "target",
                                     "_blank"
-                                );
+                                )
                                 }
                             }
                         }
@@ -345,13 +345,13 @@ object Common {
                                 attribute("id", "pageHeadBottom_2sub_1"); attribute(
                                 "class",
                                 "pageElementTop"
-                            );
+                            )
                             }
                             div {
                                 attribute("id", "pageHeadBottom_2sub_2"); attribute(
                                 "class",
                                 "pageElementTop"
-                            );
+                            )
                             }
                         }
 
@@ -562,7 +562,7 @@ object Common {
                                 attribute("name", "mainContent"); attribute(
                                 "class",
                                 "hidden"
-                            );
+                            )
                             }
                             div {
                                 attribute("id", "pageContentTop"); attribute(
@@ -586,7 +586,7 @@ object Common {
                                                 text("Name")
                                                 span { attribute("class", "colon"); text(":") }
                                             }
-                                            val fullName = extractText()
+                                            extractText()
                                         }
                                         span {
                                             attribute("class", "loginDataDate")
@@ -597,7 +597,7 @@ object Common {
                                                     text(":")
                                                 }
                                             }
-                                            val loginDate = extractText()
+                                            extractText()
                                         }
                                         span {
                                             attribute("class", "loginDataTime")
@@ -608,7 +608,7 @@ object Common {
                                                     text(":")
                                                 }
                                             }
-                                            val loginTime = extractText()
+                                            extractText()
                                         }
                                     }
                                 }
@@ -665,14 +665,14 @@ object Common {
                                 attribute(
                                     "id",
                                     "pageFootControlsRight"
-                                );
+                                )
                                 a {
-                                    attribute("href", "#top");
+                                    attribute("href", "#top")
                                     attribute(
                                         "class",
                                         "img img_arrowUp pageElementRight"
-                                    );
-                                    attribute("id", "pageFootControl_up");
+                                    )
+                                    attribute("id", "pageFootControl_up")
                                 }
                             }
                         }
@@ -682,12 +682,12 @@ object Common {
 
                 div { attribute("id", "IEdiv"); }
                 div {
-                    attribute("class", "invAnchor");
+                    attribute("class", "invAnchor")
                     a {
                         attribute(
                             "name",
                             "bottom"
-                        ); attribute("class", "invAnchor");
+                        ); attribute("class", "invAnchor")
                     }
                 }
                 result
@@ -701,13 +701,13 @@ object Common {
             "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N$sessionId,-N000019,",
             19
         ) {
-            val nachrichten = parseLiHref(
+            parseLiHref(
                 "Nachrichten",
                 299
             )
         }
 
-        val vv = parseLiWithChildrenHref(
+        parseLiWithChildrenHref(
             "VV",
             326
         ) {
@@ -837,7 +837,7 @@ object Common {
                 "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N$sessionId,-N000557,",
                 557
             )
-            val antraege = parseLiHref(
+            parseLiHref(
                 "Anträge",
                 600
             )
@@ -858,7 +858,7 @@ object Common {
                 "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000442,-Abewerbung",
                 442
             )
-            val meineBewerbung = parseLiHref(
+            parseLiHref(
                 "Meine Bewerbung",
                 443
             )
@@ -957,7 +957,7 @@ object Common {
     }
 
     private fun Body.parseVV(sessionId: String, id1: Int, id2: Int, id3: Int) {
-        val lehrveranstaltungssuche = parseLiHref(
+        parseLiHref(
             "Lehrveranstaltungssuche",
             id1
         )
@@ -976,8 +976,8 @@ object Common {
                 attributeValue("id")
                 a {
                     attributeValue("class")
-                    val actionUrl = attributeValue("href")
-                    val title = extractText()
+                    attributeValue("href")
+                    extractText()
                 }
             }
         }
@@ -1019,10 +1019,10 @@ object Common {
                             attributeValue(
                                 "class",
                             )
-                            val actionUrl = attributeValue(
+                            attributeValue(
                                 "href",
                             )
-                            val title = extractText()
+                            extractText()
                         }
                     }
                 }

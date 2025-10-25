@@ -34,7 +34,6 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.connector.TucanLogin
 import io.ktor.client.HttpClient
-import io.ktor.client.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.launch
 
 // https://developer.android.com/jetpack/androidx/releases/compose-material3

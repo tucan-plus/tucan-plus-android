@@ -6,7 +6,6 @@ import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
-import androidx.room.Room
 import androidx.room.RoomDatabase
 
 // https://developer.android.com/training/data-storage/app-specific#create-storage-management-activity

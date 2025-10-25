@@ -1,19 +1,13 @@
 package de.selfmade4u.tucanplus
 
-import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -26,31 +20,21 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.SERVICE_TYPE
 import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
-import de.selfmade4u.tucanplus.ext.awaitRegisterService
 import de.selfmade4u.tucanplus.ext.registerAndDiscoverServicesFlow
 import de.selfmade4u.tucanplus.ext.resolveService
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
-import io.ktor.server.application.ApplicationEnvironment
-import io.ktor.server.application.serverConfig
 import io.ktor.server.cio.CIO
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.engine.ApplicationEnvironmentBuilder
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.engine.loadCommonConfiguration
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import java.net.ConnectException
-import java.net.InetAddress
-import java.net.ServerSocket
-import kotlin.collections.listOf
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -97,10 +81,10 @@ fun ShowLocalServices() {
             }
             emitAll(nsdManager.registerAndDiscoverServicesFlow(info, SERVICE_TYPE))
         }
-    };
+    }
     val discovered by flow.collectAsStateWithLifecycle(listOf())
     val coroutineScope = rememberCoroutineScope()
-    Column() {
+    Column {
         discovered.forEach { peer ->
             key(peer.serviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }

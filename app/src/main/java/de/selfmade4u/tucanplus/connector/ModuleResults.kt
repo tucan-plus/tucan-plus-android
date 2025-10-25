@@ -6,11 +6,7 @@ import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
-import de.selfmade4u.tucanplus.connector.TucanLogin.LoginResponse
-import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginFailure
-import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginSuccess
 import de.selfmade4u.tucanplus.div
-import de.selfmade4u.tucanplus.doctype
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
 import de.selfmade4u.tucanplus.input
@@ -32,10 +28,8 @@ import de.selfmade4u.tucanplus.thead
 import de.selfmade4u.tucanplus.tr
 import io.ktor.client.HttpClient
 import io.ktor.client.request.cookie
-import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.parameters
 
 object ModuleResults {
 
@@ -194,11 +188,11 @@ object ModuleResults {
                                             }
                                             val semesterName = extractText() // SoSe 2025; WiSe 2024/25
                                              if (semesterName.startsWith(("SoSe "))) {
-                                                year = semesterName.removePrefix("SoSe ").toInt();
-                                                semester = Semester.Sommersemester
+                                                year = semesterName.removePrefix("SoSe ").toInt()
+                                                 semester = Semester.Sommersemester
                                             } else {
-                                                year = semesterName.removePrefix("WiSe ").substringBefore("/").toInt();
-                                                semester = Semester.Wintersemester
+                                                year = semesterName.removePrefix("WiSe ").substringBefore("/").toInt()
+                                                 semester = Semester.Wintersemester
                                             }
                                         }
                                         semesters.add(Semesterauswahl(value, selected, year, semester))
@@ -243,7 +237,7 @@ object ModuleResults {
 
                     tbody {
                         while (peek()?.childNodes()?.filterNot(::shouldIgnore)?.first()?.normalName() == "td") {
-                            val moduleId: String;
+                            val moduleId: String
                             val moduleName: String
                             val moduleGrade: ModuleGrade
                             val moduleCredits: Int
@@ -261,7 +255,7 @@ object ModuleResults {
                                     }
                                 }
                                 td { attribute("class", "tbdata_numeric"); moduleCredits = extractText().replace(",0", "").toInt() }
-                                td { attribute("class", "tbdata"); val status = extractText() }
+                                td { attribute("class", "tbdata"); extractText() }
                                 td {
                                     attribute("class", "tbdata")
                                     attribute("style", "vertical-align:top;")
@@ -305,9 +299,9 @@ object ModuleResults {
                             }
                             th {
                                 attribute("class", "tbdata")
-                                val gpa = extractText()
+                                extractText()
                             }
-                            th { val credits = extractText() }
+                            th { extractText() }
                             th {
                                 attribute("class", "tbdata")
                                 attribute("colspan", "4")

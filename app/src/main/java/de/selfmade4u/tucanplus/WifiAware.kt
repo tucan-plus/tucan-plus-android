@@ -16,9 +16,6 @@ import android.net.wifi.aware.SubscribeConfig
 import android.net.wifi.aware.SubscribeDiscoverySession
 import android.net.wifi.aware.WifiAwareManager
 import android.net.wifi.aware.WifiAwareSession
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
 import android.widget.Toast
 import androidx.annotation.RequiresPermission
 
@@ -35,7 +32,7 @@ class WifiAware {
     fun setup(context: Context) {
         if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_AWARE)) {
             Toast.makeText(context, "Wifi Aware not supported", Toast.LENGTH_LONG).show()
-            return;
+            return
         }
         val wifiAwareManager = context.getSystemService(WifiAwareManager::class.java)
         val filter = IntentFilter(WifiAwareManager.ACTION_WIFI_AWARE_STATE_CHANGED)
@@ -53,7 +50,7 @@ class WifiAware {
         context.registerReceiver(myReceiver, filter)
         if (!wifiAwareManager.isAvailable) {
             Toast.makeText(context, "Wifi Aware not available", Toast.LENGTH_LONG).show()
-            return;
+            return
         }
         wifiAwareManager.attach(object : AttachCallback() {
             @RequiresPermission(allOf = [permission.ACCESS_WIFI_STATE,

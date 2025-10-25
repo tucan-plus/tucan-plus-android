@@ -110,13 +110,13 @@ class Response(val response: HttpResponse, var headers: MutableMap<String, List<
 
     fun maybeHeader(key: String, values: List<String>) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        val actualValue = headers.remove(key);
+        val actualValue = headers.remove(key)
         check(actualValue == null || actualValue == values) { "actual   $actualValue\nexpected $values"}
     }
 
     fun header(key: String, values: List<String>) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        val actualValue = headers.remove(key);
+        val actualValue = headers.remove(key)
         check(actualValue == values) { "actual   $actualValue\nexpected $values"}
     }
 
@@ -267,7 +267,7 @@ fun <P: HtmlTag, C, R> P.initTag(tag: String, createTag: (iterator: MutableList<
     val next = this.children.removeAt(0)
     check(next.nameIs(tag)) { "actual   ${next.normalName()} expected $tag" }
     val attributes = next.attributes().toMutableList()
-    val childIterator = next.childNodes().filterNot(::shouldIgnore).toMutableList();
+    val childIterator = next.childNodes().filterNot(::shouldIgnore).toMutableList()
     val node = createTag(childIterator, attributes)
     val ret = node.init()
     check(attributes.isEmpty()) { "${next.normalName()} unparsed attributes ${attributes.removeAt(0)}" }

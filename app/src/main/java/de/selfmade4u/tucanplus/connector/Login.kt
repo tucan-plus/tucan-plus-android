@@ -2,41 +2,22 @@ package de.selfmade4u.tucanplus.connector
 
 import android.content.Context
 import android.util.Log
-import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.TextNode
-import de.selfmade4u.tucanplus.Body
-import de.selfmade4u.tucanplus.Html
 import de.selfmade4u.tucanplus.Root
-import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.body
 import de.selfmade4u.tucanplus.connector.Common.parseBase
-import de.selfmade4u.tucanplus.div
-import de.selfmade4u.tucanplus.doctype
-import de.selfmade4u.tucanplus.fieldset
-import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
 import de.selfmade4u.tucanplus.head
 import de.selfmade4u.tucanplus.header
 import de.selfmade4u.tucanplus.html
-import de.selfmade4u.tucanplus.img
-import de.selfmade4u.tucanplus.input
-import de.selfmade4u.tucanplus.label
-import de.selfmade4u.tucanplus.legend
-import de.selfmade4u.tucanplus.li
-import de.selfmade4u.tucanplus.link
-import de.selfmade4u.tucanplus.meta
 import de.selfmade4u.tucanplus.p
 import de.selfmade4u.tucanplus.peek
 import de.selfmade4u.tucanplus.response
-import de.selfmade4u.tucanplus.root
 import de.selfmade4u.tucanplus.script
-import de.selfmade4u.tucanplus.title
-import de.selfmade4u.tucanplus.ul
 import io.ktor.client.HttpClient
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
 
@@ -49,7 +30,7 @@ object TucanLogin {
     }
 
     private suspend fun doFetch(client: HttpClient, username: String, password: String): HttpResponse {
-        var i = 0;
+        var i = 0
         while (true) {
             try {
                 val r = client.submitForm(
@@ -74,7 +55,7 @@ object TucanLogin {
                     throw e
                 }
             }
-            i += 1;
+            i += 1
         }
     }
 
@@ -119,7 +100,7 @@ object TucanLogin {
         return parseBase("000000000000001", "000000", {}) { pageType ->
             check(pageType == "accessdenied")
             script { attribute("type", "text/javascript"); }
-            val child = peek()?.firstChild();
+            val child = peek()?.firstChild()
             if (child is TextNode && child.text()
                     .trim() == "Sie konnten nicht angemeldet werden"
             ) {

@@ -10,7 +10,6 @@ import android.net.wifi.p2p.WifiP2pManager
 import android.os.Looper
 import android.widget.Toast
 import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.content.ContextCompat.registerReceiver
 
 class WifiDirectBroadcastReceiver(val manager: WifiP2pManager, val channel: WifiP2pManager.Channel) : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -68,7 +67,7 @@ class WifiDirect {
     fun setup(context: Context) {
         if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_DIRECT)) {
             Toast.makeText(context, "Wifi Direct not supported", Toast.LENGTH_SHORT).show()
-            return;
+            return
         }
         Toast.makeText(context, "Wifi Direct supported", Toast.LENGTH_SHORT).show()
         val manager: WifiP2pManager? by lazy(LazyThreadSafetyMode.NONE) {
