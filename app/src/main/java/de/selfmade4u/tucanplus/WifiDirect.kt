@@ -123,9 +123,14 @@ class WifiDirect {
     }
 }
 
+
+// TODO add one without service discovery
+// TODO add one with the other service discovery (needs to be able to work in parallel with the others)
+
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun WifiDirectList() {
+    // TODO FIXMe check if available
     val context = LocalContext.current
     val flow: Flow<List<WifiP2pDevice>> = remember {
         flow {

@@ -69,7 +69,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             WifiDirectList()
-            ShowLocalServices()
+            //ShowLocalServices()
             TextField(
                 state = usernameState,
                 modifier = Modifier.fillMaxWidth(),
