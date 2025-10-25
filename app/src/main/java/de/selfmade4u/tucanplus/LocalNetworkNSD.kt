@@ -9,7 +9,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -17,6 +19,8 @@ import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.SERVICE_TYPE
 import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ext.awaitRegisterService
 import de.selfmade4u.tucanplus.ext.discoverServicesFlow
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 // suspendCancellableCoroutine
 // suspendCoroutine
@@ -36,26 +40,27 @@ class LocalNetworkNSD {
 }
 
 // https://developer.android.com/develop/ui/compose/state
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ShowLocalServices() {
     val context = LocalContext.current
     LaunchedEffect(true) {
         val nsdManager = getSystemService(context, NsdManager::class.java)!!
 
-        nsdManager.awaitRegisterService(NsdServiceInfo().apply {
-            serviceName = "TucanPlus"
+        val result = nsdManager.awaitRegisterService(NsdServiceInfo().apply {
+            serviceName = "TucanPlus ${Uuid.random()}"
             serviceType = SERVICE_TYPE
             port = 42
-        }).use { result ->
-            Log.w(TAG, result.serviceInfo.serviceName)
+        })
+        Log.w(TAG, "my own name ${result.serviceInfo.serviceName}")
 
-        }
+        // TODO FIXME closable not closed
     }
     val nsdManager = getSystemService(context, NsdManager::class.java)!!
-    val discovered = nsdManager.discoverServicesFlow(SERVICE_TYPE).collectAsStateWithLifecycle(listOf())
-
+    val flow = remember { nsdManager.discoverServicesFlow(SERVICE_TYPE) };
+    val discovered by flow.collectAsStateWithLifecycle(listOf())
     Column() {
-        discovered.value.forEach { peer ->
+        discovered.forEach { peer ->
             key(peer.serviceName) {
                 Text("$peer")
             }

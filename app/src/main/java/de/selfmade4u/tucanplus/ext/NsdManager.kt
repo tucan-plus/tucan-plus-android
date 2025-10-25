@@ -29,20 +29,24 @@ suspend fun NsdManager.awaitRegisterService(serviceInfo: NsdServiceInfo): Regist
         val registrationListener = object : NsdManager.RegistrationListener {
 
             override fun onServiceRegistered(nsdServiceInfo: NsdServiceInfo) {
+                Log.d(TAG, "onServiceRegistered $nsdServiceInfo")
                 continuation.resume(RegisteredService(this@awaitRegisterService, this, nsdServiceInfo)) { cause, resourceToClose, context ->
                     unregisterService(this)
                 }
             }
 
             override fun onRegistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
+                Log.d(TAG, "onRegistrationFailed $serviceInfo $errorCode")
                 continuation.resumeWithException(Exception("$serviceInfo registration failed with error code $errorCode"))
             }
 
             override fun onServiceUnregistered(arg0: NsdServiceInfo) {
-
+                Log.d(TAG, "onServiceUnregistered $arg0")
+                continuation.cancel(Exception("onServiceUnregistered $arg0"))
             }
 
             override fun onUnregistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
+                Log.d(TAG, "onUnregistrationFailed $serviceInfo $errorCode")
                 continuation.resumeWithException(Exception("$serviceInfo unregistration failed with error code $errorCode"))
             }
         }
@@ -58,11 +62,11 @@ fun NsdManager.discoverServicesFlow(serviceType: String): Flow<List<NsdServiceIn
          var discoveredServices: List<NsdServiceInfo> = listOf()
 
         override fun onDiscoveryStarted(regType: String) {
-            Log.d(TAG, "Service discovery started")
+            Log.d(TAG, "onDiscoveryStarted $regType")
         }
 
         override fun onServiceFound(service: NsdServiceInfo) {
-            Log.d(TAG, "Service discovery success $service")
+            Log.d(TAG, "onServiceFound $service")
             when {
                 service.serviceType == SERVICE_TYPE -> {
                     discoveredServices = discoveredServices + service;
@@ -74,19 +78,23 @@ fun NsdManager.discoverServicesFlow(serviceType: String): Flow<List<NsdServiceIn
         }
 
         override fun onServiceLost(service: NsdServiceInfo) {
+            Log.d(TAG, "onServiceLost $service")
             discoveredServices = discoveredServices - service;
             trySendBlocking(discoveredServices)
         }
 
         override fun onDiscoveryStopped(serviceType: String) {
+            Log.d(TAG, "onDiscoveryStopped $serviceType")
             channel.close()
         }
 
         override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
+            Log.d(TAG, "onStartDiscoveryFailed $serviceType $errorCode")
             cancel(CancellationException("Starting discovery failed for $serviceType: Error code: $errorCode"))
         }
 
         override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
+            Log.d(TAG, "onStopDiscoveryFailed $serviceType $errorCode")
             cancel(CancellationException("Stopping discovery failed for $serviceType: Error code: $errorCode"))
         }
     }
