@@ -199,11 +199,20 @@ fun DetailedDrawerExample(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Main(backStack: NavBackStack<NavKey>) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     DetailedDrawerExample(backStack) { innerPadding ->
         Button(
             modifier = Modifier.padding(innerPadding),
             onClick = {
-                backStack[backStack.size - 1] = LoginNavKey
+                coroutineScope.launch {
+                    context.credentialSettingsDataStore.updateData { old ->
+                        OptionalCredentialSettings(
+                            null
+                        )
+                    }
+                    backStack[backStack.size - 1] = LoginNavKey
+                }
             }) { Text("Logout") }
     }
 }
