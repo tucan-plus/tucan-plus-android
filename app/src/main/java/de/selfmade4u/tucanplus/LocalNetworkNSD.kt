@@ -5,6 +5,7 @@ import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -28,9 +29,18 @@ import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ext.awaitRegisterService
 import de.selfmade4u.tucanplus.ext.registerAndDiscoverServicesFlow
 import de.selfmade4u.tucanplus.ext.resolveService
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -60,14 +70,24 @@ class LocalNetworkNSD {
 fun ShowLocalServices() {
     val context = LocalContext.current
     val nsdManager = getSystemService(context, NsdManager::class.java)!!
-    val flow = remember { nsdManager.registerAndDiscoverServicesFlow(NsdServiceInfo().apply {
-        val serverSocket = ServerSocket(0)
-        serviceName = "TucanPlus ${Uuid.random()}"
-        serviceType = SERVICE_TYPE
-        port = serverSocket.localPort
-        embeddedServer(CIO)
-
-    }, SERVICE_TYPE) };
+    val flow: Flow<List<NsdServiceInfo>> = remember {
+        flow {
+            val info = NsdServiceInfo().apply {
+                serviceName = "TucanPlus ${Uuid.random()}"
+                serviceType = SERVICE_TYPE
+                val server = embeddedServer(CIO, port = 0) {
+                    routing {
+                        get("/") {
+                            call.respondText("Hello, world!")
+                        }
+                    }
+                }.startSuspend(false)
+                port = server.engine.resolvedConnectors().first().port
+                Log.d(TAG, "our port $port")
+            }
+            emitAll(nsdManager.registerAndDiscoverServicesFlow(info, SERVICE_TYPE))
+        }
+    };
     val discovered by flow.collectAsStateWithLifecycle(listOf())
     val coroutineScope = rememberCoroutineScope()
     Column() {
@@ -78,9 +98,13 @@ fun ShowLocalServices() {
                     .clickable(enabled = true) {
                         coroutineScope.launch {
                             currentPeer = nsdManager.resolveService(peer)
-                            // name host port and network are safe
+                            @Suppress("DEPRECATION")
+                            // Official Fairphone 3 OS does not support the new registerServiceInfoCallback API
+                            val host = currentPeer.host
                             val port: Int = currentPeer.port
-                            val host: InetAddress = currentPeer.host
+                            val client = HttpClient()
+                            val response = client.get("http://$host:$port/")
+                            Toast.makeText(context, response.bodyAsText(), Toast.LENGTH_SHORT).show()
                         }
                     })
             }

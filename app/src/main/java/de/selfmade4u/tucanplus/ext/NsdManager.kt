@@ -137,7 +137,4 @@ suspend fun NsdManager.resolveService(serviceInfo: NsdServiceInfo): NsdServiceIn
     // Official Fairphone 3 OS does not support the new registerServiceInfoCallback API
     @Suppress("DEPRECATION")
     resolveService(serviceInfo, listener)
-    continuation.invokeOnCancellation {
-        stopServiceResolution(listener)
-    }
 }
