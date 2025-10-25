@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.Closeable
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 // https://kotlinlang.org/docs/cancellation-and-timeouts.html#closing-resources-with-finally
@@ -115,7 +116,28 @@ fun NsdManager.registerAndDiscoverServicesFlow(
     discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
     awaitClose {
         stopServiceDiscovery(discoveryListener)
+        ourServiceInfo.close()
     }
 }
 
-//  nsdManager.resolveService(service, resolveListener)
+suspend fun NsdManager.resolveService(serviceInfo: NsdServiceInfo): NsdServiceInfo = suspendCancellableCoroutine { continuation ->
+    val listener = object : NsdManager.ResolveListener {
+        override fun onResolveFailed(
+            serviceInfo: NsdServiceInfo?,
+            errorCode: Int
+        ) {
+            continuation.resumeWithException(Exception("Resolve failed for $serviceInfo with error code $errorCode"))
+        }
+
+        override fun onServiceResolved(serviceInfo: NsdServiceInfo?) {
+            continuation.resume(serviceInfo!!)
+        }
+    }
+
+    // Official Fairphone 3 OS does not support the new registerServiceInfoCallback API
+    @Suppress("DEPRECATION")
+    resolveService(serviceInfo, listener)
+    continuation.invokeOnCancellation {
+        stopServiceResolution(listener)
+    }
+}
