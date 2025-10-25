@@ -1,5 +1,9 @@
 package de.selfmade4u.tucanplus
 
+import android.Manifest
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,7 +53,13 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
     val coroutineScope = rememberCoroutineScope()
     var loading by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    // https://developer.android.com/develop/ui/compose/libraries#requesting-runtime-permissions
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { value ->
+        Toast.makeText(context, "Permission response $value", Toast.LENGTH_SHORT).show()
+
+    }
     LaunchedEffect(true) {
+        launcher.launch(arrayOf(Manifest.permission.NEARBY_WIFI_DEVICES))
         WifiDirect().setup(context)
     }
     Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {

@@ -60,8 +60,11 @@ class WifiDirectBroadcastReceiver(val manager: WifiP2pManager, val channel: Wifi
 
 }
 
+// https://developer.android.com/develop/connectivity/wifi/wifip2p
+// https://developer.android.com/develop/connectivity/wifi/wifi-direct
 class WifiDirect {
 
+    // https://developer.android.com/develop/connectivity/wifi/wifi-permissions
     fun setup(context: Context) {
         if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_DIRECT)) {
             Toast.makeText(context, "Wifi Direct not supported", Toast.LENGTH_SHORT).show()
@@ -71,6 +74,8 @@ class WifiDirect {
         val manager: WifiP2pManager? by lazy(LazyThreadSafetyMode.NONE) {
             getSystemService(context, WifiP2pManager::class.java)
         }
+
+
 
         var channel: WifiP2pManager.Channel? = null
         var receiver: BroadcastReceiver? = null
