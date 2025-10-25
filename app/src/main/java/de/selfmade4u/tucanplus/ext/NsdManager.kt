@@ -94,7 +94,7 @@ fun NsdManager.registerAndDiscoverServicesFlow(
 
         override fun onServiceLost(service: NsdServiceInfo) {
             Log.d(TAG, "onServiceLost $service")
-            discoveredServices = discoveredServices - service
+            discoveredServices = discoveredServices.filterNot { it.serviceName == service.serviceName }
             trySendBlocking(discoveredServices)
         }
 
