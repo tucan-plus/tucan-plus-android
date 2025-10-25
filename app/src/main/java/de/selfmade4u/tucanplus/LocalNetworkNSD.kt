@@ -6,6 +6,7 @@ import android.net.nsd.NsdServiceInfo
 import android.util.Log
 import androidx.core.content.ContextCompat.getSystemService
 import de.selfmade4u.tucanplus.ext.awaitRegisterService
+import de.selfmade4u.tucanplus.ext.discoverServicesFlow
 
 // suspendCancellableCoroutine
 // suspendCoroutine
@@ -23,51 +24,6 @@ class LocalNetworkNSD {
         const val SERVICE_TYPE = "_tucanplus._tcp"
     }
 
-
-    // Instantiate a new DiscoveryListener
-    private val discoveryListener = object : NsdManager.DiscoveryListener {
-
-
-        // Called as soon as service discovery begins.
-        override fun onDiscoveryStarted(regType: String) {
-            Log.d(TAG, "Service discovery started")
-        }
-
-        override fun onServiceFound(service: NsdServiceInfo) {
-            // A service was found! Do something with it.
-            Log.d(TAG, "Service discovery success$service")
-            when {
-                service.serviceType != SERVICE_TYPE -> // Service type is the string containing the protocol and
-                    // transport layer for this service.
-                    Log.d(TAG, "Unknown Service Type: ${service.serviceType}")
-                service.serviceName == mServiceName -> // The name of the service tells the user what they'd be
-                    // connecting to. It could be "Bob's Chat App".
-                    Log.d(TAG, "Same machine: $mServiceName")
-                service.serviceName.contains("NsdChat") -> nsdManager.resolveService(service, resolveListener)
-            }
-        }
-
-        override fun onServiceLost(service: NsdServiceInfo) {
-            // When the network service is no longer available.
-            // Internal bookkeeping code goes here.
-            Log.e(TAG, "service lost: $service")
-        }
-
-        override fun onDiscoveryStopped(serviceType: String) {
-            Log.i(TAG, "Discovery stopped: $serviceType")
-        }
-
-        override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
-            Log.e(TAG, "Discovery failed: Error code:$errorCode")
-            nsdManager.stopServiceDiscovery(this)
-        }
-
-        override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
-            Log.e(TAG, "Discovery failed: Error code:$errorCode")
-            nsdManager.stopServiceDiscovery(this)
-        }
-    }
-
     suspend fun registerService(context: Context, port: Int) {
         val nsdManager = getSystemService(context, NsdManager::class.java)!!
         nsdManager.awaitRegisterService(NsdServiceInfo().apply {
@@ -77,7 +33,7 @@ class LocalNetworkNSD {
         }).use { result ->
             print(result.serviceInfo.serviceName)
 
-            nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
+            nsdManager.discoverServicesFlow(SERVICE_TYPE)
 
         }
     }
