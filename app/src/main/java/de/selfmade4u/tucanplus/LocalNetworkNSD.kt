@@ -80,7 +80,7 @@ fun ShowLocalServices() {
     val flow: Flow<List<NsdServiceInfo>> = remember {
         flow {
             val info = NsdServiceInfo().apply {
-                serviceName = "TucanPlus ${Uuid.random()}"
+                serviceName = "T+ ${Uuid.random()}"
                 serviceType = SERVICE_TYPE
                 System.setProperty("io.ktor.development", "true")
                 val server = embeddedServer(CIO, port = 0, watchPaths = listOf()) {
@@ -105,7 +105,7 @@ fun ShowLocalServices() {
             key(peer.serviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }
                 Text(
-                    "$currentPeer", modifier = Modifier
+                    "${currentPeer.serviceName}", modifier = Modifier
                         .clickable(enabled = true) {
                             coroutineScope.launch {
                                 currentPeer = nsdManager.resolveService(peer)
