@@ -62,11 +62,13 @@ fun NsdManager.discoverServicesFlow(serviceType: String): Flow<List<NsdServiceIn
         }
 
         override fun onServiceFound(service: NsdServiceInfo) {
-            Log.d(TAG, "Service discovery success$service")
+            Log.d(TAG, "Service discovery success $service")
             when {
                 service.serviceType == SERVICE_TYPE -> {
                     discoveredServices = discoveredServices + service;
+                    Log.w(TAG, "updating flow")
                     trySendBlocking(discoveredServices)
+                    Log.w(TAG, "updated flow")
                 }
             }
         }

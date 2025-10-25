@@ -31,7 +31,7 @@ class LocalNetworkNSD {
 
     companion object {
         const val TAG: String = "TucanPlus"
-        const val SERVICE_TYPE = "_tucanplus._tcp"
+        const val SERVICE_TYPE = "_tucanplus._tcp." // must end with dot
     }
 }
 

@@ -90,6 +90,7 @@ class WifiDirect {
             addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
         }
         receiver?.also { receiver ->
+            // TODO FIXME unregister stuff is wrong here
             context.registerReceiver(receiver, intentFilter)
         }
     }
