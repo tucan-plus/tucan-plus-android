@@ -4,7 +4,17 @@ import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.util.Log
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.SERVICE_TYPE
+import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ext.awaitRegisterService
 import de.selfmade4u.tucanplus.ext.discoverServicesFlow
 
@@ -23,23 +33,32 @@ class LocalNetworkNSD {
         const val TAG: String = "TucanPlus"
         const val SERVICE_TYPE = "_tucanplus._tcp"
     }
+}
 
-    suspend fun registerService(context: Context, port: Int) {
+// https://developer.android.com/develop/ui/compose/state
+@Composable
+fun ShowLocalServices() {
+    val context = LocalContext.current
+    LaunchedEffect(true) {
         val nsdManager = getSystemService(context, NsdManager::class.java)!!
+
         nsdManager.awaitRegisterService(NsdServiceInfo().apply {
             serviceName = "TucanPlus"
             serviceType = SERVICE_TYPE
-            setPort(port)
+            port = 42
         }).use { result ->
-            print(result.serviceInfo.serviceName)
-
-            nsdManager.discoverServicesFlow(SERVICE_TYPE)
+            Log.w(TAG, result.serviceInfo.serviceName)
 
         }
     }
+    val nsdManager = getSystemService(context, NsdManager::class.java)!!
+    val discovered = nsdManager.discoverServicesFlow(SERVICE_TYPE).collectAsStateWithLifecycle(listOf())
 
-     suspend fun setup(context: Context) {
-        registerService(context, 0)
+    Column() {
+        discovered.value.forEach { peer ->
+            key(peer.serviceName) {
+                Text("$peer")
+            }
+        }
     }
-
 }

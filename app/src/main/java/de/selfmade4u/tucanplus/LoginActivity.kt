@@ -56,11 +56,9 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
     // https://developer.android.com/develop/ui/compose/libraries#requesting-runtime-permissions
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { value ->
         Toast.makeText(context, "Permission response $value", Toast.LENGTH_SHORT).show()
-
     }
     LaunchedEffect(true) {
         launcher.launch(arrayOf(Manifest.permission.NEARBY_WIFI_DEVICES))
-        WifiDirect().setup(context)
     }
     Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
@@ -71,6 +69,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            ShowLocalServices()
             TextField(
                 state = usernameState,
                 modifier = Modifier.fillMaxWidth(),
