@@ -152,6 +152,7 @@ fun WifiDirectList() {
     val discovered by flow.collectAsStateWithLifecycle(listOf())
     val coroutineScope = rememberCoroutineScope()
     Column {
+        Text("Wifi Direct")
         discovered.forEach { peer ->
             key(peer.deviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }
@@ -166,3 +167,4 @@ fun WifiDirectList() {
         }
     }
 }
+// 02:15:b4:00:00:00 Android_apnG found at (2), so it seems they can see each other at least in one direction? Interesting

@@ -72,17 +72,30 @@ suspend fun WifiP2pManager.addServiceRequest(channel: WifiP2pManager.Channel, re
 
         override fun onSuccess() {
             Log.d(TAG, "addServiceRequest onSuccess")
-            val self = this
             continuation.resume(object : Closeable {
                 override fun close() {
-                    removeServiceRequest(channel, request, self)
+                    removeServiceRequest(channel, request, object : WifiP2pManager.ActionListener {
+                        override fun onFailure(reason: Int) {
+                        }
+
+                        override fun onSuccess() {
+                        }
+
+                    })
                 }
             })
         }
     }
     addServiceRequest(channel, request, listener)
     continuation.invokeOnCancellation {
-        removeServiceRequest(channel, request, listener)
+        removeServiceRequest(channel, request, object :WifiP2pManager.ActionListener {
+            override fun onFailure(reason: Int) {
+            }
+
+            override fun onSuccess() {
+            }
+
+        })
     }
 }
 

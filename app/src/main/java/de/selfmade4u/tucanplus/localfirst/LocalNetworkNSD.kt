@@ -85,6 +85,7 @@ fun ShowLocalServices() {
     val discovered by flow.collectAsStateWithLifecycle(listOf())
     val coroutineScope = rememberCoroutineScope()
     Column {
+        Text("Local Network")
         discovered.forEach { peer ->
             key(peer.serviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }

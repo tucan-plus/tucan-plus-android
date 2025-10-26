@@ -19,6 +19,8 @@ import android.net.wifi.aware.WifiAwareSession
 import android.widget.Toast
 import androidx.annotation.RequiresPermission
 
+// my phone doesn't support this
+
 // https://developer.android.com/develop/connectivity/wifi/wifi-aware
 // https://developer.android.com/develop/connectivity/bluetooth/ble/ble-overview
 // https://www.ditto.com/blog/cross-platform-p2p-wi-fi-how-the-eu-killed-awdl
