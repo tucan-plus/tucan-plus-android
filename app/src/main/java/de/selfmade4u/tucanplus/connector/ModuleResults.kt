@@ -1,20 +1,20 @@
 package de.selfmade4u.tucanplus.connector
 
+import android.content.Context
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
+import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
-import de.selfmade4u.tucanplus.connector.TucanLogin.LoginResponse
-import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginFailure
-import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginSuccess
 import de.selfmade4u.tucanplus.div
-import de.selfmade4u.tucanplus.doctype
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
 import de.selfmade4u.tucanplus.input
 import de.selfmade4u.tucanplus.label
 import de.selfmade4u.tucanplus.option
+import de.selfmade4u.tucanplus.p
 import de.selfmade4u.tucanplus.peek
+import de.selfmade4u.tucanplus.peekAttribute
 import de.selfmade4u.tucanplus.response
 import de.selfmade4u.tucanplus.script
 import de.selfmade4u.tucanplus.select
@@ -28,18 +28,16 @@ import de.selfmade4u.tucanplus.thead
 import de.selfmade4u.tucanplus.tr
 import io.ktor.client.HttpClient
 import io.ktor.client.request.cookie
-import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.parameters
 
 object ModuleResults {
 
-    suspend fun getModuleResults(client: HttpClient, sessionId: String, sessionCookie: String): List<Module> {
+    suspend fun getModuleResults(context: Context, client: HttpClient, sessionId: String, sessionCookie: String): ModuleResultsResponse {
         val r = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,") {
             cookie("cnsc", sessionCookie)
         }
-        return response(r) {
+        return response(context, r) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",
@@ -66,24 +64,72 @@ object ModuleResults {
         }
     }
 
-    data class Module(val name: String)
+    // https://github.com/tucan-plus/tucan-plus/blob/640bb9cbb9e3f8d22e8b9d6ddaabb5256b2eb0e6/crates/tucan-types/src/lib.rs#L366
+    enum class ModuleGrade(val representation: String) {
+        G1_0("1,0"),
+        G1_3("1,3"),
+        G1_7("1,7"),
+        G2_0("2,0"),
+        G2_3("2,3"),
+        G2_7("2,7"),
+        G3_0("3,0"),
+        G3_3("3,3"),
+        G3_7("3,7"),
+        G4_0("4,0"),
+        G5_0("5,0"),
+    }
 
-    fun Root.parseModuleResults(sessionId: String): List<Module> {
-        var modules = mutableListOf<Module>()
-        parseBase("course_results", sessionId,"000324", {
-            style {
-                attribute("type", "text/css")
-                dataHash("8359c082fbd232a6739e5e2baec433802e3a0e2121ff2ff7d5140de3955fa905")
+    data class Module(val id: String, val name: String, val grade: ModuleGrade, val credits: Int, val resultdetailsUrl: String, val gradeoverviewUrl: String)
+
+    enum class Semester {
+        Sommersemester,
+        Wintersemester
+    }
+
+    data class Semesterauswahl(val id: Int, val selected: Boolean, val year: Int, val semester: Semester)
+
+    sealed class ModuleResultsResponse {
+        data class Success(var semesters: List<Semesterauswahl>, var modules: List<Module>) : ModuleResultsResponse()
+        data object SessionTimeout : ModuleResultsResponse()
+    }
+
+    fun Root.parseModuleResults(sessionId: String): ModuleResultsResponse {
+        val modules = mutableListOf<Module>()
+        val semesters = mutableListOf<Semesterauswahl>()
+        val response = parseBase(sessionId,"000324", {
+            if (peek() != null) {
+                style {
+                    attribute("type", "text/css")
+                    dataHash("8359c082fbd232a6739e5e2baec433802e3a0e2121ff2ff7d5140de3955fa905")
+                }
+                style {
+                    attribute("type", "text/css")
+                    dataHash("c7cbaeb4c3ca010326679083d945831e5a08d230c5542d335e297a524f1e9b61")
+                }
+                style {
+                    attribute("type", "text/css")
+                    dataHash("7fa9b301efd5a3e8f3a1c11c4283cbcf24ab1d7090b1bad17e8246e46bc31c45")
+                }
+            } else {
+                print("not the normal page")
             }
-            style {
-                attribute("type", "text/css")
-                dataHash("c7cbaeb4c3ca010326679083d945831e5a08d230c5542d335e297a524f1e9b61")
+        }) { pageType ->
+            if (pageType == "timeout") {
+                script {
+                    attribute("type", "text/javascript")
+                    // empty
+                }
+                h1 { text("Timeout!") }
+                p {
+                    b {
+                        text("Es wurde seit den letzten 30 Minuten keine Abfrage mehr abgesetzt.")
+                        br {}
+                        text("Bitte melden Sie sich erneut an.")
+                    }
+                }
+                return@parseBase ModuleResultsResponse.SessionTimeout
             }
-            style {
-                attribute("type", "text/css")
-                dataHash("7fa9b301efd5a3e8f3a1c11c4283cbcf24ab1d7090b1bad17e8246e46bc31c45")
-            }
-        }) {
+            check(pageType == "course_results")
             script {
                 attribute("type", "text/javascript")
                 // empty
@@ -125,19 +171,32 @@ object ModuleResults {
                                     )
                                     attribute("class", "tabledata")
 
-                                    option {
-                                        attribute("value", "000000015176000")
-                                        attribute("selected", "selected")
-                                        text("SoSe 2025")
+                                    // we can predict the value so we could use this at some places do directly get correct value
+                                    // maybe do everywhere for consistency
+                                    while (peek() != null) {
+                                        val value: Int
+                                        val selected: Boolean
+                                        val semester: Semester
+                                        val year: Int
+                                        option {
+                                            value = attributeValue("value").trimStart('0').toInt()
+                                            selected = if (peekAttribute()?.key == "selected") {
+                                                attribute("selected", "selected")
+                                                true
+                                            } else {
+                                                false
+                                            }
+                                            val semesterName = extractText() // SoSe 2025; WiSe 2024/25
+                                             if (semesterName.startsWith(("SoSe "))) {
+                                                year = semesterName.removePrefix("SoSe ").toInt()
+                                                 semester = Semester.Sommersemester
+                                            } else {
+                                                year = semesterName.removePrefix("WiSe ").substringBefore("/").toInt()
+                                                 semester = Semester.Wintersemester
+                                            }
+                                        }
+                                        semesters.add(Semesterauswahl(value, selected, year, semester))
                                     }
-                                    option { attribute("value", "000000015166000"); text("WiSe 2024/25") }
-                                    option { attribute("value", "000000015156000"); text("SoSe 2024") }
-                                    option { attribute("value", "000000015136000"); text("SoSe 2023") }
-                                    option { attribute("value", "000000015126000"); text("WiSe 2022/23") }
-                                    option { attribute("value", "000000015116000"); text("SoSe 2022") }
-                                    option { attribute("value", "000000015106000"); text("WiSe 2021/22") }
-                                    option { attribute("value", "000000015096000"); text("SoSe 2021") }
-                                    option { attribute("value", "000000015086000"); text("WiSe 2020/21") }
                                 }
 
                                 input {
@@ -178,23 +237,31 @@ object ModuleResults {
 
                     tbody {
                         while (peek()?.childNodes()?.filterNot(::shouldIgnore)?.first()?.normalName() == "td") {
-                            val moduleId: String;
+                            val moduleId: String
+                            val moduleName: String
+                            val moduleGrade: ModuleGrade
+                            val moduleCredits: Int
+                            val resultdetailsUrl: String
+                            val gradeoverviewUrl: String
                             tr {
                                 td { attribute("class", "tbdata"); moduleId = extractText() }
-                                td { attribute("class", "tbdata"); val moduleName = extractText() }
+                                moduleName = td { attribute("class", "tbdata"); extractText() }
                                 td {
                                     attribute("class", "tbdata_numeric")
                                     attribute("style", "vertical-align:top;")
-                                    val moduleGrade = extractText()
+                                    val moduleGradeText = extractText()
+                                    moduleGrade = ModuleGrade.entries.find { it.representation == moduleGradeText } ?: run {
+                                        throw IllegalStateException("Unknown grade `$moduleGradeText`")
+                                    }
                                 }
-                                td { attribute("class", "tbdata_numeric"); val moduleCredits = extractText() }
-                                td { attribute("class", "tbdata"); val status = extractText() }
+                                td { attribute("class", "tbdata_numeric"); moduleCredits = extractText().replace(",0", "").toInt() }
+                                td { attribute("class", "tbdata"); extractText() }
                                 td {
                                     attribute("class", "tbdata")
                                     attribute("style", "vertical-align:top;")
                                     a {
                                         attributeValue("id")
-                                        val resultdetailsUrl = attributeValue(
+                                        resultdetailsUrl = attributeValue(
                                             "href",
                                         )
                                         text("Prüfungen")
@@ -208,7 +275,7 @@ object ModuleResults {
                                     attribute("class", "tbdata")
                                     a {
                                         attributeValue("id")
-                                        val gradeoverviewUrl = attributeValue(
+                                        gradeoverviewUrl = attributeValue(
                                             "href",
                                         )
                                         attribute("class", "link")
@@ -221,11 +288,10 @@ object ModuleResults {
                                     }
                                 }
                             }
-                            val module = Module(moduleId)
+                            val module = Module(moduleId, moduleName, moduleGrade, moduleCredits, resultdetailsUrl, gradeoverviewUrl)
                             modules.add(module)
                         }
 
-                        // --- Summary Row ---
                         tr {
                             th {
                                 attribute("colspan", "2")
@@ -233,9 +299,9 @@ object ModuleResults {
                             }
                             th {
                                 attribute("class", "tbdata")
-                                val gpa = extractText()
+                                extractText()
                             }
-                            th { val credits = extractText() }
+                            th { extractText() }
                             th {
                                 attribute("class", "tbdata")
                                 attribute("colspan", "4")
@@ -244,7 +310,8 @@ object ModuleResults {
                     }
                 }
             }
+            return@parseBase ModuleResultsResponse.Success(semesters, modules)
         }
-        return modules
+        return response
     }
 }

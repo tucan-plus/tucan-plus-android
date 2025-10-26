@@ -10,20 +10,17 @@ import androidx.datastore.dataStore
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
-import kotlinx.serialization.serializerOrNull
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.Optional
 
 @Serializable
 data class CredentialSettings(
     val encryptedUserName: Pair<String, String>,
     val encryptedPassword: Pair<String, String>,
-    val sessionId: String,
+    val encryptedSessionId: Pair<String, String>,
     val encryptedSessionCookie: Pair<String, String>,
 )
 

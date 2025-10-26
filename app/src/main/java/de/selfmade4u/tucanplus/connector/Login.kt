@@ -1,39 +1,23 @@
 package de.selfmade4u.tucanplus.connector
 
+import android.content.Context
 import android.util.Log
-import com.fleeksoft.ksoup.nodes.Document
 import com.fleeksoft.ksoup.nodes.TextNode
-import de.selfmade4u.tucanplus.Body
-import de.selfmade4u.tucanplus.Html
 import de.selfmade4u.tucanplus.Root
-import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.body
 import de.selfmade4u.tucanplus.connector.Common.parseBase
-import de.selfmade4u.tucanplus.div
-import de.selfmade4u.tucanplus.doctype
-import de.selfmade4u.tucanplus.fieldset
-import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
 import de.selfmade4u.tucanplus.head
 import de.selfmade4u.tucanplus.header
 import de.selfmade4u.tucanplus.html
-import de.selfmade4u.tucanplus.img
-import de.selfmade4u.tucanplus.input
-import de.selfmade4u.tucanplus.label
-import de.selfmade4u.tucanplus.legend
-import de.selfmade4u.tucanplus.li
-import de.selfmade4u.tucanplus.link
-import de.selfmade4u.tucanplus.meta
 import de.selfmade4u.tucanplus.p
 import de.selfmade4u.tucanplus.peek
 import de.selfmade4u.tucanplus.response
-import de.selfmade4u.tucanplus.root
 import de.selfmade4u.tucanplus.script
-import de.selfmade4u.tucanplus.title
-import de.selfmade4u.tucanplus.ul
 import io.ktor.client.HttpClient
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.forms.submitForm
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
 
@@ -45,22 +29,38 @@ object TucanLogin {
         data object TooManyAttempts : LoginResponse()
     }
 
-    suspend fun doLogin(client: HttpClient, username: String, password: String): LoginResponse {
-        val r = client.submitForm(
-            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll",
-            formParameters = parameters {
-                append("usrname", username)
-                append("pass", password)
-                append("APPNAME", "CampusNet")
-                append("PRGNAME", "LOGINCHECK")
-                append("ARGUMENTS", "clino,usrname,pass,menuno,menu_type,browser,platform")
-                append("clino", "000000000000001")
-                append("menuno", "000344")
-                append("menu_type", "classic")
-                append("browser", "")
-                append("platform", "")
-            })
-        return response(r) {
+    private suspend fun doFetch(client: HttpClient, username: String, password: String): HttpResponse {
+        var i = 0
+        while (true) {
+            try {
+                val r = client.submitForm(
+                    "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll",
+                    formParameters = parameters {
+                        append("usrname", username)
+                        append("pass", password)
+                        append("APPNAME", "CampusNet")
+                        append("PRGNAME", "LOGINCHECK")
+                        append("ARGUMENTS", "clino,usrname,pass,menuno,menu_type,browser,platform")
+                        append("clino", "000000000000001")
+                        append("menuno", "000344")
+                        append("menu_type", "classic")
+                        append("browser", "")
+                        append("platform", "")
+                    })
+                return r
+            } catch (e: ConnectTimeoutException) {
+                Log.e("TucanLogin", "ConnectTimeoutException", e)
+                // TODO FIXME generalize
+                if (i == 5) {
+                    throw e
+                }
+            }
+            i += 1
+        }
+    }
+
+    suspend fun doLogin(client: HttpClient, username: String, password: String, context: Context? = null): LoginResponse {
+        return response(context, doFetch(client, username, password)) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",
@@ -97,9 +97,10 @@ object TucanLogin {
     }
 
     fun Root.parseLoginFailure(): LoginResponse {
-        return parseBase("accessdenied", "000000000000001", "000000", {}) {
+        return parseBase("000000000000001", "000000", {}) { pageType ->
+            check(pageType == "accessdenied")
             script { attribute("type", "text/javascript"); }
-            val child = peek()?.firstChild();
+            val child = peek()?.firstChild()
             if (child is TextNode && child.text()
                     .trim() == "Sie konnten nicht angemeldet werden"
             ) {
