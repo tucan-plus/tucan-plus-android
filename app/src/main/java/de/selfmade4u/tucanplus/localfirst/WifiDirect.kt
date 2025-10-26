@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.selfmade4u.tucanplus.ext.connect
 import de.selfmade4u.tucanplus.ext.discoverPeers
 import de.selfmade4u.tucanplus.ext.isWifiDirectSupported
 import de.selfmade4u.tucanplus.ext.peersFlow
@@ -42,6 +43,13 @@ import kotlin.collections.forEach
 @Composable
 fun WifiDirect() {
     val context = LocalContext.current
+    val manager: WifiP2pManager = remember {
+        ContextCompat.getSystemService(context, WifiP2pManager::class.java)!! }
+    val channel = remember { manager.initialize(context, Looper.getMainLooper(),  {
+        Log.d(TAG, "CHANNEL LOST");
+        Toast.makeText(context, "Channel LOST", Toast.LENGTH_LONG).show()
+        // TODO try reaquire
+    }) }
     val enabledFlow = wifiP2pState(context)
     val enabled by enabledFlow.collectAsStateWithLifecycle(false)
     val deviceFlow = remember { flow {
@@ -50,13 +58,6 @@ fun WifiDirect() {
             Toast.makeText(context, "Wifi Direct not supported", Toast.LENGTH_SHORT).show()
             // return
         }
-        val manager: WifiP2pManager =
-            ContextCompat.getSystemService(context, WifiP2pManager::class.java)!!
-        val channel = manager.initialize(context, Looper.getMainLooper(),  {
-            Log.d(TAG, "CHANNEL LOST");
-            Toast.makeText(context, "Channel LOST", Toast.LENGTH_LONG).show()
-            // TODO try reaquire
-        })
         val discovery = manager.discoverPeers(channel)
         val peers = manager.peersFlow(context, channel)
         emitAll(peers)
@@ -75,7 +76,7 @@ fun WifiDirect() {
                     currentPeer.deviceName ?: currentPeer.toString(), modifier = Modifier.Companion
                         .clickable(enabled = true) {
                             coroutineScope.launch {
-
+                                manager.connect(channel, currentPeer)
                             }
                         })
             }

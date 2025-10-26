@@ -60,7 +60,7 @@ class LocalNetworkNSD {
 @Composable
 fun ShowLocalServices() {
     val context = LocalContext.current
-    val nsdManager = getSystemService(context, NsdManager::class.java)!!
+    val nsdManager = remember { getSystemService(context, NsdManager::class.java)!! }
     val flow: Flow<List<NsdServiceInfo>> = remember {
         flow {
             val info = NsdServiceInfo().apply {

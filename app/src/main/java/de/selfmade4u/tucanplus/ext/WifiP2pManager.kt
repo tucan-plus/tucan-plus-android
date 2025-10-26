@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.wifi.WpsInfo
+import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pDeviceList
 import android.net.wifi.p2p.WifiP2pManager
@@ -277,5 +279,35 @@ fun WifiP2pManager.peersFlow(context: Context, channel: WifiP2pManager.Channel):
     })
     awaitClose {
         context.unregisterReceiver(receiver)
+    }
+}
+
+suspend fun WifiP2pManager.connect(channel: WifiP2pManager.Channel, device: WifiP2pDevice) = suspendCancellableCoroutine { continuation ->
+val config = WifiP2pConfig().apply {
+        deviceAddress = device.deviceAddress
+        wps.setup = WpsInfo.PBC
+    }
+    connect(channel, config, object : WifiP2pManager.ActionListener {
+        override fun onFailure(reason: Int) {
+            Log.d(TAG, "connect onFailure $reason")
+            continuation.resumeWithException(Exception("discoverServices failed with reason $reason"))
+        }
+
+        override fun onSuccess() {
+            Log.d(TAG, "connect onSuccess")
+            continuation.resume(Unit)
+        }
+
+    })
+    continuation.invokeOnCancellation {
+        cancelConnect(channel, object : WifiP2pManager.ActionListener {
+            override fun onFailure(reason: Int) {
+                Log.d(TAG, "cancelConnect onFailure $reason")
+            }
+
+            override fun onSuccess() {
+                Log.d(TAG, "cancelConnect onSuccess")
+            }
+        })
     }
 }
