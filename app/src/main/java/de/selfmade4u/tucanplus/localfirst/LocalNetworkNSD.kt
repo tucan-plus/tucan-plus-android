@@ -1,4 +1,4 @@
-package de.selfmade4u.tucanplus
+package de.selfmade4u.tucanplus.localfirst
 
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.SERVICE_TYPE
-import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.SERVICE_TYPE
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ext.registerAndDiscoverServicesFlow
 import de.selfmade4u.tucanplus.ext.resolveService
 import io.ktor.client.HttpClient

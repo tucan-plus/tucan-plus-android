@@ -3,8 +3,8 @@ package de.selfmade4u.tucanplus.ext
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.util.Log
-import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.SERVICE_TYPE
-import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.SERVICE_TYPE
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking

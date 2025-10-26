@@ -1,12 +1,11 @@
 package de.selfmade4u.tucanplus.ext
 
-import android.net.nsd.NsdServiceInfo
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pManager
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest
 import android.net.wifi.p2p.nsd.WifiP2pServiceInfo
 import android.util.Log
-import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow

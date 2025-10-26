@@ -1,24 +1,21 @@
-package de.selfmade4u.tucanplus
+package de.selfmade4u.tucanplus.localfirst
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.nsd.NsdServiceInfo
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pDeviceList
 import android.net.wifi.p2p.WifiP2pManager
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -27,21 +24,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ext.addLocalService
-import de.selfmade4u.tucanplus.ext.resolveService
 import de.selfmade4u.tucanplus.ext.setDnsSdResponseListenersFlow
-import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
-import java.net.ConnectException
 import kotlin.uuid.ExperimentalUuidApi
+
+
+// TODO add one without service discovery
+// TODO add one with the other service discovery (needs to be able to work in parallel with the others)
+
 
 class WifiDirectBroadcastReceiver(val manager: WifiP2pManager, val channel: WifiP2pManager.Channel) : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -102,7 +98,10 @@ class WifiDirect {
             return
         }
         Toast.makeText(context, "Wifi Direct supported", Toast.LENGTH_SHORT).show()
-        val manager: WifiP2pManager = getSystemService(context, WifiP2pManager::class.java)!!
+        val manager: WifiP2pManager = ContextCompat.getSystemService(
+            context,
+            WifiP2pManager::class.java
+        )!!
 
         var channel: WifiP2pManager.Channel? = null
         var receiver: BroadcastReceiver? = null
@@ -124,9 +123,6 @@ class WifiDirect {
 }
 
 
-// TODO add one without service discovery
-// TODO add one with the other service discovery (needs to be able to work in parallel with the others)
-
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun WifiDirectList() {
@@ -134,7 +130,8 @@ fun WifiDirectList() {
     val context = LocalContext.current
     val flow: Flow<List<WifiP2pDevice>> = remember {
         flow {
-            val manager: WifiP2pManager = getSystemService(context, WifiP2pManager::class.java)!!
+            val manager: WifiP2pManager =
+                ContextCompat.getSystemService(context, WifiP2pManager::class.java)!!
             val channel = manager.initialize(context, Looper.getMainLooper(), null)
             val record: Map<String, String> = mapOf(
                 "listenport" to 42.toString(),
@@ -144,7 +141,12 @@ fun WifiDirectList() {
             val serviceInfo =
                 WifiP2pDnsSdServiceInfo.newInstance("_test", "_presence._tcp", record)
             manager.addLocalService(channel, serviceInfo)
-            emitAll(manager.setDnsSdResponseListenersFlow(channel, WifiP2pDnsSdServiceRequest.newInstance()))
+            emitAll(
+                manager.setDnsSdResponseListenersFlow(
+                    channel,
+                    WifiP2pDnsSdServiceRequest.newInstance()
+                )
+            )
         }
     }
     val discovered by flow.collectAsStateWithLifecycle(listOf())
@@ -154,7 +156,7 @@ fun WifiDirectList() {
             key(peer.deviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }
                 Text(
-                    "${currentPeer.deviceName}", modifier = Modifier
+                    "${currentPeer.deviceName}", modifier = Modifier.Companion
                         .clickable(enabled = true) {
                             coroutineScope.launch {
 
