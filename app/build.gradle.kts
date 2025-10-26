@@ -7,6 +7,7 @@ plugins {
     id("kotlin-android")
     id("com.google.devtools.ksp")
     id("androidx.room")
+    id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
 }
 
 android {

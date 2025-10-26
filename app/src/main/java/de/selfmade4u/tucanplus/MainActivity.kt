@@ -66,6 +66,11 @@ import de.selfmade4u.tucanplus.connector.TucanLogin
 import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ui.theme.TUCaNPlusTheme
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.DEBUG_PROPERTY_NAME
+import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -85,11 +90,25 @@ data object LoginNavKey : NavKey
 data object ModuleResultsNavKey : NavKey
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun setupExceptionHandling() {
+        System.setProperty("io.ktor.development", "true")
+        System.setProperty(DEBUG_PROPERTY_NAME, DEBUG_PROPERTY_VALUE_ON)
+        // https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-debug/
+        // https://dev.to/theplebdev/how-to-debug-kotlin-coroutines-in-android-jc
+        // https://android.googlesource.com/platform/external/kotlinx.coroutines/+/refs/heads/android11-d1-s6-release/kotlinx-coroutines-debug/#debug-agent-and-android
+        // great
+        // https://blog.joetr.com/better-stack-traces-with-coroutines
+        // https://dev.to/anamorphosee/kotlin-coroutines-stack-trace-issue-15dh claims it does not work for explicitly thrown exceptions anyways
+        // https://github.com/Kotlin/kotlinx.coroutines/issues/2550
+        // https://github.com/Kotlin/kotlinx.coroutines/issues/74
+        // https://github.com/Kotlin/kotlinx.coroutines/issues/2327#issuecomment-716102034
+        // https://discuss.kotlinlang.org/t/kotlin-coroutines-stack-trace-problem/23847
+        // TODO try resumeWithException and see whether it has a good stacktrace
         val systemExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
         val myHandler: Thread.UncaughtExceptionHandler =
             Thread.UncaughtExceptionHandler { thread, ex ->
-                Log.e(TAG, "Uncaught exception in thread ${thread.name} ${ex.suppressed}", ex)
+                Log.e(TAG, "Uncaught exception in thread ${thread.name} ${ex.suppressedExceptions}", ex)
                 systemExceptionHandler?.uncaughtException(thread, ex)
             }
         // Make myHandler the new default uncaught exception handler.

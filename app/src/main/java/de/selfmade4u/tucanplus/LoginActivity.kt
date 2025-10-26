@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.connector.TucanLogin
+import de.selfmade4u.tucanplus.localfirst.ShowLocalServices
 import de.selfmade4u.tucanplus.localfirst.WifiDirect
 import de.selfmade4u.tucanplus.localfirst.WifiDirectBonjour
 import io.ktor.client.HttpClient
@@ -70,9 +71,9 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            ShowLocalServices()
             WifiDirect()
             //WifiDirectBonjour()
-            //ShowLocalServices()
             TextField(
                 state = usernameState,
                 modifier = Modifier.fillMaxWidth(),

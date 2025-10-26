@@ -66,7 +66,6 @@ fun ShowLocalServices() {
             val info = NsdServiceInfo().apply {
                 serviceName = "T+ ${Uuid.random()}"
                 serviceType = SERVICE_TYPE
-                System.setProperty("io.ktor.development", "true")
                 val server = embeddedServer(CIO, port = 0, watchPaths = listOf()) {
                     routing {
                         get("/") {
@@ -101,7 +100,7 @@ fun ShowLocalServices() {
                                 val client = HttpClient()
                                 try {
                                     Log.d(TAG, "Trying to connect to http://$host:$port/")
-                                    val response = client.get("http://$host:$port/")
+                                    val response = client.get("http://$host:42/")
                                     Log.d(TAG, "Got response $response ${response.bodyAsText()}")
                                     Toast.makeText(
                                         context,
@@ -110,7 +109,7 @@ fun ShowLocalServices() {
                                     )
                                         .show()
                                 } catch (e: ConnectException) {
-                                    Log.e("TucanLogin", "ConnectException", e)
+                                    Log.e("TucanLogin", "ConnectException ${e.suppressedExceptions}", e)
                                     Toast.makeText(
                                         context,
                                         "ConnectException http://$host:$port/ $e",
