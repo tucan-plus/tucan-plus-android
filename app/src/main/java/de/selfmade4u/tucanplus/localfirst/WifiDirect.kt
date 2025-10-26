@@ -5,12 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pDeviceList
 import android.net.wifi.p2p.WifiP2pManager
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -26,138 +24,55 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.selfmade4u.tucanplus.ext.addLocalService
-import de.selfmade4u.tucanplus.ext.setDnsSdResponseListenersFlow
-import kotlinx.coroutines.flow.Flow
+import de.selfmade4u.tucanplus.ext.discoverPeers
+import de.selfmade4u.tucanplus.ext.isWifiDirectSupported
+import de.selfmade4u.tucanplus.ext.peersFlow
+import de.selfmade4u.tucanplus.ext.wifiP2pState
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
-import kotlin.uuid.ExperimentalUuidApi
-
-
-// TODO add one without service discovery
-// TODO add one with the other service discovery (needs to be able to work in parallel with the others)
-
-
-class WifiDirectBroadcastReceiver(val manager: WifiP2pManager, val channel: WifiP2pManager.Channel) : BroadcastReceiver() {
-    override fun onReceive(context: Context?, intent: Intent?) {
-        val action: String = intent!!.action!!
-        when (action) {
-            WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
-                val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
-                when (state) {
-                    WifiP2pManager.WIFI_P2P_STATE_ENABLED -> {
-                        // Wifi P2P is enabled
-                        Toast.makeText(context, "Wifi Direct enabled", Toast.LENGTH_SHORT).show()
-                        manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
-
-                            override fun onSuccess() {
-                                Toast.makeText(context, "Discovered peers", Toast.LENGTH_SHORT).show()
-                            }
-
-                            override fun onFailure(reasonCode: Int) {
-                                when (reasonCode) {
-                                    WifiP2pManager.ERROR -> {
-                                        Toast.makeText(context, "Failure to discover peers: ERROR", Toast.LENGTH_SHORT).show()
-                                    }
-                                    WifiP2pManager.P2P_UNSUPPORTED -> {
-                                        Toast.makeText(context, "Failure to discover peers: P2P_UNSUPPORTED", Toast.LENGTH_SHORT).show()
-                                    }
-                                    WifiP2pManager.BUSY -> {
-                                        Toast.makeText(context, "Failure to discover peers: BUSY", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            }
-                        })
-                    }
-                    else -> {
-                        // Wi-Fi P2P is not enabled
-                        Toast.makeText(context, "Wifi Direct disabled", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-            WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
-                manager.requestPeers(channel) { peers: WifiP2pDeviceList? ->
-                    // Handle peers list
-                    Toast.makeText(context, "Peers $peers", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
-}
+import kotlin.collections.forEach
 
 // https://developer.android.com/develop/connectivity/wifi/wifip2p
 // https://developer.android.com/develop/connectivity/wifi/wifi-direct
-class WifiDirect {
-
-    // https://developer.android.com/develop/connectivity/wifi/wifi-permissions
-    fun setup(context: Context) {
-        if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_DIRECT)) {
-            Toast.makeText(context, "Wifi Direct not supported", Toast.LENGTH_SHORT).show()
-            return
-        }
-        Toast.makeText(context, "Wifi Direct supported", Toast.LENGTH_SHORT).show()
-        val manager: WifiP2pManager = ContextCompat.getSystemService(
-            context,
-            WifiP2pManager::class.java
-        )!!
-
-        var channel: WifiP2pManager.Channel? = null
-        var receiver: BroadcastReceiver? = null
-        channel = manager.initialize(context, Looper.getMainLooper(), null)
-        channel?.also { channel ->
-            receiver = WifiDirectBroadcastReceiver(manager, channel)
-        }
-        val intentFilter = IntentFilter().apply {
-            addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
-            addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)
-            addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)
-            addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
-        }
-        receiver?.also { receiver ->
-            // TODO FIXME unregister stuff is wrong here
-            context.registerReceiver(receiver, intentFilter)
-        }
-    }
-}
+// https://developer.android.com/develop/connectivity/wifi/wifi-permissions
 
 
-@OptIn(ExperimentalUuidApi::class)
 @Composable
-fun WifiDirectList() {
-    // TODO FIXMe check if available
+fun WifiDirect() {
     val context = LocalContext.current
-    val flow: Flow<List<WifiP2pDevice>> = remember {
-        flow {
-            val manager: WifiP2pManager =
-                ContextCompat.getSystemService(context, WifiP2pManager::class.java)!!
-            val channel = manager.initialize(context, Looper.getMainLooper(), null)
-            val record: Map<String, String> = mapOf(
-                "listenport" to 42.toString(),
-                "buddyname" to "John Doe${(Math.random() * 1000).toInt()}",
-                "available" to "visible"
-            )
-            val serviceInfo =
-                WifiP2pDnsSdServiceInfo.newInstance("_test${(Math.random() * 1000).toInt()}", "_presence._tcp", record)
-            manager.addLocalService(channel, serviceInfo)
-            emitAll(
-                manager.setDnsSdResponseListenersFlow(
-                    channel,
-                    WifiP2pDnsSdServiceRequest.newInstance()
-                )
-            )
+    val enabledFlow = wifiP2pState(context)
+    val enabled by enabledFlow.collectAsStateWithLifecycle(false)
+    val deviceFlow = remember { flow {
+        // TODO use this for bonjour and this together
+        if (!isWifiDirectSupported(context)) {
+            Toast.makeText(context, "Wifi Direct not supported", Toast.LENGTH_SHORT).show()
+            // return
         }
+        val manager: WifiP2pManager =
+            ContextCompat.getSystemService(context, WifiP2pManager::class.java)!!
+        val channel = manager.initialize(context, Looper.getMainLooper(),  {
+            Log.d(TAG, "CHANNEL LOST");
+            Toast.makeText(context, "Channel LOST", Toast.LENGTH_LONG).show()
+            // TODO try reaquire
+        })
+        val discovery = manager.discoverPeers(channel)
+        val peers = manager.peersFlow(context, channel)
+        emitAll(peers)
+        discovery.close()
     }
-    val discovered by flow.collectAsStateWithLifecycle(listOf())
+    }
+    val discovered by deviceFlow.collectAsStateWithLifecycle(listOf())
     val coroutineScope = rememberCoroutineScope()
     Column {
+        Text("enabled $enabled")
         Text("Wifi Direct")
         discovered.forEach { peer ->
             key(peer.deviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }
                 Text(
-                    "${currentPeer.deviceName}", modifier = Modifier.Companion
+                    currentPeer.deviceName ?: currentPeer.toString(), modifier = Modifier.Companion
                         .clickable(enabled = true) {
                             coroutineScope.launch {
 
@@ -167,4 +82,3 @@ fun WifiDirectList() {
         }
     }
 }
-// 02:15:b4:00:00:00 Android_apnG found at (2), so it seems they can see each other at least in one direction? Interesting
