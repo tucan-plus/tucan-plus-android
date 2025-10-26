@@ -139,7 +139,7 @@ fun WifiDirectList() {
                 "available" to "visible"
             )
             val serviceInfo =
-                WifiP2pDnsSdServiceInfo.newInstance("_test", "_presence._tcp", record)
+                WifiP2pDnsSdServiceInfo.newInstance("_test${(Math.random() * 1000).toInt()}", "_presence._tcp", record)
             manager.addLocalService(channel, serviceInfo)
             emitAll(
                 manager.setDnsSdResponseListenersFlow(

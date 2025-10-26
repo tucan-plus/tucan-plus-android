@@ -28,17 +28,32 @@ suspend fun WifiP2pManager.addLocalService(channel: WifiP2pManager.Channel, serv
 
         override fun onSuccess() {
             Log.d(TAG, "addLocalService onSuccess")
-            val self = this
             continuation.resume(object : Closeable {
                 override fun close() {
-                    removeLocalService(channel, serviceInfo, self)
+                    removeLocalService(channel, serviceInfo, object : WifiP2pManager.ActionListener {
+                        override fun onFailure(reason: Int) {
+                            Log.d(TAG, "removeLocalService onFailure $reason")
+                        }
+
+                        override fun onSuccess() {
+                            Log.d(TAG, "removeLocalService onSuccess")
+                        }
+                    })
                 }
             })
         }
     }
     addLocalService(channel, serviceInfo, listener)
     continuation.invokeOnCancellation {
-        removeLocalService(channel, serviceInfo, listener)
+        removeLocalService(channel, serviceInfo, object : WifiP2pManager.ActionListener {
+            override fun onFailure(reason: Int) {
+                Log.d(TAG, "removeLocalService onFailure $reason")
+            }
+
+            override fun onSuccess() {
+                Log.d(TAG, "removeLocalService onSuccess")
+            }
+        })
     }
 }
 
@@ -76,9 +91,11 @@ suspend fun WifiP2pManager.addServiceRequest(channel: WifiP2pManager.Channel, re
                 override fun close() {
                     removeServiceRequest(channel, request, object : WifiP2pManager.ActionListener {
                         override fun onFailure(reason: Int) {
+                            Log.d(TAG, "removeServiceRequest onFailure $reason")
                         }
 
                         override fun onSuccess() {
+                            Log.d(TAG, "removeServiceRequest onSuccess")
                         }
 
                     })
@@ -90,9 +107,11 @@ suspend fun WifiP2pManager.addServiceRequest(channel: WifiP2pManager.Channel, re
     continuation.invokeOnCancellation {
         removeServiceRequest(channel, request, object :WifiP2pManager.ActionListener {
             override fun onFailure(reason: Int) {
+                Log.d(TAG, "removeServiceRequest onFailure $reason")
             }
 
             override fun onSuccess() {
+                Log.d(TAG, "removeServiceRequest onSuccess")
             }
 
         })
@@ -113,11 +132,11 @@ suspend fun WifiP2pManager.discoverServices(channel: WifiP2pManager.Channel): Cl
                 override fun close() {
                     clearServiceRequests(channel, object : WifiP2pManager.ActionListener {
                         override fun onFailure(reason: Int) {
-
+                            Log.d(TAG, "clearServiceRequests onFailure $reason")
                         }
 
                         override fun onSuccess() {
-
+                            Log.d(TAG, "clearServiceRequests onSuccess")
                         }
                     })
                 }
@@ -127,11 +146,11 @@ suspend fun WifiP2pManager.discoverServices(channel: WifiP2pManager.Channel): Cl
     continuation.invokeOnCancellation {
         clearServiceRequests(channel, object : WifiP2pManager.ActionListener {
             override fun onFailure(reason: Int) {
-
+                Log.d(TAG, "clearServiceRequests onFailure $reason")
             }
 
             override fun onSuccess() {
-
+                Log.d(TAG, "clearServiceRequests onSuccess")
             }
         })
     }
