@@ -5,15 +5,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.NetworkInfo
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pDeviceList
+import android.net.wifi.p2p.WifiP2pGroup
+import android.net.wifi.p2p.WifiP2pInfo
 import android.net.wifi.p2p.WifiP2pManager
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest
 import android.net.wifi.p2p.nsd.WifiP2pServiceInfo
 import android.util.Log
-import android.widget.Toast
+import androidx.core.content.IntentCompat
 import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
@@ -211,7 +214,7 @@ fun wifiP2pState(context: Context) = callbackFlow {
     }
 }
 
-suspend fun WifiP2pManager.discoverPeers(channel: WifiP2pManager.Channel) : Closeable =
+suspend fun WifiP2pManager.discoverPeers(channel: WifiP2pManager.Channel): Closeable =
     suspendCancellableCoroutine { continuation ->
         discoverPeers(channel, object : WifiP2pManager.ActionListener {
             override fun onFailure(reason: Int) {
@@ -220,9 +223,11 @@ suspend fun WifiP2pManager.discoverPeers(channel: WifiP2pManager.Channel) : Clos
                     WifiP2pManager.ERROR -> {
                         Log.e(TAG, "Failure to discover peers: ERROR")
                     }
+
                     WifiP2pManager.P2P_UNSUPPORTED -> {
                         Log.e(TAG, "Failure to discover peers: P2P_UNSUPPORTED")
                     }
+
                     WifiP2pManager.BUSY -> {
                         Log.e(TAG, "Failure to discover peers: BUSY")
                     }
@@ -261,7 +266,10 @@ suspend fun WifiP2pManager.discoverPeers(channel: WifiP2pManager.Channel) : Clos
     }
 
 // TODO reduce code duplication
-fun WifiP2pManager.peersFlow(context: Context, channel: WifiP2pManager.Channel): Flow<List<WifiP2pDevice>> = callbackFlow {
+fun WifiP2pManager.peersFlow(
+    context: Context,
+    channel: WifiP2pManager.Channel
+): Flow<List<WifiP2pDevice>> = callbackFlow {
     val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent!!.action!!) {
@@ -282,32 +290,76 @@ fun WifiP2pManager.peersFlow(context: Context, channel: WifiP2pManager.Channel):
     }
 }
 
-suspend fun WifiP2pManager.connect(channel: WifiP2pManager.Channel, device: WifiP2pDevice) = suspendCancellableCoroutine { continuation ->
-val config = WifiP2pConfig().apply {
-        deviceAddress = device.deviceAddress
-        wps.setup = WpsInfo.PBC
-    }
-    connect(channel, config, object : WifiP2pManager.ActionListener {
-        override fun onFailure(reason: Int) {
-            Log.d(TAG, "connect onFailure $reason")
-            continuation.resumeWithException(Exception("discoverServices failed with reason $reason"))
+suspend fun WifiP2pManager.connect(channel: WifiP2pManager.Channel, device: WifiP2pDevice) =
+    suspendCancellableCoroutine { continuation ->
+        val config = WifiP2pConfig().apply {
+            deviceAddress = device.deviceAddress
+            wps.setup = WpsInfo.PBC
         }
-
-        override fun onSuccess() {
-            Log.d(TAG, "connect onSuccess")
-            continuation.resume(Unit)
-        }
-
-    })
-    continuation.invokeOnCancellation {
-        cancelConnect(channel, object : WifiP2pManager.ActionListener {
+        connect(channel, config, object : WifiP2pManager.ActionListener {
             override fun onFailure(reason: Int) {
-                Log.d(TAG, "cancelConnect onFailure $reason")
+                Log.d(TAG, "connect onFailure $reason")
+                continuation.resumeWithException(Exception("connect failed with reason $reason"))
             }
 
             override fun onSuccess() {
-                Log.d(TAG, "cancelConnect onSuccess")
+                Log.d(TAG, "connect onSuccess")
+                continuation.resume(Unit)
             }
+
         })
+        continuation.invokeOnCancellation {
+            cancelConnect(channel, object : WifiP2pManager.ActionListener {
+                override fun onFailure(reason: Int) {
+                    Log.d(TAG, "cancelConnect onFailure $reason")
+                }
+
+                override fun onSuccess() {
+                    Log.d(TAG, "cancelConnect onSuccess")
+                }
+            })
+        }
+    }
+
+data class ConnectionState(
+    val wifiP2pInfo: WifiP2pInfo,
+    val networkInfo: NetworkInfo,
+    val wifiP2pGroup: WifiP2pGroup?
+)
+
+fun WifiP2pManager.connectionStateFlow(
+    context: Context,
+    channel: WifiP2pManager.Channel
+): Flow<ConnectionState> = callbackFlow {
+    val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent!!.action!!) {
+                WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
+                    val wifiP2pInfo =
+                        IntentCompat.getParcelableExtra(
+                            intent, WifiP2pManager.EXTRA_WIFI_P2P_INFO,
+                            WifiP2pInfo::class.java
+                        )!!
+                    val networkInfo =
+                        IntentCompat.getParcelableExtra(
+                            intent, WifiP2pManager.EXTRA_NETWORK_INFO,
+                            NetworkInfo::class.java
+                        )!!
+                    val wifiP2pGroup =
+                        IntentCompat.getParcelableExtra(
+                            intent, WifiP2pManager.EXTRA_WIFI_P2P_GROUP,
+                            WifiP2pGroup::class.java
+                        )
+                    trySendBlocking(ConnectionState(wifiP2pInfo, networkInfo, wifiP2pGroup))
+                }
+            }
+        }
+
+    }
+    context.registerReceiver(receiver, IntentFilter().apply {
+        addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)
+    })
+    awaitClose {
+        context.unregisterReceiver(receiver)
     }
 }

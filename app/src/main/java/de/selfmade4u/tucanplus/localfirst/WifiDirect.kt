@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.selfmade4u.tucanplus.ext.connect
+import de.selfmade4u.tucanplus.ext.connectionStateFlow
 import de.selfmade4u.tucanplus.ext.discoverPeers
 import de.selfmade4u.tucanplus.ext.isWifiDirectSupported
 import de.selfmade4u.tucanplus.ext.peersFlow
@@ -44,31 +45,38 @@ import kotlin.collections.forEach
 fun WifiDirect() {
     val context = LocalContext.current
     val manager: WifiP2pManager = remember {
-        ContextCompat.getSystemService(context, WifiP2pManager::class.java)!! }
-    val channel = remember { manager.initialize(context, Looper.getMainLooper(),  {
-        Log.d(TAG, "CHANNEL LOST");
-        Toast.makeText(context, "Channel LOST", Toast.LENGTH_LONG).show()
-        // TODO try reaquire
-    }) }
+        ContextCompat.getSystemService(context, WifiP2pManager::class.java)!!
+    }
+    val channel = remember {
+        manager.initialize(context, Looper.getMainLooper(), {
+            Log.d(TAG, "CHANNEL LOST");
+            Toast.makeText(context, "Channel LOST", Toast.LENGTH_LONG).show()
+            // TODO try reaquire
+        })
+    }
     val enabledFlow = wifiP2pState(context)
     val enabled by enabledFlow.collectAsStateWithLifecycle(false)
-    val deviceFlow = remember { flow {
-        // TODO use this for bonjour and this together
-        if (!isWifiDirectSupported(context)) {
-            Toast.makeText(context, "Wifi Direct not supported", Toast.LENGTH_SHORT).show()
-            // return
+    val deviceFlow = remember {
+        flow {
+            // TODO use this for bonjour and this together
+            if (!isWifiDirectSupported(context)) {
+                Toast.makeText(context, "Wifi Direct not supported", Toast.LENGTH_SHORT).show()
+                // return
+            }
+            val discovery = manager.discoverPeers(channel)
+            val peers = manager.peersFlow(context, channel)
+            emitAll(peers)
+            discovery.close()
         }
-        val discovery = manager.discoverPeers(channel)
-        val peers = manager.peersFlow(context, channel)
-        emitAll(peers)
-        discovery.close()
-    }
     }
     val discovered by deviceFlow.collectAsStateWithLifecycle(listOf())
+    val connectionStateFlow = remember { manager.connectionStateFlow(context, channel) }
+    val connectionState by connectionStateFlow.collectAsStateWithLifecycle(null)
     val coroutineScope = rememberCoroutineScope()
     Column {
         Text("enabled $enabled")
         Text("Wifi Direct")
+        Text("$connectionState")
         discovered.forEach { peer ->
             key(peer.deviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }

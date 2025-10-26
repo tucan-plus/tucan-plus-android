@@ -63,6 +63,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import de.selfmade4u.tucanplus.connector.ModuleResults
 import de.selfmade4u.tucanplus.connector.TucanLogin
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ui.theme.TUCaNPlusTheme
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.first
@@ -84,7 +85,19 @@ data object LoginNavKey : NavKey
 data object ModuleResultsNavKey : NavKey
 
 class MainActivity : ComponentActivity() {
+    private fun setupExceptionHandling() {
+        val systemExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
+        val myHandler: Thread.UncaughtExceptionHandler =
+            Thread.UncaughtExceptionHandler { thread, ex ->
+                Log.e(TAG, "Uncaught exception in thread ${thread.name} ${ex.suppressed}", ex)
+                systemExceptionHandler?.uncaughtException(thread, ex)
+            }
+        // Make myHandler the new default uncaught exception handler.
+        Thread.setDefaultUncaughtExceptionHandler(myHandler)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        setupExceptionHandling()
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -136,7 +149,8 @@ fun DetailedDrawerExample(
         drawerContent = {
             ModalDrawerSheet {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
                     NavigationDrawerItem(
@@ -270,7 +284,9 @@ fun LongBasicDropdownMenu() {
             // The `menuAnchor` modifier must be passed to the text field to handle
             // expanding/collapsing the menu on click. A read-only text field has
             // the anchor type `PrimaryNotEditable`.
-            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             state = textFieldState,
             readOnly = true,
             lineLimits = TextFieldLineLimits.SingleLine,
