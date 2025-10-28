@@ -100,7 +100,7 @@ fun ShowLocalServices() {
                                 val client = HttpClient()
                                 try {
                                     Log.d(TAG, "Trying to connect to http://$host:$port/")
-                                    val response = client.get("http://$host:42/")
+                                    val response = client.get("http://$host:$port/")
                                     Log.d(TAG, "Got response $response ${response.bodyAsText()}")
                                     Toast.makeText(
                                         context,
