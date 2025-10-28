@@ -62,7 +62,11 @@ class LoginTest {
     fun testLoginCorrectUsernameAndPassword() {
         val client = HttpClient()
         runBlocking {
-            TucanLogin.doLogin(client, System.getenv("TUCAN_USERNAME")!!, System.getenv("TUCAN_PASSWORD")!!)
+            TucanLogin.doLogin(
+                client,
+                System.getenv("TUCAN_USERNAME")!!,
+                System.getenv("TUCAN_PASSWORD")!!
+            )
         }
     }
 }

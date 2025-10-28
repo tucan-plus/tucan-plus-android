@@ -94,7 +94,8 @@ fun NsdManager.registerAndDiscoverServicesFlow(
 
         override fun onServiceLost(service: NsdServiceInfo) {
             Log.d(TAG, "onServiceLost $service")
-            discoveredServices = discoveredServices.filterNot { it.serviceName == service.serviceName }
+            discoveredServices =
+                discoveredServices.filterNot { it.serviceName == service.serviceName }
             trySendBlocking(discoveredServices)
         }
 
@@ -120,23 +121,24 @@ fun NsdManager.registerAndDiscoverServicesFlow(
     }
 }
 
-suspend fun NsdManager.resolveService(serviceInfo: NsdServiceInfo): NsdServiceInfo = suspendCancellableCoroutine { continuation ->
-    val listener = object : NsdManager.ResolveListener {
-        override fun onResolveFailed(
-            serviceInfo: NsdServiceInfo?,
-            errorCode: Int
-        ) {
-            Log.d(TAG, "onResolveFailed $serviceInfo $errorCode")
-            continuation.resumeWithException(Exception("Resolve failed for $serviceInfo with error code $errorCode"))
+suspend fun NsdManager.resolveService(serviceInfo: NsdServiceInfo): NsdServiceInfo =
+    suspendCancellableCoroutine { continuation ->
+        val listener = object : NsdManager.ResolveListener {
+            override fun onResolveFailed(
+                serviceInfo: NsdServiceInfo?,
+                errorCode: Int
+            ) {
+                Log.d(TAG, "onResolveFailed $serviceInfo $errorCode")
+                continuation.resumeWithException(Exception("Resolve failed for $serviceInfo with error code $errorCode"))
+            }
+
+            override fun onServiceResolved(serviceInfo: NsdServiceInfo?) {
+                Log.d(TAG, "onServiceResolved")
+                continuation.resume(serviceInfo!!)
+            }
         }
 
-        override fun onServiceResolved(serviceInfo: NsdServiceInfo?) {
-            Log.d(TAG, "onServiceResolved")
-            continuation.resume(serviceInfo!!)
-        }
+        // Official Fairphone 3 OS does not support the new registerServiceInfoCallback API
+        @Suppress("DEPRECATION")
+        resolveService(serviceInfo, listener)
     }
-
-    // Official Fairphone 3 OS does not support the new registerServiceInfoCallback API
-    @Suppress("DEPRECATION")
-    resolveService(serviceInfo, listener)
-}

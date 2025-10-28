@@ -49,11 +49,24 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
             attribute.setValue(attribute.value.trim())
         }
         if (value == null) {
-            check(attribute == Attribute(key, null)) { "actual   ${attribute}\nexpected ${Attribute(key, null)}" }
+            check(attribute == Attribute(key, null)) {
+                "actual   ${attribute}\nexpected ${
+                    Attribute(
+                        key,
+                        null
+                    )
+                }"
+            }
         } else {
-            check(attribute == Attribute.createFromEncoded(key, value)) { "actual   ${attribute}\nexpected ${Attribute.createFromEncoded(key, value)}" }
+            check(
+                attribute == Attribute.createFromEncoded(
+                    key,
+                    value
+                )
+            ) { "actual   ${attribute}\nexpected ${Attribute.createFromEncoded(key, value)}" }
         }
     }
+
     fun attributeValue(key: String): String {
         val attribute = attributes.removeAt(0)
         if (attribute.key == "class") {
@@ -62,12 +75,14 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
         check(attribute.key == key) { "actual   ${attribute.key}\nexpected $key" }
         return attribute.value
     }
+
     fun extractText(): String {
         check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is TextNode) { next }
         return next.text().trim()
     }
+
     fun text(text: String) {
         check(text.trim().isNotEmpty()) { "expected text cannot be empty" }
         check(attributes.isEmpty()) { attributes.removeAt(0) }
@@ -75,12 +90,18 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
         check(next is TextNode) { next }
         check(next.text().trim() == text) { "actual   $${next.text().trim()}$\nexpected $${text}$" }
     }
+
     fun dataHash(hash: String) {
         check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is DataNode) { next }
-        check(next.getWholeData().hashedWithSha256() == hash) { "${next.getWholeData().hashedWithSha256()} $${next.getWholeData()}$" }
+        check(next.getWholeData().hashedWithSha256() == hash) {
+            "${
+                next.getWholeData().hashedWithSha256()
+            } $${next.getWholeData()}$"
+        }
     }
+
     fun extractData(): String {
         check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
@@ -90,19 +111,38 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
 }
 
 class Root(nodeList: MutableList<Node>) : HtmlTag(nodeList, mutableListOf())
-class Doctype(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
-class Html(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
-class Head(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
-class Body(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
-class Title(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
-class Meta(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
-class Link(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
-class Script(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) : HtmlTag(nodeList, attributes)
+class Doctype(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) :
+    HtmlTag(nodeList, attributes)
+
+class Html(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) :
+    HtmlTag(nodeList, attributes)
+
+class Head(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) :
+    HtmlTag(nodeList, attributes)
+
+class Body(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) :
+    HtmlTag(nodeList, attributes)
+
+class Title(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) :
+    HtmlTag(nodeList, attributes)
+
+class Meta(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) :
+    HtmlTag(nodeList, attributes)
+
+class Link(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) :
+    HtmlTag(nodeList, attributes)
+
+class Script(nodeList: MutableList<Node>, attributes: MutableList<Attribute>) :
+    HtmlTag(nodeList, attributes)
 
 fun shouldIgnore(node: Node): Boolean =
     node is Comment || (node is TextNode && node.text().replace("\\r\\n", "").trim().isEmpty())
 
-class Response(val response: HttpResponse, var headers: MutableMap<String, List<String>>, var checkedStatus: Boolean = false) {
+class Response(
+    val response: HttpResponse,
+    var headers: MutableMap<String, List<String>>,
+    var checkedStatus: Boolean = false
+) {
     fun status(status: HttpStatusCode) {
         check(response.status == status) { "actual   ${response.status} expected $status" }
         checkedStatus = true
@@ -111,13 +151,13 @@ class Response(val response: HttpResponse, var headers: MutableMap<String, List<
     fun maybeHeader(key: String, values: List<String>) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
         val actualValue = headers.remove(key)
-        check(actualValue == null || actualValue == values) { "actual   $actualValue\nexpected $values"}
+        check(actualValue == null || actualValue == values) { "actual   $actualValue\nexpected $values" }
     }
 
     fun header(key: String, values: List<String>) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
         val actualValue = headers.remove(key)
-        check(actualValue == values) { "actual   $actualValue\nexpected $values"}
+        check(actualValue == values) { "actual   $actualValue\nexpected $values" }
     }
 
     fun header(key: String, values: String) {
@@ -142,19 +182,25 @@ class Response(val response: HttpResponse, var headers: MutableMap<String, List<
 
     suspend fun <T> root(init: Root.() -> T): T {
         check(headers.isEmpty()) { "unparsed headers $headers" }
-        val document =  Ksoup.parse(response.bodyAsText())
+        val document = Ksoup.parse(response.bodyAsText())
         check(document.nameIs("#root")) { document.normalName() }
         check(document.attributesSize() == 0) { document.attributes() }
-        val node = Root( document.childNodes()
-            .filterNot(::shouldIgnore)
-            .toMutableList())
+        val node = Root(
+            document.childNodes()
+                .filterNot(::shouldIgnore)
+                .toMutableList()
+        )
         return node.init()
     }
 
 }
 
 @OptIn(ExperimentalUuidApi::class)
-suspend fun <T> response(context: Context? = null, response: HttpResponse, init: suspend Response.() -> T): T {
+suspend fun <T> response(
+    context: Context? = null,
+    response: HttpResponse,
+    init: suspend Response.() -> T
+): T {
     try {
         return Response(response, response.headers.toMap().toMutableMap()).init()
     } catch (e: IllegalStateException) {
@@ -163,9 +209,9 @@ suspend fun <T> response(context: Context? = null, response: HttpResponse, init:
         if (context != null) {
             val dir = File(context.filesDir, "parsingerrors")
             dir.mkdirs()
-            val fileOutputStream = FileOutputStream(File(dir,  "error${Uuid.random()}.html"))
+            val fileOutputStream = FileOutputStream(File(dir, "error${Uuid.random()}.html"))
             fileOutputStream.use {
-                it.write( response.bodyAsText().toByteArray())
+                it.write(response.bodyAsText().toByteArray())
             }
             val db = Room.databaseBuilder(
                 context,
@@ -187,9 +233,11 @@ suspend fun <T> response(context: Context? = null, response: HttpResponse, init:
 fun <T> root(document: Document, init: Root.() -> T): T {
     check(document.nameIs("#root")) { document.normalName() }
     check(document.attributesSize() == 0) { document.attributes() }
-    val node = Root( document.childNodes()
-        .filterNot(::shouldIgnore)
-        .toMutableList())
+    val node = Root(
+        document.childNodes()
+            .filterNot(::shouldIgnore)
+            .toMutableList()
+    )
     return node.init()
 }
 
@@ -224,7 +272,14 @@ fun <R> Body.header(init: Body.() -> R): R = initTag("header", ::Body, init)
 fun <R> Body.span(init: Body.() -> R): R = initTag("span", ::Body, init)
 fun <R> Body.b(init: Body.() -> R): R = initTag("b", ::Body, init)
 fun <R> Body.br(init: Body.() -> R): R = initTag("br", ::Body, init)
-fun <R> Body.option(init: Body.() -> R): R { contract { callsInPlace(init, InvocationKind.EXACTLY_ONCE) }; return initTag("option", ::Body, init) }
+fun <R> Body.option(init: Body.() -> R): R {
+    contract { callsInPlace(init, InvocationKind.EXACTLY_ONCE) }; return initTag(
+        "option",
+        ::Body,
+        init
+    )
+}
+
 fun <R> Body.input(init: Body.() -> R): R = initTag("input", ::Body, init)
 fun <R> Body.select(init: Body.() -> R): R = initTag("select", ::Body, init)
 fun <R> Body.table(init: Body.() -> R): R = initTag("table", ::Body, init)
@@ -246,6 +301,7 @@ fun <R> Body.td(init: Body.() -> R): R {
     }
     return initTag("td", ::Body, init)
 }
+
 fun <R> Body.th(init: Body.() -> R): R = initTag("th", ::Body, init)
 
 fun HtmlTag.peek(): Node? {
@@ -257,7 +313,11 @@ fun HtmlTag.peekAttribute(): Attribute? {
 }
 
 @OptIn(ExperimentalContracts::class)
-fun <P: HtmlTag, C, R> P.initTag(tag: String, createTag: (iterator: MutableList<Node>, attributes: MutableList<Attribute>) -> C, init: C.() -> R): R {
+fun <P : HtmlTag, C, R> P.initTag(
+    tag: String,
+    createTag: (iterator: MutableList<Node>, attributes: MutableList<Attribute>) -> C,
+    init: C.() -> R
+): R {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
     }

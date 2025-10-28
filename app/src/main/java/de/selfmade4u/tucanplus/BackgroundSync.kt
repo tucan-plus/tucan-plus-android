@@ -29,8 +29,8 @@ fun startup(context: Context) {
         .enqueueUniquePeriodicWork("updateGrades", ExistingPeriodicWorkPolicy.KEEP, saveRequest)
 }
 
-class CoroutineDownloadWorker(context: Context, params: WorkerParameters)
-    : CoroutineWorker(context, params) {
+class CoroutineDownloadWorker(context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result = coroutineScope {
         withContext(Dispatchers.IO) {

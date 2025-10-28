@@ -42,7 +42,7 @@ object CredentialSettingsSerializer : Serializer<OptionalCredentialSettings> {
 
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun writeTo(
-        t:  OptionalCredentialSettings,
+        t: OptionalCredentialSettings,
         output: OutputStream
     ) = Json.encodeToStream(t, output)
 }

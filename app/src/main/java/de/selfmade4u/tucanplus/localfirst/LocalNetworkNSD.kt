@@ -18,10 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.SERVICE_TYPE
-import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ext.registerAndDiscoverServicesFlow
 import de.selfmade4u.tucanplus.ext.resolveService
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.SERVICE_TYPE
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -109,7 +109,11 @@ fun ShowLocalServices() {
                                     )
                                         .show()
                                 } catch (e: ConnectException) {
-                                    Log.e("TucanLogin", "ConnectException ${e.suppressedExceptions}", e)
+                                    Log.e(
+                                        "TucanLogin",
+                                        "ConnectException ${e.suppressedExceptions}",
+                                        e
+                                    )
                                     Toast.makeText(
                                         context,
                                         "ConnectException http://$host:$port/ $e",

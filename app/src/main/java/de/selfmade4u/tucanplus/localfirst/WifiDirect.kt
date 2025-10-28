@@ -1,11 +1,5 @@
 package de.selfmade4u.tucanplus.localfirst
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.net.wifi.p2p.WifiP2pDeviceList
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Looper
 import android.util.Log
@@ -34,7 +28,6 @@ import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
-import kotlin.collections.forEach
 
 // https://developer.android.com/develop/connectivity/wifi/wifip2p
 // https://developer.android.com/develop/connectivity/wifi/wifi-direct

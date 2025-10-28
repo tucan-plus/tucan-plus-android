@@ -26,7 +26,12 @@ import de.selfmade4u.tucanplus.title
 import de.selfmade4u.tucanplus.ul
 
 object Common {
-    fun <T> Root.parseBase(sessionId: String, menuId: String, headInit: Head.() -> Unit, inner: Body.(pageType: String) -> T): T {
+    fun <T> Root.parseBase(
+        sessionId: String,
+        menuId: String,
+        headInit: Head.() -> Unit,
+        inner: Body.(pageType: String) -> T
+    ): T {
         var sessionId = sessionId
         var menuId = menuId
         doctype {
@@ -1061,7 +1066,12 @@ object Common {
         }
     }
 
-    private fun Body.parseLiWithChildrenHref(name: String, id: Int, depth: Int = 1, init: Body.() -> Unit): String {
+    private fun Body.parseLiWithChildrenHref(
+        name: String,
+        id: Int,
+        depth: Int = 1,
+        init: Body.() -> Unit
+    ): String {
         val link = "link${id.toString().padStart(6, '0')}"
         return li {
             attribute("class", "tree depth_$depth linkItem branchLinkItem")
@@ -1076,7 +1086,7 @@ object Common {
                 href
             }
             ul {
-                attribute("class", "nav depth_${depth+1} linkItemContainer")
+                attribute("class", "nav depth_${depth + 1} linkItemContainer")
                 init()
             }
             href
@@ -1084,7 +1094,13 @@ object Common {
     }
 
 
-    private fun Body.parseLiWithChildren(name: String, url: String, id: Int, depth: Int = 1, init: Body.() -> Unit) {
+    private fun Body.parseLiWithChildren(
+        name: String,
+        url: String,
+        id: Int,
+        depth: Int = 1,
+        init: Body.() -> Unit
+    ) {
         val link = "link${id.toString().padStart(6, '0')}"
         li {
             attribute("class", "tree depth_$depth linkItem branchLinkItem")
@@ -1099,7 +1115,7 @@ object Common {
                 text(name)
             }
             ul {
-                attribute("class", "nav depth_${depth+1} linkItemContainer")
+                attribute("class", "nav depth_${depth + 1} linkItemContainer")
                 init()
             }
         }

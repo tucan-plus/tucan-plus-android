@@ -35,7 +35,6 @@ import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.connector.TucanLogin
 import de.selfmade4u.tucanplus.localfirst.ShowLocalServices
 import de.selfmade4u.tucanplus.localfirst.WifiDirect
-import de.selfmade4u.tucanplus.localfirst.WifiDirectBonjour
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.launch
 
@@ -56,9 +55,10 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
     var loading by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     // https://developer.android.com/develop/ui/compose/libraries#requesting-runtime-permissions
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { value ->
-        Toast.makeText(context, "Permission response $value", Toast.LENGTH_SHORT).show()
-    }
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { value ->
+            Toast.makeText(context, "Permission response $value", Toast.LENGTH_SHORT).show()
+        }
     LaunchedEffect(true) {
         launcher.launch(arrayOf(Manifest.permission.NEARBY_WIFI_DEVICES))
     }
@@ -100,6 +100,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                                 "Falscher Nutzername oder Passwort"
                             )
                         }
+
                         is TucanLogin.LoginResponse.Success -> {
                             context.credentialSettingsDataStore.updateData { currentSettings ->
                                 OptionalCredentialSettings(

@@ -31,7 +31,11 @@ class ComposeTest {
     @After
     fun clearDatastore() {
         runBlocking {
-            composeTestRule.activity.credentialSettingsDataStore.updateData { _ -> OptionalCredentialSettings(null) }
+            composeTestRule.activity.credentialSettingsDataStore.updateData { _ ->
+                OptionalCredentialSettings(
+                    null
+                )
+            }
         }
     }
 
@@ -40,8 +44,10 @@ class ComposeTest {
     fun successfulLogin() {
         //composeTestRule.onRoot().printToLog("Nodes")
         // In the Android Studio run configuration add these parameters
-        composeTestRule.onNodeWithText("Username").performTextInput(InstrumentationRegistry.getArguments().getString("username")!!)
-        composeTestRule.onNodeWithText("Password").performTextInput(InstrumentationRegistry.getArguments().getString("password")!!)
+        composeTestRule.onNodeWithText("Username")
+            .performTextInput(InstrumentationRegistry.getArguments().getString("username")!!)
+        composeTestRule.onNodeWithText("Password")
+            .performTextInput(InstrumentationRegistry.getArguments().getString("password")!!)
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
         composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")
@@ -52,7 +58,8 @@ class ComposeTest {
     fun wrongPassword() {
         //composeTestRule.onRoot().printToLog("Nodes")
         // In the Android Studio run configuration add these parameters
-        composeTestRule.onNodeWithText("Username").performTextInput(InstrumentationRegistry.getArguments().getString("username")!!)
+        composeTestRule.onNodeWithText("Username")
+            .performTextInput(InstrumentationRegistry.getArguments().getString("username")!!)
         composeTestRule.onNodeWithText("Password").performTextInput("wrongpassword")
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
@@ -65,7 +72,8 @@ class ComposeTest {
         //composeTestRule.onRoot().printToLog("Nodes")
         // In the Android Studio run configuration add these parameters
         composeTestRule.onNodeWithText("Username").performTextInput("wrongusername")
-        composeTestRule.onNodeWithText("Password").performTextInput(InstrumentationRegistry.getArguments().getString("password")!!)
+        composeTestRule.onNodeWithText("Password")
+            .performTextInput(InstrumentationRegistry.getArguments().getString("password")!!)
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
         composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")

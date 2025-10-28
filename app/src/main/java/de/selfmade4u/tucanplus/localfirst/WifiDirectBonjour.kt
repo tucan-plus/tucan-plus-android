@@ -43,7 +43,7 @@ fun WifiDirectBonjour() {
         flow {
             val manager: WifiP2pManager =
                 ContextCompat.getSystemService(context, WifiP2pManager::class.java)!!
-            val channel = manager.initialize(context, Looper.getMainLooper(),  {
+            val channel = manager.initialize(context, Looper.getMainLooper(), {
                 Log.d(TAG, "CHANNEL LOST");
                 Toast.makeText(context, "Channel LOST", Toast.LENGTH_LONG).show()
                 // TODO try reaquire
@@ -54,7 +54,11 @@ fun WifiDirectBonjour() {
                 "available" to "visible"
             )
             val serviceInfo =
-                WifiP2pDnsSdServiceInfo.newInstance("_test${(Math.random() * 1000).toInt()}", "_presence._tcp", record)
+                WifiP2pDnsSdServiceInfo.newInstance(
+                    "_test${(Math.random() * 1000).toInt()}",
+                    "_presence._tcp",
+                    record
+                )
             manager.addLocalService(channel, serviceInfo)
             emitAll(
                 manager.setDnsSdResponseListenersFlow(
