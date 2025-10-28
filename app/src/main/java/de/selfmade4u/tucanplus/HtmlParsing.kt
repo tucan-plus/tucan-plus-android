@@ -217,7 +217,7 @@ suspend fun <T> response(
             CacheEntry(
                 0,
                 response.request.url.toString(),
-                response.request.url.toString(),
+                response.request.url.toString(), // TODO FIXME at least remove session id
                 response.bodyAsText(),
                 LocalDateTime.now(Clock.systemUTC()),
                 null

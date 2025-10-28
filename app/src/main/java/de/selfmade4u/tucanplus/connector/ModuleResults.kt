@@ -1,6 +1,16 @@
 package de.selfmade4u.tucanplus.connector
 
 import android.content.Context
+import androidx.room.ColumnInfo
+import androidx.room.Dao
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Relation
+import androidx.room.Transaction
+import androidx.room.TypeConverter
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
@@ -32,6 +42,10 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 
 object ModuleResults {
+
+    suspend fun getCachedModuleResults() {
+
+    }
 
     suspend fun getModuleResults(
         context: Context,
@@ -70,6 +84,18 @@ object ModuleResults {
         }
     }
 
+    class ModuleResultsConverters {
+        @TypeConverter
+        fun fromModuleGrade(value: ModuleGrade?): String? {
+            return value?.representation
+        }
+
+        @TypeConverter
+        fun toModuleGrade(value: String?): ModuleGrade? {
+           return ModuleGrade.entries.find { it.representation == value }
+        }
+    }
+
     // https://github.com/tucan-plus/tucan-plus/blob/640bb9cbb9e3f8d22e8b9d6ddaabb5256b2eb0e6/crates/tucan-types/src/lib.rs#L366
     enum class ModuleGrade(val representation: String) {
         G1_0("1,0"),
@@ -85,7 +111,24 @@ object ModuleResults {
         G5_0("5,0"),
     }
 
+    enum class Semester {
+        Sommersemester,
+        Wintersemester
+    }
+
+    @Entity
+    data class Semesterauswahl(
+        @PrimaryKey
+        @ColumnInfo(name = "semester_id")
+        val id: Int,
+        val year: Int,
+        val semester: Semester
+    )
+
+    @Entity
     data class Module(
+        val moduleResultId: Int,
+        @PrimaryKey(autoGenerate = true)
         val id: String,
         val name: String,
         val grade: ModuleGrade,
@@ -94,23 +137,38 @@ object ModuleResults {
         val gradeoverviewUrl: String
     )
 
-    enum class Semester {
-        Sommersemester,
-        Wintersemester
-    }
+    @Entity(tableName = "module_results")
+    data class ModuleResult(@PrimaryKey(autoGenerate = true) val id: Int, @Embedded var selectedSemester: Semesterauswahl) // , var allSemesters: List<Semesterauswahl>
 
-    data class Semesterauswahl(
-        val id: Int,
-        val selected: Boolean,
-        val year: Int,
-        val semester: Semester
+    data class ModuleResultWithModules(
+        @Embedded val moduleResult: ModuleResult,
+        @Relation(
+            parentColumn = "id",
+            entityColumn = "moduleResultId"
+        )
+        val modules: List<Module>
     )
 
     sealed class ModuleResultsResponse {
-        data class Success(var semesters: List<Semesterauswahl>, var modules: List<Module>) :
+        data class Success(var moduleResult: ModuleResult) :
             ModuleResultsResponse()
 
         data object SessionTimeout : ModuleResultsResponse()
+    }
+
+    // https://stackoverflow.com/questions/60928706/android-room-how-to-save-an-entity-with-one-of-the-variables-being-a-sealed-cla/72535888#72535888
+
+    @Dao
+    interface ModuleResultsDao {
+        @Query("SELECT * FROM module_results")
+        suspend fun getAll(): List<ModuleResult>
+
+        @Transaction
+        @Query("SELECT * FROM module_results")
+        suspend fun getModuleResultsWithModules(): List<ModuleResultWithModules>
+
+        @Insert
+        suspend fun insertAll(vararg moduleResults: ModuleResult)
     }
 
     fun Root.parseModuleResults(sessionId: String): ModuleResultsResponse {
@@ -220,7 +278,6 @@ object ModuleResults {
                                         semesters.add(
                                             Semesterauswahl(
                                                 value,
-                                                selected,
                                                 year,
                                                 semester
                                             )
@@ -348,6 +405,7 @@ object ModuleResults {
                                 }
                             }
                             val module = Module(
+                                42,
                                 moduleId,
                                 moduleName,
                                 moduleGrade,
@@ -376,7 +434,9 @@ object ModuleResults {
                     }
                 }
             }
-            return@parseBase ModuleResultsResponse.Success(semesters, modules)
+            // TODO store in database in a single transaction
+
+            return@parseBase ModuleResultsResponse.Success(ModuleResults.ModuleResult(42, semesters[0], semesters))
         }
         return response
     }
