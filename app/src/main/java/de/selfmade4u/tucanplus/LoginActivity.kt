@@ -71,8 +71,8 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            ShowLocalServices()
-            WifiDirect()
+            //ShowLocalServices()
+            //WifiDirect()
             //WifiDirectBonjour()
             TextField(
                 state = usernameState,
