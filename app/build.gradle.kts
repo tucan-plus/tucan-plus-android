@@ -10,6 +10,10 @@ plugins {
     id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
 }
 
+stacktraceDecoroutinator {
+    embedDebugProbesForAndroid = true
+}
+
 android {
     namespace = "de.selfmade4u.tucanplus"
     compileSdk {
@@ -41,6 +45,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                decoroutinatorAndroidProGuardRules,
                 "proguard-rules.pro"
             )
         }
