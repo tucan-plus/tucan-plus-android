@@ -63,8 +63,12 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import de.selfmade4u.tucanplus.connector.ModuleResults
 import de.selfmade4u.tucanplus.connector.TucanLogin
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ui.theme.TUCaNPlusTheme
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.DEBUG_PROPERTY_NAME
+import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -77,6 +81,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data object MainNavKey : NavKey
+
 @Serializable
 data object LoginNavKey : NavKey
 
@@ -84,12 +89,43 @@ data object LoginNavKey : NavKey
 data object ModuleResultsNavKey : NavKey
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun setupExceptionHandling() {
+        System.setProperty("io.ktor.development", "true")
+        System.setProperty(DEBUG_PROPERTY_NAME, DEBUG_PROPERTY_VALUE_ON)
+        // https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-debug/
+        // https://dev.to/theplebdev/how-to-debug-kotlin-coroutines-in-android-jc
+        // https://android.googlesource.com/platform/external/kotlinx.coroutines/+/refs/heads/android11-d1-s6-release/kotlinx-coroutines-debug/#debug-agent-and-android
+        // great
+        // https://blog.joetr.com/better-stack-traces-with-coroutines
+        // https://dev.to/anamorphosee/kotlin-coroutines-stack-trace-issue-15dh claims it does not work for explicitly thrown exceptions anyways
+        // https://github.com/Kotlin/kotlinx.coroutines/issues/2550
+        // https://github.com/Kotlin/kotlinx.coroutines/issues/74
+        // https://github.com/Kotlin/kotlinx.coroutines/issues/2327#issuecomment-716102034
+        // https://discuss.kotlinlang.org/t/kotlin-coroutines-stack-trace-problem/23847
+        // TODO try resumeWithException and see whether it has a good stacktrace
+        val systemExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
+        val myHandler: Thread.UncaughtExceptionHandler =
+            Thread.UncaughtExceptionHandler { thread, ex ->
+                Log.e(
+                    TAG,
+                    "Uncaught exception in thread ${thread.name} ${ex.suppressedExceptions}",
+                    ex
+                )
+                systemExceptionHandler?.uncaughtException(thread, ex)
+            }
+        // Make myHandler the new default uncaught exception handler.
+        Thread.setDefaultUncaughtExceptionHandler(myHandler)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        setupExceptionHandling()
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val test = lifecycleScope.launch {
-            val credentialSettingsFlow: OptionalCredentialSettings = this@MainActivity.credentialSettingsDataStore.data.first()
+            val credentialSettingsFlow: OptionalCredentialSettings =
+                this@MainActivity.credentialSettingsDataStore.data.first()
             setContent {
                 TUCaNPlusTheme {
                     Entrypoint(credentialSettingsFlow)
@@ -106,8 +142,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings) {
-    val backStack = rememberNavBackStack(*(if (credentialSettingsFlow.inner == null) arrayOf(LoginNavKey) else arrayOf(MainNavKey,
-        ModuleResultsNavKey)))
+    val backStack = rememberNavBackStack(
+        *(if (credentialSettingsFlow.inner == null) arrayOf(LoginNavKey) else arrayOf(
+            MainNavKey,
+            ModuleResultsNavKey
+        ))
+    )
     val entryProvider = entryProvider {
         entry<MainNavKey> { Main(backStack) }
         entry<LoginNavKey> { LoginForm(backStack) }
@@ -136,7 +176,8 @@ fun DetailedDrawerExample(
         drawerContent = {
             ModalDrawerSheet {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
                     NavigationDrawerItem(
@@ -168,7 +209,10 @@ fun DetailedDrawerExample(
                                 }
                             }
                         }) {
-                            Icon(painter = painterResource(R.drawable.menu_24px), contentDescription = "Menu")
+                            Icon(
+                                painter = painterResource(R.drawable.menu_24px),
+                                contentDescription = "Menu"
+                            )
                         }
                     }
                 )
@@ -201,15 +245,17 @@ fun Main(backStack: NavBackStack<NavKey>) {
 }
 
 
-
 @Composable
 fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
     val context = LocalContext.current
     return produceState(initialValue = null) {
-        val credentialSettings: CredentialSettings = context.credentialSettingsDataStore.data.first().inner!!
+        val credentialSettings: CredentialSettings =
+            context.credentialSettingsDataStore.data.first().inner!!
         val client = HttpClient()
-        var response = ModuleResults.getModuleResults(context, client, CipherManager.decrypt(credentialSettings.encryptedSessionId),
-            CipherManager.decrypt(credentialSettings.encryptedSessionCookie))
+        var response = ModuleResults.getModuleResults(
+            context, client, CipherManager.decrypt(credentialSettings.encryptedSessionId),
+            CipherManager.decrypt(credentialSettings.encryptedSessionCookie)
+        )
         if (response is ModuleResults.ModuleResultsResponse.SessionTimeout) {
             Toast.makeText(context, "Reauthenticating", Toast.LENGTH_SHORT).show()
             val loginResponse = TucanLogin.doLogin(
@@ -220,10 +266,12 @@ fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
             )
             when (loginResponse) {
                 is TucanLogin.LoginResponse.InvalidCredentials -> launch {
-                    Toast.makeText(context, "Ungültiger Username oder Password", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Ungültiger Username oder Password", Toast.LENGTH_LONG)
+                        .show()
                     // backStack[backStack.size - 1] = MainNavKey
                     // TODO clear store
                 }
+
                 is TucanLogin.LoginResponse.Success -> {
                     context.credentialSettingsDataStore.updateData { currentSettings ->
                         OptionalCredentialSettings(
@@ -239,9 +287,12 @@ fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
                             )
                         )
                     }
-                    response = ModuleResults.getModuleResults(context, client, loginResponse.sessionId,
-                        loginResponse.sessionSecret)
+                    response = ModuleResults.getModuleResults(
+                        context, client, loginResponse.sessionId,
+                        loginResponse.sessionSecret
+                    )
                 }
+
                 is TucanLogin.LoginResponse.TooManyAttempts -> launch {
                     // bad
                     Toast.makeText(context, "Zu viele Anmeldeversuche", Toast.LENGTH_LONG).show()
@@ -261,7 +312,33 @@ fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
 @Composable
 fun LongBasicDropdownMenu() {
     // 2010 - now
-    val options: List<String> = listOf("Option 1", "Option 2", "Option 3", "Option 4", "Option 5", "Option 6", "Option 7", "Option 8", "Option 9", "Option 10", "Option 11", "Option 12", "Option 13", "Option 14", "Option 15", "Option 16", "Option 17", "Option 18", "Option 19", "Option 20", "Option 21", "Option 22", "Option 23", "Option 24", "Option 25")
+    val options: List<String> = listOf(
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4",
+        "Option 5",
+        "Option 6",
+        "Option 7",
+        "Option 8",
+        "Option 9",
+        "Option 10",
+        "Option 11",
+        "Option 12",
+        "Option 13",
+        "Option 14",
+        "Option 15",
+        "Option 16",
+        "Option 17",
+        "Option 18",
+        "Option 19",
+        "Option 20",
+        "Option 21",
+        "Option 22",
+        "Option 23",
+        "Option 24",
+        "Option 25"
+    )
     var expanded by remember { mutableStateOf(false) }
     val textFieldState = rememberTextFieldState(options[0])
 
@@ -270,7 +347,9 @@ fun LongBasicDropdownMenu() {
             // The `menuAnchor` modifier must be passed to the text field to handle
             // expanding/collapsing the menu on click. A read-only text field has
             // the anchor type `PrimaryNotEditable`.
-            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             state = textFieldState,
             readOnly = true,
             lineLimits = TextFieldLineLimits.SingleLine,
@@ -304,9 +383,11 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
                 null -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) { CircularProgressIndicator() }
                 }
+
                 is ModuleResults.ModuleResultsResponse.SessionTimeout -> {
                     Text("Session timeout")
                 }
+
                 is ModuleResults.ModuleResultsResponse.Success -> {
                     values.modules.forEach { module ->
                         key(module.id) {
@@ -322,7 +403,16 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, widthDp = 200)
 @Composable
-fun ModuleComposable(module: ModuleResults.Module = ModuleResults.Module("id", "name", ModuleResults.ModuleGrade.G1_0, 1, "url", "url")) {
+fun ModuleComposable(
+    module: ModuleResults.Module = ModuleResults.Module(
+        "id",
+        "name",
+        ModuleResults.ModuleGrade.G1_0,
+        1,
+        "url",
+        "url"
+    )
+) {
     // https://developer.android.com/develop/ui/compose/layouts/basics
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Column {

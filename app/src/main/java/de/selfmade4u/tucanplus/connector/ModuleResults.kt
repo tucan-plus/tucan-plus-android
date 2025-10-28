@@ -33,10 +33,16 @@ import io.ktor.http.HttpStatusCode
 
 object ModuleResults {
 
-    suspend fun getModuleResults(context: Context, client: HttpClient, sessionId: String, sessionCookie: String): ModuleResultsResponse {
-        val r = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,") {
-            cookie("cnsc", sessionCookie)
-        }
+    suspend fun getModuleResults(
+        context: Context,
+        client: HttpClient,
+        sessionId: String,
+        sessionCookie: String
+    ): ModuleResultsResponse {
+        val r =
+            client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,") {
+                cookie("cnsc", sessionCookie)
+            }
         return response(context, r) {
             status(HttpStatusCode.OK)
             header(
@@ -79,24 +85,38 @@ object ModuleResults {
         G5_0("5,0"),
     }
 
-    data class Module(val id: String, val name: String, val grade: ModuleGrade, val credits: Int, val resultdetailsUrl: String, val gradeoverviewUrl: String)
+    data class Module(
+        val id: String,
+        val name: String,
+        val grade: ModuleGrade,
+        val credits: Int,
+        val resultdetailsUrl: String,
+        val gradeoverviewUrl: String
+    )
 
     enum class Semester {
         Sommersemester,
         Wintersemester
     }
 
-    data class Semesterauswahl(val id: Int, val selected: Boolean, val year: Int, val semester: Semester)
+    data class Semesterauswahl(
+        val id: Int,
+        val selected: Boolean,
+        val year: Int,
+        val semester: Semester
+    )
 
     sealed class ModuleResultsResponse {
-        data class Success(var semesters: List<Semesterauswahl>, var modules: List<Module>) : ModuleResultsResponse()
+        data class Success(var semesters: List<Semesterauswahl>, var modules: List<Module>) :
+            ModuleResultsResponse()
+
         data object SessionTimeout : ModuleResultsResponse()
     }
 
     fun Root.parseModuleResults(sessionId: String): ModuleResultsResponse {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
-        val response = parseBase(sessionId,"000324", {
+        val response = parseBase(sessionId, "000324", {
             if (peek() != null) {
                 style {
                     attribute("type", "text/css")
@@ -186,16 +206,25 @@ object ModuleResults {
                                             } else {
                                                 false
                                             }
-                                            val semesterName = extractText() // SoSe 2025; WiSe 2024/25
-                                             if (semesterName.startsWith(("SoSe "))) {
+                                            val semesterName =
+                                                extractText() // SoSe 2025; WiSe 2024/25
+                                            if (semesterName.startsWith(("SoSe "))) {
                                                 year = semesterName.removePrefix("SoSe ").toInt()
-                                                 semester = Semester.Sommersemester
+                                                semester = Semester.Sommersemester
                                             } else {
-                                                year = semesterName.removePrefix("WiSe ").substringBefore("/").toInt()
-                                                 semester = Semester.Wintersemester
+                                                year = semesterName.removePrefix("WiSe ")
+                                                    .substringBefore("/").toInt()
+                                                semester = Semester.Wintersemester
                                             }
                                         }
-                                        semesters.add(Semesterauswahl(value, selected, year, semester))
+                                        semesters.add(
+                                            Semesterauswahl(
+                                                value,
+                                                selected,
+                                                year,
+                                                semester
+                                            )
+                                        )
                                     }
                                 }
 
@@ -208,13 +237,36 @@ object ModuleResults {
                             }
                         }
 
-                        input { attribute("name", "APPNAME"); attribute("type", "hidden"); attribute("value", "CampusNet") }
-                        input { attribute("name", "PRGNAME"); attribute("type", "hidden"); attribute("value", "COURSERESULTS") }
-                        input { attribute("name", "ARGUMENTS"); attribute("type", "hidden"); attribute("value", "sessionno,menuno,semester") }
-                        input { attribute("name", "sessionno"); attribute("type", "hidden"); attribute("value",
+                        input {
+                            attribute("name", "APPNAME"); attribute(
+                            "type",
+                            "hidden"
+                        ); attribute("value", "CampusNet")
+                        }
+                        input {
+                            attribute("name", "PRGNAME"); attribute(
+                            "type",
+                            "hidden"
+                        ); attribute("value", "COURSERESULTS")
+                        }
+                        input {
+                            attribute("name", "ARGUMENTS"); attribute(
+                            "type",
+                            "hidden"
+                        ); attribute("value", "sessionno,menuno,semester")
+                        }
+                        input {
+                            attribute("name", "sessionno"); attribute("type", "hidden"); attribute(
+                            "value",
                             sessionId
-                        ) }
-                        input { attribute("name", "menuno"); attribute("type", "hidden"); attribute("value", "000324") }
+                        )
+                        }
+                        input {
+                            attribute("name", "menuno"); attribute("type", "hidden"); attribute(
+                            "value",
+                            "000324"
+                        )
+                        }
                     }
                 }
 
@@ -236,7 +288,9 @@ object ModuleResults {
                     }
 
                     tbody {
-                        while (peek()?.childNodes()?.filterNot(::shouldIgnore)?.first()?.normalName() == "td") {
+                        while (peek()?.childNodes()?.filterNot(::shouldIgnore)?.first()
+                                ?.normalName() == "td"
+                        ) {
                             val moduleId: String
                             val moduleName: String
                             val moduleGrade: ModuleGrade
@@ -250,11 +304,16 @@ object ModuleResults {
                                     attribute("class", "tbdata_numeric")
                                     attribute("style", "vertical-align:top;")
                                     val moduleGradeText = extractText()
-                                    moduleGrade = ModuleGrade.entries.find { it.representation == moduleGradeText } ?: run {
-                                        throw IllegalStateException("Unknown grade `$moduleGradeText`")
-                                    }
+                                    moduleGrade =
+                                        ModuleGrade.entries.find { it.representation == moduleGradeText }
+                                            ?: run {
+                                                throw IllegalStateException("Unknown grade `$moduleGradeText`")
+                                            }
                                 }
-                                td { attribute("class", "tbdata_numeric"); moduleCredits = extractText().replace(",0", "").toInt() }
+                                td {
+                                    attribute("class", "tbdata_numeric"); moduleCredits =
+                                    extractText().replace(",0", "").toInt()
+                                }
                                 td { attribute("class", "tbdata"); extractText() }
                                 td {
                                     attribute("class", "tbdata")
@@ -288,7 +347,14 @@ object ModuleResults {
                                     }
                                 }
                             }
-                            val module = Module(moduleId, moduleName, moduleGrade, moduleCredits, resultdetailsUrl, gradeoverviewUrl)
+                            val module = Module(
+                                moduleId,
+                                moduleName,
+                                moduleGrade,
+                                moduleCredits,
+                                resultdetailsUrl,
+                                gradeoverviewUrl
+                            )
                             modules.add(module)
                         }
 

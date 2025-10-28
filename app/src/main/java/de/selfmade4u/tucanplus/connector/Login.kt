@@ -29,7 +29,11 @@ object TucanLogin {
         data object TooManyAttempts : LoginResponse()
     }
 
-    private suspend fun doFetch(client: HttpClient, username: String, password: String): HttpResponse {
+    private suspend fun doFetch(
+        client: HttpClient,
+        username: String,
+        password: String
+    ): HttpResponse {
         var i = 0
         while (true) {
             try {
@@ -59,7 +63,12 @@ object TucanLogin {
         }
     }
 
-    suspend fun doLogin(client: HttpClient, username: String, password: String, context: Context? = null): LoginResponse {
+    suspend fun doLogin(
+        client: HttpClient,
+        username: String,
+        password: String,
+        context: Context? = null
+    ): LoginResponse {
         return response(context, doFetch(client, username, password)) {
             status(HttpStatusCode.OK)
             header(

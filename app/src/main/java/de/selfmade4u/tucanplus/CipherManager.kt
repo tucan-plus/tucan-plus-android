@@ -14,7 +14,7 @@ import javax.crypto.spec.GCMParameterSpec
 // https://developer.android.com/privacy-and-security/cryptography#security-crypto-jetpack-deprecated
 // https://developer.android.com/reference/javax/crypto/KeyGenerator
 
-object CipherManager  {
+object CipherManager {
 
     private const val ANDROID_KEY_STORE = "AndroidKeyStore"
     private const val AES_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
@@ -52,7 +52,10 @@ object CipherManager  {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
         val encryptedBytes = cipher.doFinal(inputText.toByteArray())
-        return Pair(Base64.encodeToString(cipher.iv, Base64.DEFAULT), Base64.encodeToString(encryptedBytes, Base64.DEFAULT))
+        return Pair(
+            Base64.encodeToString(cipher.iv, Base64.DEFAULT),
+            Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+        )
     }
 
     fun decrypt(data: Pair<String, String>): String {

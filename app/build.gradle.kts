@@ -7,6 +7,11 @@ plugins {
     id("kotlin-android")
     id("com.google.devtools.ksp")
     id("androidx.room")
+    id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
+}
+
+stacktraceDecoroutinator {
+    embedDebugProbesForAndroid = true
 }
 
 android {
@@ -40,6 +45,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                decoroutinatorAndroidProGuardRules,
                 "proguard-rules.pro"
             )
         }

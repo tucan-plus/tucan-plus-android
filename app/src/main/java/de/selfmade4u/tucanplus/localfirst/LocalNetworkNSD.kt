@@ -1,4 +1,4 @@
-package de.selfmade4u.tucanplus
+package de.selfmade4u.tucanplus.localfirst
 
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
@@ -18,10 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.SERVICE_TYPE
-import de.selfmade4u.tucanplus.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ext.registerAndDiscoverServicesFlow
 import de.selfmade4u.tucanplus.ext.resolveService
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.SERVICE_TYPE
+import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -60,13 +60,12 @@ class LocalNetworkNSD {
 @Composable
 fun ShowLocalServices() {
     val context = LocalContext.current
-    val nsdManager = getSystemService(context, NsdManager::class.java)!!
+    val nsdManager = remember { getSystemService(context, NsdManager::class.java)!! }
     val flow: Flow<List<NsdServiceInfo>> = remember {
         flow {
             val info = NsdServiceInfo().apply {
                 serviceName = "T+ ${Uuid.random()}"
                 serviceType = SERVICE_TYPE
-                System.setProperty("io.ktor.development", "true")
                 val server = embeddedServer(CIO, port = 0, watchPaths = listOf()) {
                     routing {
                         get("/") {
@@ -85,6 +84,7 @@ fun ShowLocalServices() {
     val discovered by flow.collectAsStateWithLifecycle(listOf())
     val coroutineScope = rememberCoroutineScope()
     Column {
+        Text("Local Network")
         discovered.forEach { peer ->
             key(peer.serviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }
@@ -109,7 +109,11 @@ fun ShowLocalServices() {
                                     )
                                         .show()
                                 } catch (e: ConnectException) {
-                                    Log.e("TucanLogin", "ConnectException", e)
+                                    Log.e(
+                                        "TucanLogin",
+                                        "ConnectException ${e.suppressedExceptions}",
+                                        e
+                                    )
                                     Toast.makeText(
                                         context,
                                         "ConnectException http://$host:$port/ $e",

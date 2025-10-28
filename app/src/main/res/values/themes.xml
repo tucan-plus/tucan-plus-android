@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="Theme.TUCaNPlus" parent="Theme.SplashScreen.IconBackground">
         <item name="postSplashScreenTheme">@android:style/Theme.Material.NoActionBar</item>
     </style>

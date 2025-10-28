@@ -1,6 +1,6 @@
-package de.selfmade4u.tucanplus
+package de.selfmade4u.tucanplus.localfirst
 
-import android.Manifest.permission
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -19,16 +19,20 @@ import android.net.wifi.aware.WifiAwareSession
 import android.widget.Toast
 import androidx.annotation.RequiresPermission
 
+// my phone doesn't support this
+
 // https://developer.android.com/develop/connectivity/wifi/wifi-aware
 // https://developer.android.com/develop/connectivity/bluetooth/ble/ble-overview
 // https://www.ditto.com/blog/cross-platform-p2p-wi-fi-how-the-eu-killed-awdl
 // https://github.com/android/platform-samples/blob/main/samples/connectivity/bluetooth/ble/src/main/java/com/example/platform/connectivity/bluetooth/ble/server/GATTServerSampleService.kt
 class WifiAware {
 
-    @RequiresPermission(allOf = [permission.ACCESS_WIFI_STATE,
-        permission.CHANGE_WIFI_STATE,
-        permission.ACCESS_FINE_LOCATION,
-        permission.NEARBY_WIFI_DEVICES])
+    @RequiresPermission(
+        allOf = [Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.NEARBY_WIFI_DEVICES]
+    )
     fun setup(context: Context) {
         if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_AWARE)) {
             Toast.makeText(context, "Wifi Aware not supported", Toast.LENGTH_LONG).show()
@@ -41,9 +45,17 @@ class WifiAware {
             override fun onReceive(context: Context, intent: Intent) {
                 // discard current sessions
                 if (wifiAwareManager.isAvailable) {
-                    Toast.makeText(context, "Wifi Aware availability changed to available", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        context,
+                        "Wifi Aware availability changed to available",
+                        Toast.LENGTH_LONG
+                    ).show()
                 } else {
-                    Toast.makeText(context, "Wifi Aware availability changed to unavailable", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        context,
+                        "Wifi Aware availability changed to unavailable",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
@@ -53,10 +65,12 @@ class WifiAware {
             return
         }
         wifiAwareManager.attach(object : AttachCallback() {
-            @RequiresPermission(allOf = [permission.ACCESS_WIFI_STATE,
-                permission.CHANGE_WIFI_STATE,
-                permission.ACCESS_FINE_LOCATION,
-                permission.NEARBY_WIFI_DEVICES])
+            @RequiresPermission(
+                allOf = [Manifest.permission.ACCESS_WIFI_STATE,
+                    Manifest.permission.CHANGE_WIFI_STATE,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.NEARBY_WIFI_DEVICES]
+            )
             override fun onAttached(session: WifiAwareSession?) {
                 Toast.makeText(context, "Wifi Aware attached", Toast.LENGTH_LONG).show()
 
@@ -71,7 +85,8 @@ class WifiAware {
                     }
 
                     override fun onMessageReceived(peerHandle: PeerHandle, message: ByteArray) {
-                        Toast.makeText(context, "Message received from peer", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Message received from peer", Toast.LENGTH_LONG)
+                            .show()
 
                     }
                 }, null)
@@ -91,7 +106,8 @@ class WifiAware {
                         serviceSpecificInfo: ByteArray,
                         matchFilter: List<ByteArray>
                     ) {
-                        Toast.makeText(context, "Discovered service from peer", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Discovered service from peer", Toast.LENGTH_LONG)
+                            .show()
 
                     }
                 }, null)
