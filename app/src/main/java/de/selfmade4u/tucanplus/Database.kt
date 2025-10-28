@@ -46,6 +46,8 @@ interface CacheDao {
     suspend fun insertAll(vararg cacheEntries: CacheEntry)
 }
 
+// https://developer.android.com/studio/inspect/database
+
 @Database(entities = [CacheEntry::class], version = 1)
 @TypeConverters(Converters::class)
 abstract class Database : RoomDatabase() {

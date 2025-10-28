@@ -53,14 +53,14 @@ object CipherManager {
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
         val encryptedBytes = cipher.doFinal(inputText.toByteArray())
         return Pair(
-            Base64.encodeToString(cipher.iv, Base64.DEFAULT),
-            Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+            Base64.encodeToString(cipher.iv, Base64.NO_WRAP + Base64.NO_PADDING),
+            Base64.encodeToString(encryptedBytes, Base64.NO_WRAP + Base64.NO_PADDING)
         )
     }
 
     fun decrypt(data: Pair<String, String>): String {
-        val iv = Base64.decode(data.first, Base64.DEFAULT)
-        val encrypted = Base64.decode(data.second, Base64.DEFAULT)
+        val iv = Base64.decode(data.first, Base64.NO_WRAP + Base64.NO_PADDING)
+        val encrypted = Base64.decode(data.second, Base64.NO_WRAP + Base64.NO_PADDING)
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), GCMParameterSpec(128, iv))
         val decryptedBytes = cipher.doFinal(encrypted)
