@@ -38,6 +38,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -63,7 +64,6 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import de.selfmade4u.tucanplus.connector.ModuleResults
 import de.selfmade4u.tucanplus.connector.TucanLogin
-import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
 import de.selfmade4u.tucanplus.ui.theme.TUCaNPlusTheme
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
@@ -78,6 +78,8 @@ import kotlinx.serialization.Serializable
 // https://stackoverflow.com/questions/71268683/jetpack-compose-navigation-login-screen-and-different-screen-with-bottom-naviga
 // https://developer.android.com/develop/ui/compose/navigation
 // https://developer.android.com/guide/navigation/navigation-3
+
+const val TAG: String = "TucanPlus"
 
 @Serializable
 data object MainNavKey : NavKey
@@ -148,6 +150,12 @@ fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings) {
             ModuleResultsNavKey
         ))
     )
+    val context = LocalContext.current
+    LaunchedEffect(true) {
+        if (credentialSettingsFlow.inner != null) {
+            setupBackgroundTasks(context)
+        }
+    }
     val entryProvider = entryProvider {
         entry<MainNavKey> { Main(backStack) }
         entry<LoginNavKey> { LoginForm(backStack) }
@@ -312,6 +320,7 @@ fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
 @Composable
 fun LongBasicDropdownMenu() {
     // 2010 - now
+    // load from any latest cache entry and if there is none, show loading
     val options: List<String> = listOf(
         "Option 1",
         "Option 2",

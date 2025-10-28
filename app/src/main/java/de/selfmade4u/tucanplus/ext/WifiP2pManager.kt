@@ -17,7 +17,7 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest
 import android.net.wifi.p2p.nsd.WifiP2pServiceInfo
 import android.util.Log
 import androidx.core.content.IntentCompat
-import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
+import de.selfmade4u.tucanplus.TAG
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
