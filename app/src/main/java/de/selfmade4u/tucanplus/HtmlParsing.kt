@@ -19,6 +19,10 @@ import io.ktor.util.toMap
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
+import java.time.Clock
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -201,8 +205,25 @@ suspend fun <T> response(
     response: HttpResponse,
     init: suspend Response.() -> T
 ): T {
+    val db = context?.let {
+        Room.databaseBuilder(
+            it,
+            Database::class.java, "tucan-plus.db"
+        ).build()
+    }
     try {
-        return Response(response, response.headers.toMap().toMutableMap()).init()
+        val result = Response(response, response.headers.toMap().toMutableMap()).init()
+        db?.cacheDao()?.insertAll(
+            CacheEntry(
+                0,
+                response.request.url.toString(),
+                response.request.url.toString(),
+                response.bodyAsText(),
+                LocalDateTime.now(Clock.systemUTC()),
+                null
+            )
+        )
+        return result
     } catch (e: IllegalStateException) {
         // cd app/src/test/resources
         // adb pull /data/data/de.selfmade4u.tucanplus/files/parsingerrors/
@@ -213,16 +234,14 @@ suspend fun <T> response(
             fileOutputStream.use {
                 it.write(response.bodyAsText().toByteArray())
             }
-            val db = Room.databaseBuilder(
-                context,
-                ParsingErrorsDatabase::class.java, "parsing-errors"
-            ).fallbackToDestructiveMigration(true).build()
-            db.parsingErrorDao().insertAll(
-                ParsingError(
+            db?.cacheDao()?.insertAll(
+                CacheEntry(
                     0,
                     response.request.url.toString(),
+                    response.request.url.toString(),
+                    response.bodyAsText(),
+                    LocalDateTime.now(Clock.systemUTC()),
                     e.toString(),
-                    response.bodyAsText()
                 )
             )
         }
