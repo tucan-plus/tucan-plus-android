@@ -54,4 +54,6 @@ interface CacheDao {
 @TypeConverters(Converters::class, ModuleResults.ModuleResultsConverters::class)
 abstract class Database : RoomDatabase() {
     abstract fun cacheDao(): CacheDao
+    abstract fun moduleResultsDao(): ModuleResults.ModuleResultsDao
+    abstract fun modulesDao(): ModuleResults.ModulesDao
 }

@@ -11,6 +11,8 @@ import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Transaction
 import androidx.room.TypeConverter
+import androidx.room.withTransaction
+import de.selfmade4u.tucanplus.Database
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
@@ -43,12 +45,9 @@ import io.ktor.http.HttpStatusCode
 
 object ModuleResults {
 
-    suspend fun getCachedModuleResults() {
-
-    }
-
     suspend fun getModuleResults(
         context: Context,
+        db: Database,
         client: HttpClient,
         sessionId: String,
         sessionCookie: String
@@ -79,7 +78,7 @@ object ModuleResults {
             header("Expires", "0")
             header("Cache-Control", "private, no-cache, no-store")
             root {
-                parseModuleResults(sessionId)
+                parseModuleResults(db, sessionId)
             }
         }
     }
@@ -171,9 +170,16 @@ object ModuleResults {
         suspend fun insertAll(vararg moduleResults: ModuleResult)
     }
 
-    fun Root.parseModuleResults(sessionId: String): ModuleResultsResponse {
+    @Dao
+    interface ModulesDao {
+        @Insert
+        suspend fun insertAll(vararg modules: Module)
+    }
+
+    suspend fun Root.parseModuleResults(db: Database, sessionId: String): ModuleResultsResponse {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
+        var selectedSemester: Semesterauswahl? = null;
         val response = parseBase(sessionId, "000324", {
             if (peek() != null) {
                 style {
@@ -274,6 +280,13 @@ object ModuleResults {
                                                     .substringBefore("/").toInt()
                                                 semester = Semester.Wintersemester
                                             }
+                                        }
+                                        if (selected) {
+                                            selectedSemester = Semesterauswahl(
+                                                value,
+                                                year,
+                                                semester
+                                            )
                                         }
                                         semesters.add(
                                             Semesterauswahl(
@@ -434,9 +447,13 @@ object ModuleResults {
                     }
                 }
             }
-            // TODO store in database in a single transaction
+            // TODO separate parsing from caching
+            db.withTransaction {
+                db.moduleResultsDao().insertAll(ModuleResult(0, selectedSemester!!))
+                db.modulesDao().insertAll(*modules.toTypedArray())
+            }
 
-            return@parseBase ModuleResultsResponse.Success(ModuleResults.ModuleResult(42, semesters[0], semesters))
+            return@parseBase ModuleResultsResponse.Success(ModuleResult(42, selectedSemester!!))
         }
         return response
     }

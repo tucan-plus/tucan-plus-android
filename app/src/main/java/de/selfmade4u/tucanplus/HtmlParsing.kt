@@ -184,7 +184,7 @@ class Response(
         return headers.remove(key)!!
     }
 
-    suspend fun <T> root(init: Root.() -> T): T {
+    suspend fun <T> root(init: suspend Root.() -> T): T {
         check(headers.isEmpty()) { "unparsed headers $headers" }
         val document = Ksoup.parse(response.bodyAsText())
         check(document.nameIs("#root")) { document.normalName() }

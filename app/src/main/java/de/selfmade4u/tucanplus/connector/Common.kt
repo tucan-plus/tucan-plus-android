@@ -26,11 +26,11 @@ import de.selfmade4u.tucanplus.title
 import de.selfmade4u.tucanplus.ul
 
 object Common {
-    fun <T> Root.parseBase(
+    suspend fun <T> Root.parseBase(
         sessionId: String,
         menuId: String,
         headInit: Head.() -> Unit,
-        inner: Body.(pageType: String) -> T
+        inner: suspend Body.(pageType: String) -> T
     ): T {
         var sessionId = sessionId
         var menuId = menuId
