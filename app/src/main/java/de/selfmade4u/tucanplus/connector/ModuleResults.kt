@@ -12,7 +12,7 @@ import androidx.room.Relation
 import androidx.room.Transaction
 import androidx.room.TypeConverter
 import androidx.room.withTransaction
-import de.selfmade4u.tucanplus.Database
+import de.selfmade4u.tucanplus.MyDatabase
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
@@ -47,7 +47,6 @@ object ModuleResults {
 
     suspend fun getModuleResults(
         context: Context,
-        db: Database,
         client: HttpClient,
         sessionId: String,
         sessionCookie: String
@@ -78,7 +77,7 @@ object ModuleResults {
             header("Expires", "0")
             header("Cache-Control", "private, no-cache, no-store")
             root {
-                parseModuleResults(db, sessionId)
+                parseModuleResults(context, sessionId)
             }
         }
     }
@@ -127,7 +126,7 @@ object ModuleResults {
     @Entity
     data class Module(
         val moduleResultId: Int,
-        @PrimaryKey(autoGenerate = true)
+        @PrimaryKey
         val id: String,
         val name: String,
         val grade: ModuleGrade,
@@ -176,7 +175,7 @@ object ModuleResults {
         suspend fun insertAll(vararg modules: Module)
     }
 
-    suspend fun Root.parseModuleResults(db: Database, sessionId: String): ModuleResultsResponse {
+    suspend fun Root.parseModuleResults(context: Context, sessionId: String): ModuleResultsResponse {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null;
@@ -448,6 +447,7 @@ object ModuleResults {
                 }
             }
             // TODO separate parsing from caching
+            val db = MyDatabase.getDatabase(context);
             db.withTransaction {
                 db.moduleResultsDao().insertAll(ModuleResult(0, selectedSemester!!))
                 db.modulesDao().insertAll(*modules.toTypedArray())
