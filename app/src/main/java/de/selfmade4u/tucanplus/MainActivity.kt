@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -23,6 +25,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -37,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -355,16 +359,28 @@ fun LongBasicDropdownMenu() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
-    val modules = loadModules()
+    //val modules = loadModules()
+    var isRefreshing by remember { mutableStateOf(false) }
     val state = rememberPullToRefreshState()
     DetailedDrawerExample(backStack) { innerPadding ->
-        PullToRefreshBox(false, onRefresh = {
-
-        }, state = state) {
-            Column(Modifier.padding(innerPadding)) {
+        PullToRefreshBox(isRefreshing, onRefresh = {
+            isRefreshing = true
+        }, state = state, indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                state = state,
+                isRefreshing = isRefreshing,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
+        }, modifier = Modifier.padding(innerPadding)) {
+            LazyColumn(Modifier.fillMaxSize()) {
+                items(500) {
+                    Text("hi")
+                }
+            }
+            /*Column(Modifier.padding(innerPadding)) {
                 LongBasicDropdownMenu()
                 when (val values = modules.value) {
                     null -> {
@@ -382,7 +398,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
                     }
                     ModuleResults.ModuleResultsResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
                 }
-            }
+            }*/
         }
     }
 }
