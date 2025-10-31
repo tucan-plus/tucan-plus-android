@@ -105,7 +105,7 @@ object TucanLogin {
         }
     }
 
-    fun Root.parseLoginFailure(): LoginResponse {
+    suspend fun Root.parseLoginFailure(): LoginResponse {
         return parseBase("000000000000001", "000000", {}) { pageType ->
             check(pageType == "accessdenied")
             script { attribute("type", "text/javascript"); }
@@ -124,7 +124,7 @@ object TucanLogin {
         }
     }
 
-    fun Root.parseLoginSuccess() {
+    suspend fun Root.parseLoginSuccess() {
         html {
             head {
             }

@@ -65,6 +65,9 @@ android {
     room {
         schemaDirectory("$projectDir/schemas")
     }
+    sourceSets {
+        getByName("debug").assets.srcDirs(files("$projectDir/schemas")) // Room
+    }
 }
 
 dependencies {

@@ -136,7 +136,7 @@ object ModuleResults {
     )
 
     @Entity(tableName = "module_results")
-    data class ModuleResult(@PrimaryKey(autoGenerate = true) val id: Int, @Embedded var selectedSemester: Semesterauswahl) // , var allSemesters: List<Semesterauswahl>
+    data class ModuleResult(@PrimaryKey(autoGenerate = true) val id: Int, @Embedded var selectedSemester: Semesterauswahl)
 
     data class ModuleResultWithModules(
         @Embedded val moduleResult: ModuleResult,
@@ -148,7 +148,7 @@ object ModuleResults {
     )
 
     sealed class ModuleResultsResponse {
-        data class Success(var moduleResult: ModuleResult) :
+        data class Success(var moduleResult: ModuleResult, var semesters: List<Semesterauswahl>, var modules: List<Module>) :
             ModuleResultsResponse()
 
         data object SessionTimeout : ModuleResultsResponse()
@@ -453,7 +453,7 @@ object ModuleResults {
                 db.modulesDao().insertAll(*modules.toTypedArray())
             }
 
-            return@parseBase ModuleResultsResponse.Success(ModuleResult(42, selectedSemester!!))
+            return@parseBase ModuleResultsResponse.Success(ModuleResult(42, selectedSemester!!), semesters, modules)
         }
         return response
     }

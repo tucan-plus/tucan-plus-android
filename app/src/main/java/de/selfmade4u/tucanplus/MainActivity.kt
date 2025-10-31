@@ -414,6 +414,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
 @Composable
 fun ModuleComposable(
     module: ModuleResults.Module = ModuleResults.Module(
+        42,
         "id",
         "name",
         ModuleResults.ModuleGrade.G1_0,
