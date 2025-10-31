@@ -11,6 +11,7 @@ import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Transaction
 import androidx.room.TypeConverter
+import androidx.room.Upsert
 import androidx.room.withTransaction
 import de.selfmade4u.tucanplus.MyDatabase
 import de.selfmade4u.tucanplus.Root
@@ -125,14 +126,13 @@ object ModuleResults {
 
     @Dao
     interface SemestersDao {
-        @Insert
+        @Upsert
         suspend fun insertAll(vararg modules: Semesterauswahl)
     }
 
-    @Entity(tableName = "module")
+    @Entity(tableName = "module", primaryKeys = ["moduleResultId", "id"])
     data class Module(
         var moduleResultId: Long,
-        @PrimaryKey
         var id: String,
         val name: String,
         val grade: ModuleGrade,
@@ -147,7 +147,7 @@ object ModuleResults {
     data class ModuleResultWithModules(
         @Embedded val moduleResult: ModuleResult,
         @Relation(
-            parentColumn = "rowid",
+            parentColumn = "id",
             entityColumn = "moduleResultId"
         )
         val modules: List<Module>

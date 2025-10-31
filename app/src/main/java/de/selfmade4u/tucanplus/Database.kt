@@ -1,6 +1,7 @@
 package de.selfmade4u.tucanplus
 
 import android.content.Context
+import android.os.Debug
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -12,8 +13,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.room.useWriterConnection
 import de.selfmade4u.tucanplus.connector.ModuleResults
 import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleResult
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDateTime
 
 class Converters {
@@ -63,13 +67,32 @@ abstract class MyDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var Instance: MyDatabase? = null
+        val mutex = Mutex()
 
-        fun getDatabase(context: Context): MyDatabase {
-            // this is wrong, right?
-            return Instance ?: synchronized(this) {
-                Instance ?: Room.databaseBuilder(context, MyDatabase::class.java, "tucan-plus.db")
-                    .build()
-                    .also { Instance = it }
+        suspend fun getDatabase(context: Context): MyDatabase {
+            return Instance ?: mutex.withLock {
+                return Instance ?: run {
+                    val db = if (Debug.isDebuggerConnected()) {
+                        val db: MyDatabase = Room.databaseBuilder(context, MyDatabase::class.java, "tucan-plus.db").build();
+                        try {
+                            db.useWriterConnection { _ -> } // check that schema identity hash has no mismatch
+                            db
+                        } catch (e: IllegalStateException) {
+                            e.printStackTrace()
+                            db.close()
+                            context.deleteDatabase("tucan-plus.db")
+                            val db = Room.databaseBuilder(context, MyDatabase::class.java, "tucan-plus.db").build()
+                            db.useWriterConnection { _ -> }
+                            db
+                        }
+                    } else {
+                        val db = Room.databaseBuilder(context, MyDatabase::class.java, "tucan-plus.db").build()
+                        db.useWriterConnection { _ -> }
+                        db
+                    }
+                    Instance = db
+                    db
+                }
             }
         }
     }
