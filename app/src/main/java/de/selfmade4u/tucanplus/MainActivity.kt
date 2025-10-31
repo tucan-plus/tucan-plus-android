@@ -376,6 +376,8 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
                         }
                     }
                 }
+
+                ModuleResults.ModuleResultsResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
             }
 
         }

@@ -1,6 +1,7 @@
 package de.selfmade4u.tucanplus.connector
 
 import android.content.Context
+import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Embedded
@@ -15,6 +16,7 @@ import androidx.room.Upsert
 import androidx.room.withTransaction
 import de.selfmade4u.tucanplus.MyDatabase
 import de.selfmade4u.tucanplus.Root
+import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
@@ -52,10 +54,14 @@ object ModuleResults {
         sessionId: String,
         sessionCookie: String
     ): ModuleResultsResponse {
-        val r =
+        val r = try {
             client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,") {
                 cookie("cnsc", sessionCookie)
             }
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "Failed to fetch request", e)
+            return ModuleResultsResponse.SessionTimeout
+        }
         return response(context, r) {
             status(HttpStatusCode.OK)
             header(
@@ -161,6 +167,7 @@ object ModuleResults {
             ModuleResultsResponse()
 
         data object SessionTimeout : ModuleResultsResponse()
+        data object NetworkLikelyTooSlow : ModuleResultsResponse()
     }
 
     // https://stackoverflow.com/questions/60928706/android-room-how-to-save-an-entity-with-one-of-the-variables-being-a-sealed-cla/72535888#72535888
