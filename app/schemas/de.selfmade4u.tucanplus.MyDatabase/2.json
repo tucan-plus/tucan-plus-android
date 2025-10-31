@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "9d462def72b995cf61c0ae1103c52f5a",
+    "identityHash": "2ce26f0cccded07baab2c63b86de3ad6",
     "entities": [
       {
         "tableName": "cache",
@@ -64,11 +64,11 @@
       },
       {
         "tableName": "module_results",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `semester_id` INTEGER NOT NULL, `year` INTEGER NOT NULL, `semester` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rowid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `semester_id` INTEGER NOT NULL, `year` INTEGER NOT NULL, `semester` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
-            "columnName": "id",
+            "columnName": "rowid",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -94,12 +94,12 @@
         "primaryKey": {
           "autoGenerate": true,
           "columnNames": [
-            "id"
+            "rowid"
           ]
         }
       },
       {
-        "tableName": "Module",
+        "tableName": "module",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`moduleResultId` INTEGER NOT NULL, `id` TEXT NOT NULL, `name` TEXT NOT NULL, `grade` TEXT NOT NULL, `credits` INTEGER NOT NULL, `resultdetailsUrl` TEXT NOT NULL, `gradeoverviewUrl` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
@@ -151,11 +151,41 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "semesters",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`semester_id` INTEGER NOT NULL, `year` INTEGER NOT NULL, `semester` TEXT NOT NULL, PRIMARY KEY(`semester_id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "semester_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "year",
+            "columnName": "year",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "semester",
+            "columnName": "semester",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "semester_id"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9d462def72b995cf61c0ae1103c52f5a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2ce26f0cccded07baab2c63b86de3ad6')"
     ]
   }
 }

@@ -114,20 +114,26 @@ object ModuleResults {
         Wintersemester
     }
 
-    @Entity
+    @Entity(tableName = "semesters")
     data class Semesterauswahl(
         @PrimaryKey
         @ColumnInfo(name = "semester_id")
-        val id: Int,
+        val id: Long,
         val year: Int,
         val semester: Semester
     )
 
-    @Entity
+    @Dao
+    interface SemestersDao {
+        @Insert
+        suspend fun insertAll(vararg modules: Semesterauswahl)
+    }
+
+    @Entity(tableName = "module")
     data class Module(
-        val moduleResultId: Int,
+        var moduleResultId: Long,
         @PrimaryKey
-        val id: String,
+        var id: String,
         val name: String,
         val grade: ModuleGrade,
         val credits: Int,
@@ -136,12 +142,12 @@ object ModuleResults {
     )
 
     @Entity(tableName = "module_results")
-    data class ModuleResult(@PrimaryKey(autoGenerate = true) val id: Int, @Embedded var selectedSemester: Semesterauswahl)
+    data class ModuleResult(@PrimaryKey(autoGenerate = true) var id: Long, @Embedded var selectedSemester: Semesterauswahl)
 
     data class ModuleResultWithModules(
         @Embedded val moduleResult: ModuleResult,
         @Relation(
-            parentColumn = "id",
+            parentColumn = "rowid",
             entityColumn = "moduleResultId"
         )
         val modules: List<Module>
@@ -166,13 +172,13 @@ object ModuleResults {
         suspend fun getModuleResultsWithModules(): List<ModuleResultWithModules>
 
         @Insert
-        suspend fun insertAll(vararg moduleResults: ModuleResult)
+        suspend fun insert(moduleResults: ModuleResult): Long
     }
 
     @Dao
     interface ModulesDao {
         @Insert
-        suspend fun insertAll(vararg modules: Module)
+        suspend fun insertAll(vararg modules: Module): List<Long>
     }
 
     suspend fun Root.parseModuleResults(context: Context, sessionId: String): ModuleResultsResponse {
@@ -257,12 +263,12 @@ object ModuleResults {
                                     // we can predict the value so we could use this at some places do directly get correct value
                                     // maybe do everywhere for consistency
                                     while (peek() != null) {
-                                        val value: Int
+                                        val value: Long
                                         val selected: Boolean
                                         val semester: Semester
                                         val year: Int
                                         option {
-                                            value = attributeValue("value").trimStart('0').toInt()
+                                            value = attributeValue("value").trimStart('0').toLong()
                                             selected = if (peekAttribute()?.key == "selected") {
                                                 attribute("selected", "selected")
                                                 true
@@ -417,7 +423,7 @@ object ModuleResults {
                                 }
                             }
                             val module = Module(
-                                42,
+                                0,
                                 moduleId,
                                 moduleName,
                                 moduleGrade,
@@ -448,12 +454,20 @@ object ModuleResults {
             }
             // TODO separate parsing from caching
             val db = MyDatabase.getDatabase(context);
-            db.withTransaction {
-                db.moduleResultsDao().insertAll(ModuleResult(0, selectedSemester!!))
-                db.modulesDao().insertAll(*modules.toTypedArray())
+            val moduleResult = db.withTransaction {
+                db.semestersDao().insertAll(*semesters.toTypedArray())
+                val moduleResult = ModuleResult(0, selectedSemester!!)
+                val moduleResultId = db.moduleResultsDao().insert(moduleResult)
+                moduleResult.id = moduleResultId
+                val modules = modules.map { m -> m.moduleResultId = moduleResultId; m }
+                val moduleIds = db.modulesDao().insertAll(*modules.toTypedArray())
+                /*modules.zip(moduleIds) { a, b ->
+                    a.id = b
+                }*/
+                moduleResult
             }
 
-            return@parseBase ModuleResultsResponse.Success(ModuleResult(42, selectedSemester!!), semesters, modules)
+            return@parseBase ModuleResultsResponse.Success(moduleResult, semesters, modules)
         }
         return response
     }

@@ -52,12 +52,13 @@ interface CacheDao {
 
 // https://developer.android.com/studio/inspect/database
 
-@Database(entities = [CacheEntry::class, ModuleResult::class, ModuleResults.Module::class], version = 2)
+@Database(entities = [CacheEntry::class, ModuleResult::class, ModuleResults.Module::class, ModuleResults.Semesterauswahl::class], version = 2)
 @TypeConverters(Converters::class, ModuleResults.ModuleResultsConverters::class)
 abstract class MyDatabase : RoomDatabase() {
     abstract fun cacheDao(): CacheDao
     abstract fun moduleResultsDao(): ModuleResults.ModuleResultsDao
     abstract fun modulesDao(): ModuleResults.ModulesDao
+    abstract fun semestersDao(): ModuleResults.SemestersDao
 
     companion object {
         @Volatile
