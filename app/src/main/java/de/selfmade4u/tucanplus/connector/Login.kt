@@ -54,7 +54,7 @@ object TucanLogin {
                 return r
             } catch (e: ConnectTimeoutException) {
                 Log.e("TucanLogin", "ConnectTimeoutException", e)
-                // TODO FIXME generalize
+                // TODO FIXME generalize for all requests (very important)
                 if (i == 5) {
                     throw e
                 }

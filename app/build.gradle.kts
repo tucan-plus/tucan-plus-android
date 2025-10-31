@@ -86,7 +86,7 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.splashscreen)
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.android)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.cio)
     implementation(libs.ksoup)

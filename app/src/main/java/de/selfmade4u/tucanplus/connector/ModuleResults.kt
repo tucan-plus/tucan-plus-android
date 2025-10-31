@@ -59,11 +59,15 @@ object ModuleResults {
                 cookie("cnsc", sessionCookie)
             }
         } catch (e: IllegalStateException) {
+            if (e.message?.contains("Content-Length mismatch") ?: true) {
+                return ModuleResultsResponse.NetworkLikelyTooSlow
+            }
             Log.e(TAG, "Failed to fetch request", e)
             return ModuleResultsResponse.SessionTimeout
         }
         return response(context, r) {
             status(HttpStatusCode.OK)
+            Log.d(TAG, "${r.headers}")
             header(
                 "Content-Security-Policy",
                 "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
@@ -78,11 +82,16 @@ object ModuleResults {
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
             ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
             ignoreHeader("Date")
-            ignoreHeader("Content-Length")
+            //ignoreHeader("Content-Length")
             header("Connection", "close")
             header("Pragma", "no-cache")
             header("Expires", "0")
             header("Cache-Control", "private, no-cache, no-store")
+            header("vary", "Accept-Encoding")
+            ignoreHeader("x-android-received-millis")
+            ignoreHeader("x-android-response-source")
+            ignoreHeader("x-android-selected-protocol")
+            ignoreHeader("x-android-sent-millis")
             root {
                 parseModuleResults(context, sessionId)
             }

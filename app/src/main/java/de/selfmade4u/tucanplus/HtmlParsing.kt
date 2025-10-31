@@ -154,14 +154,14 @@ class Response(
 
     fun maybeHeader(key: String, values: List<String>) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        val actualValue = headers.remove(key)
+        val actualValue = headers.remove(key.lowercase())
         check(actualValue == null || actualValue == values) { "actual   $actualValue\nexpected $values" }
     }
 
     fun header(key: String, values: List<String>) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        val actualValue = headers.remove(key)
-        check(actualValue == values) { "actual   $actualValue\nexpected $values" }
+        val actualValue = headers.remove(key.lowercase())
+        check(actualValue == values) { "actual   $actualValue\nexpected $values\nremaining $headers" }
     }
 
     fun header(key: String, values: String) {
@@ -170,18 +170,18 @@ class Response(
 
     fun ignoreHeader(key: String) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        val actualValue = headers.remove(key)
-        check(actualValue != null) { "expected header with key $key" }
+        val actualValue = headers.remove(key.lowercase())
+        check(actualValue != null) { "expected header with key $key\nremaining $headers" }
     }
 
     fun hasHeader(key: String): Boolean {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        return headers.containsKey(key)
+        return headers.containsKey(key.lowercase())
     }
 
     fun extractHeader(key: String): List<String> {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        return headers.remove(key)!!
+        return headers.remove(key.lowercase())!!
     }
 
     suspend fun <T> root(init: suspend Root.() -> T): T {

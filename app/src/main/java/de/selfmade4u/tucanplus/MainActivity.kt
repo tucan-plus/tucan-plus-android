@@ -36,6 +36,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -357,29 +359,30 @@ fun LongBasicDropdownMenu() {
 @Composable
 fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
     val modules = loadModules()
+    val state = rememberPullToRefreshState()
     DetailedDrawerExample(backStack) { innerPadding ->
-        Column(Modifier.padding(innerPadding)) {
-            LongBasicDropdownMenu()
-            when (val values = modules.value) {
-                null -> {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) { CircularProgressIndicator() }
-                }
+        PullToRefreshBox(false, onRefresh = {
 
-                is ModuleResults.ModuleResultsResponse.SessionTimeout -> {
-                    Text("Session timeout")
-                }
-
-                is ModuleResults.ModuleResultsResponse.Success -> {
-                    values.modules.forEach { module ->
-                        key(module.id) {
-                            ModuleComposable(module)
+        }, state = state) {
+            Column(Modifier.padding(innerPadding)) {
+                LongBasicDropdownMenu()
+                when (val values = modules.value) {
+                    null -> {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) { CircularProgressIndicator() }
+                    }
+                    is ModuleResults.ModuleResultsResponse.SessionTimeout -> {
+                        Text("Session timeout")
+                    }
+                    is ModuleResults.ModuleResultsResponse.Success -> {
+                        values.modules.forEach { module ->
+                            key(module.id) {
+                                ModuleComposable(module)
+                            }
                         }
                     }
+                    ModuleResults.ModuleResultsResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
                 }
-
-                ModuleResults.ModuleResultsResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
             }
-
         }
     }
 }
