@@ -319,59 +319,31 @@ fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
 @Preview
 @Composable
 fun LongBasicDropdownMenu() {
-    // 2010 - now
-    // load from any latest cache entry and if there is none, show loading
-    val options: List<String> = listOf(
-        "Option 1",
-        "Option 2",
-        "Option 3",
-        "Option 4",
-        "Option 5",
-        "Option 6",
-        "Option 7",
-        "Option 8",
-        "Option 9",
-        "Option 10",
-        "Option 11",
-        "Option 12",
-        "Option 13",
-        "Option 14",
-        "Option 15",
-        "Option 16",
-        "Option 17",
-        "Option 18",
-        "Option 19",
-        "Option 20",
-        "Option 21",
-        "Option 22",
-        "Option 23",
-        "Option 24",
-        "Option 25"
-    )
+    val context = LocalContext.current
+    val semesters by produceState(listOf<ModuleResults.Semesterauswahl>()) {
+        val db = MyDatabase.getDatabase(context)
+        value = db.semestersDao().getAll()
+    }
     var expanded by remember { mutableStateOf(false) }
-    val textFieldState = rememberTextFieldState(options[0])
-
+    val textFieldState = rememberTextFieldState("")
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         TextField(
-            // The `menuAnchor` modifier must be passed to the text field to handle
-            // expanding/collapsing the menu on click. A read-only text field has
-            // the anchor type `PrimaryNotEditable`.
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             state = textFieldState,
             readOnly = true,
             lineLimits = TextFieldLineLimits.SingleLine,
-            label = { Text("Label") },
+            label = { Text("Semester") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.textFieldColors(),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { option ->
+            semesters.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option, style = MaterialTheme.typography.bodyLarge) },
+                    text = { Text("${option.semester.name} ${option.year}", style = MaterialTheme.typography.bodyLarge) },
                     onClick = {
-                        textFieldState.setTextAndPlaceCursorAtEnd(option)
+                        textFieldState.setTextAndPlaceCursorAtEnd("${option.semester.name} ${option.year}")
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,

@@ -128,6 +128,9 @@ object ModuleResults {
     interface SemestersDao {
         @Upsert
         suspend fun insertAll(vararg modules: Semesterauswahl)
+
+        @Query("SELECT * FROM semesters")
+        suspend fun getAll(): List<Semesterauswahl>
     }
 
     @Entity(tableName = "module", primaryKeys = ["moduleResultId", "id"])
