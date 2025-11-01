@@ -1,9 +1,5 @@
 package de.selfmade4u.tucanplus.connector
 
-import android.content.Context
-import android.util.Log
-import androidx.room.withTransaction
-import de.selfmade4u.tucanplus.MyDatabase
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.a
@@ -12,12 +8,9 @@ import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
 import de.selfmade4u.tucanplus.connector.ModuleResults.Module
 import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleGrade
-import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleResult
 import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleResultsResponse
 import de.selfmade4u.tucanplus.connector.ModuleResults.Semester
 import de.selfmade4u.tucanplus.connector.ModuleResults.Semesterauswahl
-import de.selfmade4u.tucanplus.connector.ModuleResults.parseModuleResponse
-import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
 import de.selfmade4u.tucanplus.input
@@ -47,7 +40,11 @@ object MyCourses {
     suspend fun get(
         context: Context,
     ): AuthenticatedResponse<ModuleResultsResponse> {
-        return fetchAuthenticatedWithReauthentication(context,  { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N000274," }, parser = ::parseResponse)
+        return fetchAuthenticatedWithReauthentication(
+            context,
+            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N000274," },
+            parser = ::parseResponse
+        )
     }
 
     suspend fun parseResponse(context: Context, sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {

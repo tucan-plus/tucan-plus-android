@@ -1,8 +1,5 @@
 package de.selfmade4u.tucanplus.connector
 
-import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import de.selfmade4u.tucanplus.CredentialSettings
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.TAG
@@ -11,9 +8,7 @@ import de.selfmade4u.tucanplus.connector.AuthenticatedResponse.*
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
 import io.ktor.client.HttpClient
 import io.ktor.client.request.cookie
-import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
-import kotlinx.coroutines.flow.first
 
 sealed class AuthenticatedHttpResponse<T> {
     data class Success<T>(var response: T) :
@@ -120,7 +115,7 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (s
                 .show()
             // backStack[backStack.size - 1] = MainNavKey
             // TODO clear store
-            return AuthenticatedResponse.InvalidCredentials()
+            return InvalidCredentials()
         }
         is TucanLogin.LoginResponse.Success -> {
             settings = CredentialSettings(
@@ -158,7 +153,7 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (s
         is TucanLogin.LoginResponse.TooManyAttempts -> {
             // bad
             Toast.makeText(context, "Zu viele Anmeldeversuche", Toast.LENGTH_LONG).show()
-            return AuthenticatedResponse.TooManyAttempts()
+            return TooManyAttempts()
         }
     }
 }

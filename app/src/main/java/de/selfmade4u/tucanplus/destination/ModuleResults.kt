@@ -2,7 +2,6 @@ package de.selfmade4u.tucanplus.destination
 
 import android.content.res.Configuration
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,20 +42,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import de.selfmade4u.tucanplus.CipherManager
-import de.selfmade4u.tucanplus.CredentialSettings
 import de.selfmade4u.tucanplus.DetailedDrawerExample
 import de.selfmade4u.tucanplus.MyDatabase
-import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
 import de.selfmade4u.tucanplus.connector.ModuleResults
 import de.selfmade4u.tucanplus.connector.ModuleResults.getModuleResults
-import de.selfmade4u.tucanplus.connector.TucanLogin
-import de.selfmade4u.tucanplus.connector.fetchAuthenticatedWithReauthentication
-import de.selfmade4u.tucanplus.credentialSettingsDataStore
-import io.ktor.client.HttpClient
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable

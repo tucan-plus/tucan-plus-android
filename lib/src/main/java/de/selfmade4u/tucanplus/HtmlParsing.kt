@@ -2,8 +2,6 @@
 
 package de.selfmade4u.tucanplus
 
-import android.content.Context
-import androidx.room.Room
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Attribute
 import com.fleeksoft.ksoup.nodes.Comment
@@ -21,8 +19,7 @@ import java.io.FileOutputStream
 import java.security.MessageDigest
 import java.time.Clock
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
+import kotlin.collections.filterNot
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract

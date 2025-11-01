@@ -1,7 +1,5 @@
 package de.selfmade4u.tucanplus.connector
 
-import android.content.Context
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Embedded
@@ -21,7 +19,6 @@ import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
-import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
 import de.selfmade4u.tucanplus.input
@@ -41,9 +38,6 @@ import de.selfmade4u.tucanplus.td
 import de.selfmade4u.tucanplus.th
 import de.selfmade4u.tucanplus.thead
 import de.selfmade4u.tucanplus.tr
-import io.ktor.client.HttpClient
-import io.ktor.client.request.cookie
-import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 
@@ -52,7 +46,11 @@ object ModuleResults {
     suspend fun getModuleResults(
         context: Context,
     ): AuthenticatedResponse<ModuleResultsResponse> {
-        val response = fetchAuthenticatedWithReauthentication(context,  { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," }, parser = ::parseModuleResponse)
+        val response = fetchAuthenticatedWithReauthentication(
+            context,
+            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," },
+            parser = ::parseModuleResponse
+        )
         return when (response) {
             is AuthenticatedResponse.Success<ModuleResultsResponse> -> {
                 AuthenticatedResponse.Success(persist(context, response.response))

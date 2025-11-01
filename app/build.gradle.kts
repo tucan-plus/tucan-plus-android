@@ -89,7 +89,6 @@ dependencies {
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.cio)
-    implementation(libs.ksoup)
     implementation(libs.room)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.work.runtime.ktx)

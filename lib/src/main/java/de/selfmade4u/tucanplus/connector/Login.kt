@@ -1,7 +1,5 @@
 package de.selfmade4u.tucanplus.connector
 
-import android.content.Context
-import android.util.Log
 import com.fleeksoft.ksoup.nodes.TextNode
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.body
@@ -20,6 +18,7 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
+import kotlin.collections.get
 
 object TucanLogin {
 
