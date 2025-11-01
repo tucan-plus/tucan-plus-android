@@ -1,12 +1,14 @@
 package de.selfmade4u.tucanplus
 
 import android.content.Context
+import android.util.Log
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import de.selfmade4u.tucanplus.TAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -18,33 +20,29 @@ import java.util.concurrent.TimeUnit
 
 // https://developer.android.com/reference/androidx/work/WorkInfo#getStopReason()
 
-fun startup(context: Context) {
-    val saveRequest =
-        PeriodicWorkRequestBuilder<CoroutineDownloadWorker>(1, TimeUnit.HOURS)
+fun setupBackgroundTasks(context: Context) {
+    Log.d(TAG, "Setting up background tasks")
+    val updateGrades =
+        PeriodicWorkRequestBuilder<UpdateGradesWorker>(1, TimeUnit.HOURS)
             .setConstraints(Constraints.Builder().setRequiresBatteryNotLow(true).build())
             .build()
 
     WorkManager
         .getInstance(context)
-        .enqueueUniquePeriodicWork("updateGrades", ExistingPeriodicWorkPolicy.KEEP, saveRequest)
+        .enqueueUniquePeriodicWork("updateGrades", ExistingPeriodicWorkPolicy.KEEP, updateGrades)
 }
 
-class CoroutineDownloadWorker(context: Context, params: WorkerParameters) :
+class UpdateGradesWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result = coroutineScope {
         withContext(Dispatchers.IO) {
-            val jobs = (0 until 100).map {
-                async {
-                    print("TODO")
-                }
-            }
+            Log.d(TAG, "UpdateGradesWorker is starting....");
 
-            // awaitAll will throw an exception if a download fails, which
-            // CoroutineWorker will treat as a failure
-            jobs.awaitAll()
+            //Result.retry()
+
+            Log.d(TAG, "UpdateGradesWorker finished");
             Result.success()
-            Result.retry()
         }
     }
 }

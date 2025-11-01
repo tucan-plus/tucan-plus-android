@@ -4,7 +4,7 @@ import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.util.Log
 import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.SERVICE_TYPE
-import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
+import de.selfmade4u.tucanplus.TAG
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking

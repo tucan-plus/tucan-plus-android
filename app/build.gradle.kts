@@ -65,6 +65,9 @@ android {
     room {
         schemaDirectory("$projectDir/schemas")
     }
+    sourceSets {
+        getByName("debug").assets.srcDirs(files("$projectDir/schemas")) // Room
+    }
 }
 
 dependencies {
@@ -83,10 +86,9 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.splashscreen)
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.android)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.cio)
-    implementation(libs.ksoup)
     implementation(libs.room)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.work.runtime.ktx)

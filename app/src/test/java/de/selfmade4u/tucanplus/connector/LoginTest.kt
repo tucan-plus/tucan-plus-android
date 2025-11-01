@@ -18,10 +18,12 @@ class LoginTest {
 
         val doc: Document = Ksoup.parse(html = html)
 
-        val result = root(doc) {
-            parseLoginFailure()
+        runBlocking {
+            val result = root(doc) {
+                parseLoginFailure()
+            }
+            print(result)
         }
-        print(result)
     }
 
     @Test
@@ -30,10 +32,12 @@ class LoginTest {
 
         val doc: Document = Ksoup.parse(html = html)
 
-        val result = root(doc) {
-            parseLoginFailure()
+        runBlocking {
+            val result = root(doc) {
+                parseLoginFailure()
+            }
+            print(result)
         }
-        print(result)
     }
 
     @Test
@@ -42,10 +46,12 @@ class LoginTest {
 
         val doc: Document = Ksoup.parse(html = html)
 
-        val result = root(doc) {
-            parseLoginSuccess()
+        runBlocking {
+            val result = root(doc) {
+                parseLoginSuccess()
+            }
+            print(result)
         }
-        print(result)
     }
 
     @Category(AccessesTucan::class)
