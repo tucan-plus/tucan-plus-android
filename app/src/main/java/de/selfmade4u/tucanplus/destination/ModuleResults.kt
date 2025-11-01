@@ -48,7 +48,9 @@ import de.selfmade4u.tucanplus.CredentialSettings
 import de.selfmade4u.tucanplus.DetailedDrawerExample
 import de.selfmade4u.tucanplus.MyDatabase
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
+import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
 import de.selfmade4u.tucanplus.connector.ModuleResults
+import de.selfmade4u.tucanplus.connector.ModuleResults.getModuleResults
 import de.selfmade4u.tucanplus.connector.TucanLogin
 import de.selfmade4u.tucanplus.connector.fetchAuthenticatedWithReauthentication
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
@@ -74,7 +76,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
         }, modifier = Modifier.padding(innerPadding)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 LongBasicDropdownMenu()
-                when (val values = modules.value) {
+                when (val value = modules.value) {
                     null -> {
                         Column(
                             Modifier.fillMaxSize(),
@@ -82,19 +84,20 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
                         ) { CircularWavyProgressIndicator() }
                     }
 
-                    is ModuleResults.ModuleResultsResponse.SessionTimeout -> {
+                    is AuthenticatedResponse.SessionTimeout -> {
                         Text("Session timeout")
                     }
 
-                    is ModuleResults.ModuleResultsResponse.Success -> {
-                        values.modules.forEach { module ->
+                    is AuthenticatedResponse.Success -> {
+                        value.response.modules.forEach { module ->
                             key(module.id) {
                                 ModuleComposable(module)
                             }
                         }
                     }
-
-                    ModuleResults.ModuleResultsResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
+                    is AuthenticatedResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
+                    is AuthenticatedResponse.InvalidCredentials<*> -> Text("Invalid credentials")
+                    is AuthenticatedResponse.TooManyAttempts<*> -> Text("Too many login attempts. Try again later")
                 }
             }
         }
@@ -131,12 +134,10 @@ fun ModuleComposable(
 }
 
 @Composable
-fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
+fun loadModules(): State<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?> {
     val context = LocalContext.current
     return produceState(initialValue = null) {
-        val credentialSettings: CredentialSettings =
-            context.credentialSettingsDataStore.data.first().inner!!
-        value = fetchAuthenticatedWithReauthentication("", "", TODO())
+        value = getModuleResults(context)
         Log.e("LOADED", value.toString())
     }
 }

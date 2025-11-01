@@ -107,6 +107,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                                         password = passwordState.text.toString(),
                                         sessionId = response.sessionId,
                                         sessionCookie = response.sessionCookie,
+                                        lastRequestTime = System.currentTimeMillis()
                                     )
                                 )
                             }

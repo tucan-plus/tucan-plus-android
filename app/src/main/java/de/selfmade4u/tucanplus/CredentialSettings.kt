@@ -23,7 +23,7 @@ data class CredentialSettings @OptIn(ExperimentalTime::class) constructor(
     val password: String,
     val sessionId: String,
     val sessionCookie: String,
-    val lastRequestTime: Long = System.currentTimeMillis()
+    val lastRequestTime: Long
 )
 
 @Serializable

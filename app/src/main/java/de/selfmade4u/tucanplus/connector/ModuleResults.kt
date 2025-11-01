@@ -51,9 +51,8 @@ object ModuleResults {
 
     suspend fun getModuleResults(
         context: Context,
-        sessionId: String,
     ): AuthenticatedResponse<ModuleResultsResponse> {
-        return fetchAuthenticatedWithReauthentication(context, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,", parser = ::parseModuleResponse)
+        return fetchAuthenticatedWithReauthentication(context,  { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," }, parser = ::parseModuleResponse)
     }
 
     class ModuleResultsConverters {

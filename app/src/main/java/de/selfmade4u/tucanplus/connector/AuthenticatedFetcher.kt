@@ -51,17 +51,22 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
     return AuthenticatedResponse.Success(r)
 }
 
-suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: String, parser: suspend (context: Context, sessionId: String, response: HttpResponse) -> AuthenticatedResponse<T>): AuthenticatedResponse<T> {
+suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (sessionId: String) -> String, parser: suspend (context: Context, sessionId: String, response: HttpResponse) -> AuthenticatedResponse<T>): AuthenticatedResponse<T> {
     val client = HttpClient()
     val settings = context.credentialSettingsDataStore.data.first().inner!!
     if (System.currentTimeMillis() < settings.lastRequestTime + 30*60*1000) {
         Log.d(TAG, "No predictive session timeout, trying to fetch")
         val response = fetchAuthenticated(
-            settings.sessionCookie, url
+            settings.sessionCookie, url(settings.sessionId)
         )
         when (response) {
             is AuthenticatedResponse.SessionTimeout<*> -> { }
-            is AuthenticatedResponse.Success<HttpResponse> -> return parser(context, settings.sessionId, response.response)
+            is AuthenticatedResponse.Success<HttpResponse> -> {
+                context.credentialSettingsDataStore.updateData { currentSettings ->
+                    OptionalCredentialSettings(settings.copy(lastRequestTime = System.currentTimeMillis()))
+                }
+                return parser(context, settings.sessionId, response.response)
+            }
             else -> return response.map<T>()
         }
     } else {
@@ -90,15 +95,21 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: St
                         password = settings.password,
                         sessionId = loginResponse.sessionId,
                         sessionCookie = loginResponse.sessionCookie,
+                        lastRequestTime = System.currentTimeMillis()
                     )
                 )
             }
             val response = fetchAuthenticated(
-                loginResponse.sessionCookie, url
+                loginResponse.sessionCookie, url(loginResponse.sessionId)
             )
-            when (response) {
-                is AuthenticatedResponse.Success<HttpResponse> -> return parser(context, loginResponse.sessionId,response.response)
-                else -> return response.map<T>()
+            return when (response) {
+                is AuthenticatedResponse.Success<HttpResponse> -> {
+                    context.credentialSettingsDataStore.updateData { currentSettings ->
+                       OptionalCredentialSettings(settings.copy(lastRequestTime = System.currentTimeMillis()))
+                    }
+                    parser(context, loginResponse.sessionId,response.response)
+                }
+                else -> response.map<T>()
             }
         }
         is TucanLogin.LoginResponse.TooManyAttempts -> {
