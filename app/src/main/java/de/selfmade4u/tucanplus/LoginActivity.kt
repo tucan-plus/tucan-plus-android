@@ -33,8 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.connector.TucanLogin
-import de.selfmade4u.tucanplus.localfirst.ShowLocalServices
-import de.selfmade4u.tucanplus.localfirst.WifiDirect
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.launch
 
@@ -105,12 +103,10 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                             context.credentialSettingsDataStore.updateData { currentSettings ->
                                 OptionalCredentialSettings(
                                     CredentialSettings(
-                                        encryptedUserName = CipherManager.encrypt(
-                                            usernameState.text.toString()
-                                        ),
-                                        encryptedPassword = CipherManager.encrypt(passwordState.text.toString()),
-                                        encryptedSessionId = CipherManager.encrypt(response.sessionId),
-                                        encryptedSessionCookie = CipherManager.encrypt(response.sessionSecret)
+                                        username = usernameState.text.toString(),
+                                        password = passwordState.text.toString(),
+                                        sessionId = response.sessionId,
+                                        sessionCookie = response.sessionSecret,
                                     )
                                 )
                             }

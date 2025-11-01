@@ -15,13 +15,15 @@ import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.time.ExperimentalTime
 
 @Serializable
-data class CredentialSettings(
-    val encryptedUserName: Pair<String, String>,
-    val encryptedPassword: Pair<String, String>,
-    val encryptedSessionId: Pair<String, String>,
-    val encryptedSessionCookie: Pair<String, String>,
+data class CredentialSettings @OptIn(ExperimentalTime::class) constructor(
+    val username: String,
+    val password: String,
+    val sessionId: String,
+    val sessionCookie: String,
+    val lastRequestTime: Long = System.currentTimeMillis()
 )
 
 @Serializable
@@ -34,7 +36,8 @@ object CredentialSettingsSerializer : Serializer<OptionalCredentialSettings> {
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun readFrom(input: InputStream): OptionalCredentialSettings {
         try {
-            return Json.decodeFromStream(input)
+            val decrypted = CipherManager.decrypt(Json.decodeFromStream(input))
+            return Json.decodeFromString(decrypted)
         } catch (serialization: SerializationException) {
             throw CorruptionException("Unable to read Settings", serialization)
         }
@@ -44,7 +47,10 @@ object CredentialSettingsSerializer : Serializer<OptionalCredentialSettings> {
     override suspend fun writeTo(
         t: OptionalCredentialSettings,
         output: OutputStream
-    ) = Json.encodeToStream(t, output)
+    ) {
+        val unencrypted = Json.encodeToString(t)
+        Json.encodeToStream(CipherManager.encrypt(unencrypted), output)
+    }
 }
 
 val Context.credentialSettingsDataStore: DataStore<OptionalCredentialSettings> by dataStore(

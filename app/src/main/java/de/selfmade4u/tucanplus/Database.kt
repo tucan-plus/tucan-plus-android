@@ -41,7 +41,7 @@ data class CacheEntry(
     val originalUrl: String,
     val normalizedUrl: String?,
     val source: String,
-    val updated: LocalDateTime,
+    val updated: LocalDateTime, // todo probably use instant here?
     val parsingError: String?,
 )
 

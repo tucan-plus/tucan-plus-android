@@ -1,5 +1,6 @@
 package de.selfmade4u.tucanplus.connector
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import de.selfmade4u.tucanplus.CipherManager
@@ -11,6 +12,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.cookie
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 sealed class AuthenticatedResponse<T> {
@@ -45,52 +47,56 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
     return AuthenticatedResponse.Success(r)
 }
 
-suspend fun <T> fetchAuthenticatedWithReauthentication(sessionCookie: String, url: String, parser: suspend (HttpResponse) -> AuthenticatedResponse<T>): AuthenticatedResponse<T> {
+suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, sessionCookie: String, url: String, parser: suspend (HttpResponse) -> AuthenticatedResponse<T>): AuthenticatedResponse<T> {
     val client = HttpClient()
-    var response = fetchAuthenticated(
-        sessionCookie, url
-    )
-    if (response is AuthenticatedResponse.SessionTimeout) {
-        //Toast.makeText(context, "Reauthenticating", Toast.LENGTH_SHORT).show()
-        val loginResponse = TucanLogin.doLogin(
-            client,
-            CipherManager.decrypt(credentialSettings.encryptedUserName),
-            CipherManager.decrypt(credentialSettings.encryptedPassword),
-            context,
+    val settings = context.credentialSettingsDataStore.data.first().inner!!
+    if (System.currentTimeMillis() < settings.lastRequestTime + 30*60*1000) {
+        Log.d(TAG, "No predictive session timeout, trying to fetch")
+        val response = fetchAuthenticated(
+            sessionCookie, url
         )
-        when (loginResponse) {
-            is TucanLogin.LoginResponse.InvalidCredentials -> launch {
-                Toast.makeText(context, "Ungültiger Username oder Password", Toast.LENGTH_LONG)
-                    .show()
-                // backStack[backStack.size - 1] = MainNavKey
-                // TODO clear store
-            }
-
-            is TucanLogin.LoginResponse.Success -> {
-                context.credentialSettingsDataStore.updateData { currentSettings ->
-                    OptionalCredentialSettings(
-                        CredentialSettings(
-                            encryptedUserName = CipherManager.encrypt(
-                                CipherManager.decrypt(credentialSettings.encryptedUserName)
-                            ),
-                            encryptedPassword = CipherManager.encrypt(
-                                CipherManager.decrypt(credentialSettings.encryptedPassword)
-                            ),
-                            encryptedSessionId = CipherManager.encrypt(loginResponse.sessionId),
-                            encryptedSessionCookie = CipherManager.encrypt(loginResponse.sessionSecret)
-                        )
+        when (response) {
+            is AuthenticatedResponse.NetworkLikelyTooSlow<*> -> return AuthenticatedResponse.NetworkLikelyTooSlow()
+            is AuthenticatedResponse.SessionTimeout<*> -> { }
+            is AuthenticatedResponse.Success<HttpResponse> -> return parser(response.response)
+        }
+    } else {
+        Log.d(TAG, "Predictive session timeout, directly reauthenticating")
+    }
+    Toast.makeText(context, "Reauthenticating", Toast.LENGTH_SHORT).show()
+    val loginResponse = TucanLogin.doLogin(
+        client,
+        settings.username,
+        settings.password,
+        context,
+    )
+    when (loginResponse) {
+        is TucanLogin.LoginResponse.InvalidCredentials -> launch {
+            Toast.makeText(context, "Ungültiger Username oder Password", Toast.LENGTH_LONG)
+                .show()
+            // backStack[backStack.size - 1] = MainNavKey
+            // TODO clear store
+        }
+        is TucanLogin.LoginResponse.Success -> {
+            context.credentialSettingsDataStore.updateData { currentSettings ->
+                OptionalCredentialSettings(
+                    CredentialSettings(
+                        username = settings.username,
+                        password = settings.password,
+                        sessionId = loginResponse.sessionId,
+                        sessionCookie = loginResponse.sessionSecret,
                     )
-                }
-                response = fetchAuthenticated(
-                    sessionCookie, url
                 )
-                return parser(response)
             }
+            val response = fetchAuthenticated(
+                sessionCookie, url
+            )
+            return parser(response)
+        }
 
-            is TucanLogin.LoginResponse.TooManyAttempts -> launch {
-                // bad
-                Toast.makeText(context, "Zu viele Anmeldeversuche", Toast.LENGTH_LONG).show()
-            }
+        is TucanLogin.LoginResponse.TooManyAttempts -> launch {
+            // bad
+            Toast.makeText(context, "Zu viele Anmeldeversuche", Toast.LENGTH_LONG).show()
         }
     }
 }
