@@ -151,7 +151,7 @@ object ModuleResults {
         suspend fun insertAll(vararg modules: Module): List<Long>
     }
 
-    suspend fun parseModuleResponse(context: Context, sessionId: String, response: HttpResponse): AuthenticatedResponse<ModuleResultsResponse> {
+    suspend fun parseModuleResponse(context: Context, sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
         return response(context, response) {
             status(HttpStatusCode.OK)
             header(
@@ -185,7 +185,7 @@ object ModuleResults {
         }
     }
 
-    suspend fun Root.parseModuleResults(context: Context, sessionId: String): AuthenticatedResponse<ModuleResultsResponse> {
+    suspend fun Root.parseModuleResults(context: Context, sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null;
@@ -221,7 +221,7 @@ object ModuleResults {
                     }
                 }
                 Log.e(TAG, "session timeout")
-                return@parseBase AuthenticatedResponse.SessionTimeout()
+                return@parseBase ParserResponse.SessionTimeout<ModuleResultsResponse>()
             }
             check(pageType == "course_results")
             script {
@@ -472,7 +472,7 @@ object ModuleResults {
                 moduleResult
             }
 
-            return@parseBase AuthenticatedResponse.Success(ModuleResultsResponse(moduleResult, semesters, modules))
+            return@parseBase ParserResponse.Success(ModuleResultsResponse(moduleResult, semesters, modules))
         }
         return response
     }
