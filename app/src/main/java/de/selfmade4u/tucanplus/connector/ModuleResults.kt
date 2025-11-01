@@ -50,20 +50,13 @@ object ModuleResults {
 
     suspend fun getModuleResults(
         context: Context,
-        client: HttpClient,
         sessionId: String,
         sessionCookie: String
-    ): ModuleResultsResponse {
-        val r = try {
-            client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,") {
-                cookie("cnsc", sessionCookie)
-            }
-        } catch (e: IllegalStateException) {
-            if (e.message?.contains("Content-Length mismatch") ?: true) {
-                return ModuleResultsResponse.NetworkLikelyTooSlow
-            }
-            Log.e(TAG, "Failed to fetch request", e)
-            return ModuleResultsResponse.SessionTimeout
+    ): AuthenticatedResponse<ModuleResultsResponse> {
+        val rr = fetchAuthenticated(sessionCookie, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,")
+        val r = when (rr) {
+            is AuthenticatedResponse.Success -> rr.response
+            else -> return rr.map()
         }
         return response(context, r) {
             status(HttpStatusCode.OK)
@@ -172,13 +165,7 @@ object ModuleResults {
         val modules: List<Module>
     )
 
-    sealed class ModuleResultsResponse {
-        data class Success(var moduleResult: ModuleResult, var semesters: List<Semesterauswahl>, var modules: List<Module>) :
-            ModuleResultsResponse()
-
-        data object SessionTimeout : ModuleResultsResponse()
-        data object NetworkLikelyTooSlow : ModuleResultsResponse()
-    }
+    data class ModuleResultsResponse(var moduleResult: ModuleResult, var semesters: List<Semesterauswahl>, var modules: List<Module>)
 
     // https://stackoverflow.com/questions/60928706/android-room-how-to-save-an-entity-with-one-of-the-variables-being-a-sealed-cla/72535888#72535888
 
@@ -201,7 +188,7 @@ object ModuleResults {
         suspend fun insertAll(vararg modules: Module): List<Long>
     }
 
-    suspend fun Root.parseModuleResults(context: Context, sessionId: String): ModuleResultsResponse {
+    suspend fun Root.parseModuleResults(context: Context, sessionId: String): AuthenticatedResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null;
@@ -236,7 +223,7 @@ object ModuleResults {
                         text("Bitte melden Sie sich erneut an.")
                     }
                 }
-                return@parseBase ModuleResultsResponse.SessionTimeout
+                return@parseBase AuthenticatedResponse.SessionTimeout()
             }
             check(pageType == "course_results")
             script {
@@ -487,7 +474,7 @@ object ModuleResults {
                 moduleResult
             }
 
-            return@parseBase ModuleResultsResponse.Success(moduleResult, semesters, modules)
+            return@parseBase AuthenticatedResponse.Success(ModuleResultsResponse(moduleResult, semesters, modules))
         }
         return response
     }

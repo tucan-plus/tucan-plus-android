@@ -50,6 +50,7 @@ import de.selfmade4u.tucanplus.MyDatabase
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.connector.ModuleResults
 import de.selfmade4u.tucanplus.connector.TucanLogin
+import de.selfmade4u.tucanplus.connector.fetchAuthenticatedWithReauthentication
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.first
@@ -68,16 +69,16 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
             PullToRefreshDefaults.LoadingIndicator(
                 state = state,
                 isRefreshing = isRefreshing,
-                modifier = Modifier.Companion.align(Alignment.Companion.TopCenter),
+                modifier = Modifier.align(Alignment.TopCenter),
             )
-        }, modifier = Modifier.Companion.padding(innerPadding)) {
-            Column(Modifier.Companion.fillMaxSize().verticalScroll(rememberScrollState())) {
+        }, modifier = Modifier.padding(innerPadding)) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 LongBasicDropdownMenu()
                 when (val values = modules.value) {
                     null -> {
                         Column(
-                            Modifier.Companion.fillMaxSize(),
-                            horizontalAlignment = Alignment.Companion.CenterHorizontally
+                            Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) { CircularWavyProgressIndicator() }
                     }
 
@@ -115,12 +116,12 @@ fun ModuleComposable(
 ) {
     // https://developer.android.com/develop/ui/compose/layouts/basics
     Row(
-        modifier = Modifier.Companion.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
             Text("${module.name}")
-            Text("${module.id}", fontSize = 10.sp, color = Color.Companion.Gray)
+            Text("${module.id}", fontSize = 10.sp, color = Color.Gray)
         }
         Column(horizontalAlignment = Alignment.End) {
             Text("${module.credits} CP")
@@ -135,55 +136,7 @@ fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
     return produceState(initialValue = null) {
         val credentialSettings: CredentialSettings =
             context.credentialSettingsDataStore.data.first().inner!!
-        val client = HttpClient()
-        var response = ModuleResults.getModuleResults(
-            context, client, CipherManager.decrypt(credentialSettings.encryptedSessionId),
-            CipherManager.decrypt(credentialSettings.encryptedSessionCookie)
-        )
-        if (response is ModuleResults.ModuleResultsResponse.SessionTimeout) {
-            Toast.makeText(context, "Reauthenticating", Toast.LENGTH_SHORT).show()
-            val loginResponse = TucanLogin.doLogin(
-                client,
-                CipherManager.decrypt(credentialSettings.encryptedUserName),
-                CipherManager.decrypt(credentialSettings.encryptedPassword),
-                context,
-            )
-            when (loginResponse) {
-                is TucanLogin.LoginResponse.InvalidCredentials -> launch {
-                    Toast.makeText(context, "Ungültiger Username oder Password", Toast.LENGTH_LONG)
-                        .show()
-                    // backStack[backStack.size - 1] = MainNavKey
-                    // TODO clear store
-                }
-
-                is TucanLogin.LoginResponse.Success -> {
-                    context.credentialSettingsDataStore.updateData { currentSettings ->
-                        OptionalCredentialSettings(
-                            CredentialSettings(
-                                encryptedUserName = CipherManager.encrypt(
-                                    CipherManager.decrypt(credentialSettings.encryptedUserName)
-                                ),
-                                encryptedPassword = CipherManager.encrypt(
-                                    CipherManager.decrypt(credentialSettings.encryptedPassword)
-                                ),
-                                encryptedSessionId = CipherManager.encrypt(loginResponse.sessionId),
-                                encryptedSessionCookie = CipherManager.encrypt(loginResponse.sessionSecret)
-                            )
-                        )
-                    }
-                    response = ModuleResults.getModuleResults(
-                        context, client, loginResponse.sessionId,
-                        loginResponse.sessionSecret
-                    )
-                }
-
-                is TucanLogin.LoginResponse.TooManyAttempts -> launch {
-                    // bad
-                    Toast.makeText(context, "Zu viele Anmeldeversuche", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-        value = response
+        value = fetchAuthenticatedWithReauthentication("", "", TODO())
         Log.e("LOADED", value.toString())
     }
 }
@@ -193,8 +146,8 @@ fun loadModules(): State<ModuleResults.ModuleResultsResponse?> {
 @Composable
 fun LongBasicDropdownMenu() {
     val context = LocalContext.current
-    val semesters by produceState(listOf<ModuleResults.Semesterauswahl>()) {
-        val db = MyDatabase.Companion.getDatabase(context)
+    val semesters by produceState(listOf(), "key") {
+        val db = MyDatabase.getDatabase(context)
         value = db.semestersDao().getAll()
     }
     var expanded by remember { mutableStateOf(false) }
@@ -203,7 +156,7 @@ fun LongBasicDropdownMenu() {
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.Companion.PrimaryNotEditable),
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             state = textFieldState,
             readOnly = true,
             lineLimits = TextFieldLineLimits.SingleLine,
