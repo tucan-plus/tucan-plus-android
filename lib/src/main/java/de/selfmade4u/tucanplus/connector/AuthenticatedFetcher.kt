@@ -2,7 +2,6 @@ package de.selfmade4u.tucanplus.connector
 
 import de.selfmade4u.tucanplus.CredentialSettings
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
-import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.connector.AuthenticatedHttpResponse.NetworkLikelyTooSlow
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse.*
 import de.selfmade4u.tucanplus.credentialSettingsDataStore

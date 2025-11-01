@@ -18,7 +18,6 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
-import kotlin.collections.get
 
 object TucanLogin {
 

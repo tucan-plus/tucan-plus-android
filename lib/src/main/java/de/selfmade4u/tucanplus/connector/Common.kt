@@ -6,6 +6,7 @@ import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.body
+import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.doctype
 import de.selfmade4u.tucanplus.fieldset
 import de.selfmade4u.tucanplus.form
