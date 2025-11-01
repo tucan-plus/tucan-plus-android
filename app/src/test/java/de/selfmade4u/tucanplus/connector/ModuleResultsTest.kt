@@ -8,7 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
 class ModuleResultsTest {
-/*
+
     @Test
     fun testParseModuleResults() {
         val html = this::class.java.getResource("/module_results.html")!!.readText()
@@ -38,5 +38,5 @@ class ModuleResultsTest {
             print(result)
         }
     }
-    */
+
 }

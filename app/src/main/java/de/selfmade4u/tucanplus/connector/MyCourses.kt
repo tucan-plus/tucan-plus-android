@@ -2,17 +2,6 @@ package de.selfmade4u.tucanplus.connector
 
 import android.content.Context
 import android.util.Log
-import androidx.room.ColumnInfo
-import androidx.room.Dao
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.PrimaryKey
-import androidx.room.Query
-import androidx.room.Relation
-import androidx.room.Transaction
-import androidx.room.TypeConverter
-import androidx.room.Upsert
 import androidx.room.withTransaction
 import de.selfmade4u.tucanplus.MyDatabase
 import de.selfmade4u.tucanplus.Root
@@ -21,6 +10,13 @@ import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
+import de.selfmade4u.tucanplus.connector.ModuleResults.Module
+import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleGrade
+import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleResult
+import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleResultsResponse
+import de.selfmade4u.tucanplus.connector.ModuleResults.Semester
+import de.selfmade4u.tucanplus.connector.ModuleResults.Semesterauswahl
+import de.selfmade4u.tucanplus.connector.ModuleResults.parseModuleResponse
 import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
@@ -41,118 +37,20 @@ import de.selfmade4u.tucanplus.td
 import de.selfmade4u.tucanplus.th
 import de.selfmade4u.tucanplus.thead
 import de.selfmade4u.tucanplus.tr
-import io.ktor.client.HttpClient
-import io.ktor.client.request.cookie
-import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 
-object ModuleResults {
+// TODO multilingual (at least allow using both languages but don't support switching)
+// TODO common interface between all these fetchers
 
-    suspend fun getModuleResults(
+object MyCourses {
+    suspend fun get(
         context: Context,
     ): AuthenticatedResponse<ModuleResultsResponse> {
-        return fetchAuthenticatedWithReauthentication(context,  { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," }, parser = ::parseModuleResponse)
+        return fetchAuthenticatedWithReauthentication(context,  { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N000274," }, parser = ::parseResponse)
     }
 
-    class ModuleResultsConverters {
-        @TypeConverter
-        fun fromModuleGrade(value: ModuleGrade?): String? {
-            return value?.representation
-        }
-
-        @TypeConverter
-        fun toModuleGrade(value: String?): ModuleGrade? {
-           return ModuleGrade.entries.find { it.representation == value }
-        }
-    }
-
-    // https://github.com/tucan-plus/tucan-plus/blob/640bb9cbb9e3f8d22e8b9d6ddaabb5256b2eb0e6/crates/tucan-types/src/lib.rs#L366
-    enum class ModuleGrade(val representation: String) {
-        G1_0("1,0"),
-        G1_3("1,3"),
-        G1_7("1,7"),
-        G2_0("2,0"),
-        G2_3("2,3"),
-        G2_7("2,7"),
-        G3_0("3,0"),
-        G3_3("3,3"),
-        G3_7("3,7"),
-        G4_0("4,0"),
-        G5_0("5,0"),
-    }
-
-    enum class Semester {
-        Sommersemester,
-        Wintersemester
-    }
-
-    @Entity(tableName = "semesters")
-    data class Semesterauswahl(
-        @PrimaryKey
-        @ColumnInfo(name = "semester_id")
-        val id: Long,
-        val year: Int,
-        val semester: Semester
-    )
-
-    @Dao
-    interface SemestersDao {
-        @Upsert
-        suspend fun insertAll(vararg modules: Semesterauswahl)
-
-        @Query("SELECT * FROM semesters")
-        suspend fun getAll(): List<Semesterauswahl>
-    }
-
-    @Entity(tableName = "module", primaryKeys = ["moduleResultId", "id"])
-    data class Module(
-        var moduleResultId: Long,
-        var id: String,
-        val name: String,
-        val grade: ModuleGrade,
-        val credits: Int,
-        val resultdetailsUrl: String,
-        val gradeoverviewUrl: String
-    )
-
-    @Entity(tableName = "module_results")
-    data class ModuleResult(@PrimaryKey(autoGenerate = true) var id: Long, @Embedded var selectedSemester: Semesterauswahl)
-
-    data class ModuleResultWithModules(
-        @Embedded val moduleResult: ModuleResult,
-        @Relation(
-            parentColumn = "id",
-            entityColumn = "moduleResultId"
-        )
-        val modules: List<Module>
-    )
-
-    // TODO FIXME immutable?
-    data class ModuleResultsResponse(var moduleResult: ModuleResult, var semesters: List<Semesterauswahl>, var modules: List<Module>)
-
-    // https://stackoverflow.com/questions/60928706/android-room-how-to-save-an-entity-with-one-of-the-variables-being-a-sealed-cla/72535888#72535888
-
-    @Dao
-    interface ModuleResultsDao {
-        @Query("SELECT * FROM module_results")
-        suspend fun getAll(): List<ModuleResult>
-
-        @Transaction
-        @Query("SELECT * FROM module_results")
-        suspend fun getModuleResultsWithModules(): List<ModuleResultWithModules>
-
-        @Insert
-        suspend fun insert(moduleResults: ModuleResult): Long
-    }
-
-    @Dao
-    interface ModulesDao {
-        @Insert
-        suspend fun insertAll(vararg modules: Module): List<Long>
-    }
-
-    suspend fun parseModuleResponse(context: Context, sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+    suspend fun parseResponse(context: Context, sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
         return response(context, response) {
             status(HttpStatusCode.OK)
             header(
@@ -181,12 +79,12 @@ object ModuleResults {
             ignoreHeader("x-android-selected-protocol")
             ignoreHeader("x-android-sent-millis")
             root {
-                parseModuleResults(context, sessionId)
+                parseContent(context, sessionId)
             }
         }
     }
 
-    fun Root.parseModuleResults(context: Context, sessionId: String): ParserResponse<ModuleResultsResponse> {
+    suspend fun Root.parseContent(context: Context, sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null;
@@ -458,27 +356,23 @@ object ModuleResults {
                     }
                 }
             }
-            val moduleResult = ModuleResult(0, selectedSemester!!)
+            // TODO separate parsing from caching
+            val db = MyDatabase.getDatabase(context);
+            val moduleResult = db.withTransaction {
+                db.semestersDao().insertAll(*semesters.toTypedArray())
+                val moduleResult = ModuleResult(0, selectedSemester!!)
+                val moduleResultId = db.moduleResultsDao().insert(moduleResult)
+                moduleResult.id = moduleResultId
+                val modules = modules.map { m -> m.moduleResultId = moduleResultId; m }
+                val moduleIds = db.modulesDao().insertAll(*modules.toTypedArray())
+                /*modules.zip(moduleIds) { a, b ->
+                    a.id = b
+                }*/
+                moduleResult
+            }
+
             return@parseBase ParserResponse.Success(ModuleResultsResponse(moduleResult, semesters, modules))
         }
         return response
-    }
-
-    suspend fun persist(context: Context, result: ModuleResultsResponse): ModuleResultsResponse {
-        // TODO separate parsing from caching
-        val db = MyDatabase.getDatabase(context);
-        val moduleResult = db.withTransaction {
-            db.semestersDao().insertAll(*result.semesters.toTypedArray())
-            val moduleResult = result.moduleResult
-            val moduleResultId = db.moduleResultsDao().insert(moduleResult)
-            moduleResult.id = moduleResultId
-            val modules = result.modules.map { m -> m.moduleResultId = moduleResultId; m }
-            val moduleIds = db.modulesDao().insertAll(*modules.toTypedArray())
-            /*modules.zip(moduleIds) { a, b ->
-                a.id = b
-            }*/
-            moduleResult
-        }
-        return ModuleResultsResponse(moduleResult, result.semesters, result.modules)
     }
 }
