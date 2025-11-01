@@ -220,6 +220,7 @@ object ModuleResults {
                         text("Bitte melden Sie sich erneut an.")
                     }
                 }
+                Log.e(TAG, "session timeout")
                 return@parseBase AuthenticatedResponse.SessionTimeout()
             }
             check(pageType == "course_results")

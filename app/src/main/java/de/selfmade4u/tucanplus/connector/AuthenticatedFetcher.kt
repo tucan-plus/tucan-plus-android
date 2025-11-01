@@ -38,6 +38,7 @@ sealed class AuthenticatedResponse<T> {
 suspend fun fetchAuthenticated(sessionCookie: String, url: String): AuthenticatedResponse<HttpResponse> {
     val client = HttpClient()
     val r = try {
+        Log.e(TAG, "Fetching $url with $sessionCookie")
         client.get(url) {
             cookie("cnsc", sessionCookie)
         }
@@ -46,7 +47,7 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
             return AuthenticatedResponse.NetworkLikelyTooSlow()
         }
         Log.e(TAG, "Failed to fetch request", e)
-        return AuthenticatedResponse.SessionTimeout()
+        return AuthenticatedResponse.NetworkLikelyTooSlow()
     }
     return AuthenticatedResponse.Success(r)
 }
