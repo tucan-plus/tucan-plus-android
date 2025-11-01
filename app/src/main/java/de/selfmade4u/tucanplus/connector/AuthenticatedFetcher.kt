@@ -82,7 +82,7 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
 
 suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (sessionId: String) -> String, parser: suspend (context: Context, sessionId: String, response: HttpResponse) -> ParserResponse<T>): AuthenticatedResponse<T> {
     val client = HttpClient()
-    val settings = context.credentialSettingsDataStore.data.first().inner!!
+    var settings = context.credentialSettingsDataStore.data.first().inner!!
     if (System.currentTimeMillis() < settings.lastRequestTime + 30*60*1000) {
         Log.d(TAG, "No predictive session timeout, trying to fetch")
         val response = fetchAuthenticated(
@@ -123,15 +123,16 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (s
             return AuthenticatedResponse.InvalidCredentials()
         }
         is TucanLogin.LoginResponse.Success -> {
+            settings = CredentialSettings(
+                username = settings.username,
+                password = settings.password,
+                sessionId = loginResponse.sessionId,
+                sessionCookie = loginResponse.sessionCookie,
+                lastRequestTime = System.currentTimeMillis()
+            )
             context.credentialSettingsDataStore.updateData { currentSettings ->
                 OptionalCredentialSettings(
-                    CredentialSettings(
-                        username = settings.username,
-                        password = settings.password,
-                        sessionId = loginResponse.sessionId,
-                        sessionCookie = loginResponse.sessionCookie,
-                        lastRequestTime = System.currentTimeMillis()
-                    )
+                    settings
                 )
             }
             val response = fetchAuthenticated(
@@ -139,22 +140,19 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (s
             )
             return when (response) {
                 is AuthenticatedHttpResponse.Success<HttpResponse> -> {
-                    context.credentialSettingsDataStore.updateData { currentSettings ->
-                       OptionalCredentialSettings(settings.copy(lastRequestTime = System.currentTimeMillis()))
-                    }
-                    when (val parserResponse = parser(context, settings.sessionId, response.response)) {
+                    when (val parserResponse = parser(context, loginResponse.sessionId, response.response)) {
                         is ParserResponse.Success<T> -> {
                             context.credentialSettingsDataStore.updateData { currentSettings ->
                                 OptionalCredentialSettings(settings.copy(lastRequestTime = System.currentTimeMillis()))
                             }
-                            return AuthenticatedResponse.Success<T>(parserResponse.response)
+                            return Success<T>(parserResponse.response)
                         }
                         is ParserResponse.SessionTimeout<*> -> {
-                            return AuthenticatedResponse.SessionTimeout() // should be unreachable
+                            return SessionTimeout() // should be unreachable
                         }
                     }
                 }
-                else -> response.map<T>()
+                is NetworkLikelyTooSlow<*> -> AuthenticatedResponse.NetworkLikelyTooSlow<T>()
             }
         }
         is TucanLogin.LoginResponse.TooManyAttempts -> {
