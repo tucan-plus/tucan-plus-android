@@ -22,11 +22,17 @@ sealed class AuthenticatedResponse<T> {
     class SessionTimeout<T>() : AuthenticatedResponse<T>()
     class NetworkLikelyTooSlow<T>() : AuthenticatedResponse<T>()
 
+    class InvalidCredentials<T>() : AuthenticatedResponse<T>()
+
+    class TooManyAttempts<T>() : AuthenticatedResponse<T>()
+
     fun <O> map(): AuthenticatedResponse<O> {
         return when (this) {
+            is Success<*> -> throw UnsupportedOperationException()
             is NetworkLikelyTooSlow<*> -> NetworkLikelyTooSlow()
             is SessionTimeout<*> -> SessionTimeout()
-            is Success<*> -> TODO()
+            is InvalidCredentials<*> -> InvalidCredentials()
+            is TooManyAttempts<*> -> TooManyAttempts()
         }
     }
 }
@@ -56,9 +62,9 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, session
             sessionCookie, url
         )
         when (response) {
-            is AuthenticatedResponse.NetworkLikelyTooSlow<*> -> return AuthenticatedResponse.NetworkLikelyTooSlow()
             is AuthenticatedResponse.SessionTimeout<*> -> { }
             is AuthenticatedResponse.Success<HttpResponse> -> return parser(response.response)
+            else -> return response.map<T>()
         }
     } else {
         Log.d(TAG, "Predictive session timeout, directly reauthenticating")
@@ -71,11 +77,12 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, session
         context,
     )
     when (loginResponse) {
-        is TucanLogin.LoginResponse.InvalidCredentials -> launch {
+        is TucanLogin.LoginResponse.InvalidCredentials -> {
             Toast.makeText(context, "Ungültiger Username oder Password", Toast.LENGTH_LONG)
                 .show()
             // backStack[backStack.size - 1] = MainNavKey
             // TODO clear store
+            return AuthenticatedResponse.InvalidCredentials()
         }
         is TucanLogin.LoginResponse.Success -> {
             context.credentialSettingsDataStore.updateData { currentSettings ->
@@ -91,12 +98,15 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, session
             val response = fetchAuthenticated(
                 sessionCookie, url
             )
-            return parser(response)
+            when (response) {
+                is AuthenticatedResponse.Success<HttpResponse> -> return parser(response.response)
+                else -> return response.map<T>()
+            }
         }
-
-        is TucanLogin.LoginResponse.TooManyAttempts -> launch {
+        is TucanLogin.LoginResponse.TooManyAttempts -> {
             // bad
             Toast.makeText(context, "Zu viele Anmeldeversuche", Toast.LENGTH_LONG).show()
+            return AuthenticatedResponse.TooManyAttempts()
         }
     }
 }
