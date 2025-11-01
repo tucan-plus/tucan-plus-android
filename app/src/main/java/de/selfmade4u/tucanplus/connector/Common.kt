@@ -26,11 +26,11 @@ import de.selfmade4u.tucanplus.title
 import de.selfmade4u.tucanplus.ul
 
 object Common {
-    suspend fun <T> Root.parseBase(
+    fun <T> Root.parseBase(
         sessionId: String,
         menuId: String,
-        headInit: suspend Head.() -> Unit,
-        inner: suspend Body.(pageType: String) -> T
+        headInit: Head.() -> Unit,
+        inner: Body.(pageType: String) -> T
     ): T {
         var sessionId = sessionId
         var menuId = menuId
@@ -700,7 +700,7 @@ object Common {
         }
     }
 
-    suspend fun Body.parseLoggedInNavigation(sessionId: String) {
+    fun Body.parseLoggedInNavigation(sessionId: String) {
         parseLiWithChildren(
             "Aktuelles",
             "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N$sessionId,-N000019,",
@@ -882,7 +882,7 @@ object Common {
         )
     }
 
-    suspend fun Body.parseLoggedOutNavigation(sessionId: String) {
+    fun Body.parseLoggedOutNavigation(sessionId: String) {
         li {
             attribute("class", "intern depth_1 linkItem")
             attribute("title", "Startseite")
@@ -961,7 +961,7 @@ object Common {
         )
     }
 
-    private suspend fun Body.parseVV(sessionId: String, id1: Int, id2: Int, id3: Int) {
+    private fun Body.parseVV(sessionId: String, id1: Int, id2: Int, id3: Int) {
         parseLiHref(
             "Lehrveranstaltungssuche",
             id1
@@ -1035,7 +1035,7 @@ object Common {
         }
     }
 
-    private suspend fun Body.parseLi(name: String, url: String, id: Int, depth: Int = 2) {
+    private fun Body.parseLi(name: String, url: String, id: Int, depth: Int = 2) {
         val link = "link${id.toString().padStart(6, '0')}"
         return li {
             attribute("class", "intern depth_$depth linkItem")
@@ -1049,7 +1049,7 @@ object Common {
         }
     }
 
-    private suspend fun Body.parseLiHref(name: String, id: Int, depth: Int = 2): String {
+    private fun Body.parseLiHref(name: String, id: Int, depth: Int = 2): String {
         val link = "link${id.toString().padStart(6, '0')}"
         return li {
             attribute("class", "intern depth_$depth linkItem")
@@ -1066,11 +1066,11 @@ object Common {
         }
     }
 
-    private suspend fun Body.parseLiWithChildrenHref(
+    private fun Body.parseLiWithChildrenHref(
         name: String,
         id: Int,
         depth: Int = 1,
-        init: suspend Body.() -> Unit
+        init: Body.() -> Unit
     ): String {
         val link = "link${id.toString().padStart(6, '0')}"
         return li {
@@ -1094,12 +1094,12 @@ object Common {
     }
 
 
-    private suspend fun Body.parseLiWithChildren(
+    private fun Body.parseLiWithChildren(
         name: String,
         url: String,
         id: Int,
         depth: Int = 1,
-        init: suspend Body.() -> Unit
+        init: Body.() -> Unit
     ) {
         val link = "link${id.toString().padStart(6, '0')}"
         li {

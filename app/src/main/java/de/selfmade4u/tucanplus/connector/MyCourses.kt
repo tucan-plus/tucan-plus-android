@@ -84,7 +84,7 @@ object MyCourses {
         }
     }
 
-    suspend fun Root.parseContent(context: Context, sessionId: String): ParserResponse<ModuleResultsResponse> {
+    fun Root.parseContent(context: Context, sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null;
@@ -356,22 +356,7 @@ object MyCourses {
                     }
                 }
             }
-            // TODO separate parsing from caching
-            val db = MyDatabase.getDatabase(context);
-            val moduleResult = db.withTransaction {
-                db.semestersDao().insertAll(*semesters.toTypedArray())
-                val moduleResult = ModuleResult(0, selectedSemester!!)
-                val moduleResultId = db.moduleResultsDao().insert(moduleResult)
-                moduleResult.id = moduleResultId
-                val modules = modules.map { m -> m.moduleResultId = moduleResultId; m }
-                val moduleIds = db.modulesDao().insertAll(*modules.toTypedArray())
-                /*modules.zip(moduleIds) { a, b ->
-                    a.id = b
-                }*/
-                moduleResult
-            }
-
-            return@parseBase ParserResponse.Success(ModuleResultsResponse(moduleResult, semesters, modules))
+            return@parseBase ParserResponse.Success(ModuleResultsResponse(TODO(), semesters, modules))
         }
         return response
     }

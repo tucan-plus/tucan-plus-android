@@ -17,7 +17,7 @@ class ModuleResultsTest {
 
         runBlocking {
             val result = root(doc) {
-                parseModuleResults(context, "283072090184954")
+                parseModuleResults("283072090184954")
             }
             print(result)
         }

@@ -52,7 +52,13 @@ object ModuleResults {
     suspend fun getModuleResults(
         context: Context,
     ): AuthenticatedResponse<ModuleResultsResponse> {
-        return fetchAuthenticatedWithReauthentication(context,  { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," }, parser = ::parseModuleResponse)
+        val response = fetchAuthenticatedWithReauthentication(context,  { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," }, parser = ::parseModuleResponse)
+        return when (response) {
+            is AuthenticatedResponse.Success<ModuleResultsResponse> -> {
+                AuthenticatedResponse.Success(persist(context, response.response))
+            }
+            else -> response
+        }
     }
 
     class ModuleResultsConverters {
@@ -181,12 +187,12 @@ object ModuleResults {
             ignoreHeader("x-android-selected-protocol")
             ignoreHeader("x-android-sent-millis")
             root {
-                parseModuleResults(context, sessionId)
+                parseModuleResults(sessionId)
             }
         }
     }
 
-    fun Root.parseModuleResults(context: Context, sessionId: String): ParserResponse<ModuleResultsResponse> {
+    fun Root.parseModuleResults(sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null;

@@ -184,7 +184,7 @@ class Response(
         return headers.remove(key.lowercase())!!
     }
 
-    suspend fun <T> root(init: suspend Root.() -> T): T {
+    suspend fun <T> root(init: Root.() -> T): T {
         check(headers.isEmpty()) { "unparsed headers $headers" }
         val document = Ksoup.parse(response.bodyAsText())
         check(document.nameIs("#root")) { document.normalName() }
@@ -246,7 +246,7 @@ suspend fun <T> response(
     }
 }
 
-suspend fun <T> root(document: Document, init: suspend Root.() -> T): T {
+fun <T> root(document: Document, init: Root.() -> T): T {
     check(document.nameIs("#root")) { document.normalName() }
     check(document.attributesSize() == 0) { document.attributes() }
     val node = Root(
@@ -257,38 +257,38 @@ suspend fun <T> root(document: Document, init: suspend Root.() -> T): T {
     return node.init()
 }
 
-suspend fun <T> Root.doctype(init: suspend Doctype.() -> T): T = initTag("#doctype", ::Doctype, init)
-suspend fun <R> Root.html(init: suspend Html.() -> R): R = initTag("html", ::Html, init)
-suspend fun <R> Html.head(init: suspend Head.() -> R): R = initTag("head", ::Head, init)
-suspend fun <R> Html.body(init: suspend Body.() -> R): R = initTag("body", ::Body, init)
-suspend fun <R> Head.title(init: suspend Title.() -> R): R = initTag("title", ::Title, init)
-suspend fun <R> Head.meta(init: suspend Meta.() -> R): R = initTag("meta", ::Meta, init)
-suspend fun <R> Head.link(init: suspend Link.() -> R): R = initTag("link", ::Link, init)
-suspend fun <R> Head.script(init: suspend Script.() -> R): R = initTag("script", ::Script, init)
-suspend fun <R> Head.style(init: suspend Head.() -> R): R = initTag("style", ::Head, init)
+fun <T> Root.doctype(init: Doctype.() -> T): T = initTag("#doctype", ::Doctype, init)
+fun <R> Root.html(init: Html.() -> R): R = initTag("html", ::Html, init)
+fun <R> Html.head(init: Head.() -> R): R = initTag("head", ::Head, init)
+fun <R> Html.body(init: Body.() -> R): R = initTag("body", ::Body, init)
+fun <R> Head.title(init: Title.() -> R): R = initTag("title", ::Title, init)
+fun <R> Head.meta(init: Meta.() -> R): R = initTag("meta", ::Meta, init)
+fun <R> Head.link(init: Link.() -> R): R = initTag("link", ::Link, init)
+fun <R> Head.script(init: Script.() -> R): R = initTag("script", ::Script, init)
+fun <R> Head.style(init: Head.() -> R): R = initTag("style", ::Head, init)
 
-suspend fun <R> Body.script(init: suspend Script.() -> R): R = initTag("script", ::Script, init)
-suspend fun <R> Body.style(init: suspend Body.() -> R): R = initTag("style", ::Body, init)
-suspend fun <R> Body.a(init: suspend Body.() -> R): R {
+fun <R> Body.script(init: Script.() -> R): R = initTag("script", ::Script, init)
+fun <R> Body.style(init: Body.() -> R): R = initTag("style", ::Body, init)
+fun <R> Body.a(init: Body.() -> R): R {
     contract { callsInPlace(init, InvocationKind.EXACTLY_ONCE) }
     return initTag("a", ::Body, init)
 }
 
-suspend fun <R> Body.div(init: suspend Body.() -> R): R = initTag("div", ::Body, init)
-suspend fun <R> Body.form(init: suspend Body.() -> R): R = initTag("form", ::Body, init)
-suspend fun <R> Body.fieldset(init: suspend Body.() -> R): R = initTag("fieldset", ::Body, init)
-suspend fun <R> Body.img(init: suspend Body.() -> R): R = initTag("img", ::Body, init)
-suspend fun <R> Body.legend(init: suspend Body.() -> R): R = initTag("legend", ::Body, init)
-suspend fun <R> Body.label(init: suspend Body.() -> R): R = initTag("label", ::Body, init)
-suspend fun <R> Body.h1(init: suspend Body.() -> R): R = initTag("h1", ::Body, init)
-suspend fun <R> Body.p(init: suspend Body.() -> R): R = initTag("p", ::Body, init)
-suspend fun <R> Body.ul(init: suspend Body.() -> R): R = initTag("ul", ::Body, init)
-suspend fun <R> Body.li(init: suspend Body.() -> R): R = initTag("li", ::Body, init)
-suspend fun <R> Body.header(init: suspend Body.() -> R): R = initTag("header", ::Body, init)
-suspend fun <R> Body.span(init: suspend Body.() -> R): R = initTag("span", ::Body, init)
-suspend fun <R> Body.b(init: suspend Body.() -> R): R = initTag("b", ::Body, init)
-suspend fun <R> Body.br(init: suspend Body.() -> R): R = initTag("br", ::Body, init)
-suspend fun <R> Body.option(init: suspend Body.() -> R): R {
+fun <R> Body.div(init: Body.() -> R): R = initTag("div", ::Body, init)
+fun <R> Body.form(init: Body.() -> R): R = initTag("form", ::Body, init)
+fun <R> Body.fieldset(init: Body.() -> R): R = initTag("fieldset", ::Body, init)
+fun <R> Body.img(init: Body.() -> R): R = initTag("img", ::Body, init)
+fun <R> Body.legend(init: Body.() -> R): R = initTag("legend", ::Body, init)
+fun <R> Body.label(init: Body.() -> R): R = initTag("label", ::Body, init)
+fun <R> Body.h1(init: Body.() -> R): R = initTag("h1", ::Body, init)
+fun <R> Body.p(init: Body.() -> R): R = initTag("p", ::Body, init)
+fun <R> Body.ul(init: Body.() -> R): R = initTag("ul", ::Body, init)
+fun <R> Body.li(init: Body.() -> R): R = initTag("li", ::Body, init)
+fun <R> Body.header(init: Body.() -> R): R = initTag("header", ::Body, init)
+fun <R> Body.span(init: Body.() -> R): R = initTag("span", ::Body, init)
+fun <R> Body.b(init: Body.() -> R): R = initTag("b", ::Body, init)
+fun <R> Body.br(init: Body.() -> R): R = initTag("br", ::Body, init)
+fun <R> Body.option(init: Body.() -> R): R {
     contract { callsInPlace(init, InvocationKind.EXACTLY_ONCE) }; return initTag(
         "option",
         ::Body,
@@ -296,14 +296,14 @@ suspend fun <R> Body.option(init: suspend Body.() -> R): R {
     )
 }
 
-suspend fun <R> Body.input(init: suspend Body.() -> R): R = initTag("input", ::Body, init)
-suspend fun <R> Body.select(init: suspend Body.() -> R): R = initTag("select", ::Body, init)
-suspend fun <R> Body.table(init: suspend Body.() -> R): R = initTag("table", ::Body, init)
-suspend fun <R> Body.thead(init: suspend Body.() -> R): R = initTag("thead", ::Body, init)
-suspend fun <R> Body.tbody(init: suspend Body.() -> R): R = initTag("tbody", ::Body, init)
+fun <R> Body.input(init: Body.() -> R): R = initTag("input", ::Body, init)
+fun <R> Body.select(init: Body.() -> R): R = initTag("select", ::Body, init)
+fun <R> Body.table(init: Body.() -> R): R = initTag("table", ::Body, init)
+fun <R> Body.thead(init: Body.() -> R): R = initTag("thead", ::Body, init)
+fun <R> Body.tbody(init: Body.() -> R): R = initTag("tbody", ::Body, init)
 
 @OptIn(ExperimentalContracts::class)
-suspend fun <R> Body.tr(init: suspend Body.() -> R): R {
+fun <R> Body.tr(init: Body.() -> R): R {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
     }
@@ -311,14 +311,14 @@ suspend fun <R> Body.tr(init: suspend Body.() -> R): R {
 }
 
 @OptIn(ExperimentalContracts::class)
-suspend fun <R> Body.td(init: suspend Body.() -> R): R {
+fun <R> Body.td(init: Body.() -> R): R {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
     }
     return initTag("td", ::Body, init)
 }
 
-suspend fun <R> Body.th(init: suspend Body.() -> R): R = initTag("th", ::Body, init)
+fun <R> Body.th(init: Body.() -> R): R = initTag("th", ::Body, init)
 
 fun HtmlTag.peek(): Node? {
     return this.children.firstOrNull()
@@ -329,10 +329,10 @@ fun HtmlTag.peekAttribute(): Attribute? {
 }
 
 @OptIn(ExperimentalContracts::class)
-suspend fun <P : HtmlTag, C, R> P.initTag(
+fun <P : HtmlTag, C, R> P.initTag(
     tag: String,
     createTag: (iterator: MutableList<Node>, attributes: MutableList<Attribute>) -> C,
-    init: suspend  C.() -> R
+    init:  C.() -> R
 ): R {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
