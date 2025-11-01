@@ -246,7 +246,7 @@ suspend fun <T> response(
     }
 }
 
-fun <T> root(document: Document, init: Root.() -> T): T {
+suspend fun <T> root(document: Document, init: suspend Root.() -> T): T {
     check(document.nameIs("#root")) { document.normalName() }
     check(document.attributesSize() == 0) { document.attributes() }
     val node = Root(
