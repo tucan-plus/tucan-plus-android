@@ -87,6 +87,7 @@ object ModuleResults {
             header("Pragma", "no-cache")
             header("Expires", "0")
             header("Cache-Control", "private, no-cache, no-store")
+
             header("vary", "Accept-Encoding")
             ignoreHeader("x-android-received-millis")
             ignoreHeader("x-android-response-source")

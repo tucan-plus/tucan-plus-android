@@ -21,7 +21,10 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonShapes
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +39,7 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -237,13 +241,15 @@ fun DetailedDrawerExample(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun Main(backStack: NavBackStack<NavKey>) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    // TODO https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary all material expressive?
     DetailedDrawerExample(backStack) { innerPadding ->
         Button(
+            shapes = ButtonDefaults.shapes(),
             modifier = Modifier.padding(innerPadding),
             onClick = {
                 coroutineScope.launch {
@@ -362,7 +368,7 @@ fun LongBasicDropdownMenu() {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
-    //val modules = loadModules()
+    val modules = loadModules()
     var isRefreshing by remember { mutableStateOf(false) }
     val state = rememberPullToRefreshState()
     DetailedDrawerExample(backStack) { innerPadding ->
@@ -375,16 +381,11 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
                 modifier = Modifier.align(Alignment.TopCenter),
             )
         }, modifier = Modifier.padding(innerPadding)) {
-            LazyColumn(Modifier.fillMaxSize()) {
-                items(500) {
-                    Text("hi")
-                }
-            }
-            /*Column(Modifier.padding(innerPadding)) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 LongBasicDropdownMenu()
                 when (val values = modules.value) {
                     null -> {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) { CircularProgressIndicator() }
+                        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) { CircularWavyProgressIndicator() }
                     }
                     is ModuleResults.ModuleResultsResponse.SessionTimeout -> {
                         Text("Session timeout")
@@ -398,7 +399,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
                     }
                     ModuleResults.ModuleResultsResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
                 }
-            }*/
+            }
         }
     }
 }

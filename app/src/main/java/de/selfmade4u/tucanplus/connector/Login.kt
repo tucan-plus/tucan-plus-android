@@ -85,7 +85,12 @@ object TucanLogin {
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
             ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
             ignoreHeader("Date")
-            ignoreHeader("Content-Length")
+            //ignoreHeader("Content-Length")
+            header("vary", "Accept-Encoding")
+            ignoreHeader("x-android-received-millis")
+            ignoreHeader("x-android-response-source")
+            ignoreHeader("x-android-selected-protocol")
+            ignoreHeader("x-android-sent-millis")
             if (hasHeader("Set-cookie")) {
                 val cookie = extractHeader("Set-cookie")[0].removePrefix("cnsc =")
                 val sessionId = extractHeader("REFRESH")[0]
