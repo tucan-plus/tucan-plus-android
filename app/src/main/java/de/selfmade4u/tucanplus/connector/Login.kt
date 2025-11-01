@@ -24,7 +24,7 @@ import io.ktor.http.parameters
 object TucanLogin {
 
     sealed class LoginResponse {
-        data class Success(val sessionId: String, val sessionSecret: String) : LoginResponse()
+        data class Success(val sessionId: String, val sessionCookie: String) : LoginResponse()
         data object InvalidCredentials : LoginResponse()
         data object TooManyAttempts : LoginResponse()
     }

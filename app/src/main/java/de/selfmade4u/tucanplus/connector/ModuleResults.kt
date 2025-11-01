@@ -44,6 +44,7 @@ import de.selfmade4u.tucanplus.tr
 import io.ktor.client.HttpClient
 import io.ktor.client.request.cookie
 import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 
 object ModuleResults {
@@ -51,45 +52,8 @@ object ModuleResults {
     suspend fun getModuleResults(
         context: Context,
         sessionId: String,
-        sessionCookie: String
     ): AuthenticatedResponse<ModuleResultsResponse> {
-        val rr = fetchAuthenticated(sessionCookie, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,")
-        val r = when (rr) {
-            is AuthenticatedResponse.Success -> rr.response
-            else -> return rr.map()
-        }
-        return response(context, r) {
-            status(HttpStatusCode.OK)
-            Log.d(TAG, "${r.headers}")
-            header(
-                "Content-Security-Policy",
-                "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
-            )
-            header("Content-Type", "text/html")
-            header("X-Content-Type-Options", "nosniff")
-            header("X-XSS-Protection", "1; mode=block")
-            header("Referrer-Policy", "strict-origin")
-            header("X-Frame-Options", "SAMEORIGIN")
-            maybeHeader("X-Powered-By", listOf("ASP.NET"))
-            header("Server", "Microsoft-IIS/10.0")
-            header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-            ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
-            ignoreHeader("Date")
-            //ignoreHeader("Content-Length")
-            header("Connection", "close")
-            header("Pragma", "no-cache")
-            header("Expires", "0")
-            header("Cache-Control", "private, no-cache, no-store")
-
-            header("vary", "Accept-Encoding")
-            ignoreHeader("x-android-received-millis")
-            ignoreHeader("x-android-response-source")
-            ignoreHeader("x-android-selected-protocol")
-            ignoreHeader("x-android-sent-millis")
-            root {
-                parseModuleResults(context, sessionId)
-            }
-        }
+        return fetchAuthenticatedWithReauthentication(context, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,", parser = ::parseModuleResponse)
     }
 
     class ModuleResultsConverters {
@@ -186,6 +150,40 @@ object ModuleResults {
     interface ModulesDao {
         @Insert
         suspend fun insertAll(vararg modules: Module): List<Long>
+    }
+
+    suspend fun parseModuleResponse(context: Context, sessionId: String, response: HttpResponse): AuthenticatedResponse<ModuleResultsResponse> {
+        return response(context, response) {
+            status(HttpStatusCode.OK)
+            header(
+                "Content-Security-Policy",
+                "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+            )
+            header("Content-Type", "text/html")
+            header("X-Content-Type-Options", "nosniff")
+            header("X-XSS-Protection", "1; mode=block")
+            header("Referrer-Policy", "strict-origin")
+            header("X-Frame-Options", "SAMEORIGIN")
+            maybeHeader("X-Powered-By", listOf("ASP.NET"))
+            header("Server", "Microsoft-IIS/10.0")
+            header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+            ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
+            ignoreHeader("Date")
+            //ignoreHeader("Content-Length")
+            header("Connection", "close")
+            header("Pragma", "no-cache")
+            header("Expires", "0")
+            header("Cache-Control", "private, no-cache, no-store")
+
+            header("vary", "Accept-Encoding")
+            ignoreHeader("x-android-received-millis")
+            ignoreHeader("x-android-response-source")
+            ignoreHeader("x-android-selected-protocol")
+            ignoreHeader("x-android-sent-millis")
+            root {
+                parseModuleResults(context, sessionId)
+            }
+        }
     }
 
     suspend fun Root.parseModuleResults(context: Context, sessionId: String): AuthenticatedResponse<ModuleResultsResponse> {

@@ -3,7 +3,6 @@ package de.selfmade4u.tucanplus.connector
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import de.selfmade4u.tucanplus.CipherManager
 import de.selfmade4u.tucanplus.CredentialSettings
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.TAG
@@ -13,7 +12,6 @@ import io.ktor.client.request.cookie
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 sealed class AuthenticatedResponse<T> {
     data class Success<T>(var response: T) :
@@ -53,17 +51,17 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
     return AuthenticatedResponse.Success(r)
 }
 
-suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, sessionCookie: String, url: String, parser: suspend (HttpResponse) -> AuthenticatedResponse<T>): AuthenticatedResponse<T> {
+suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: String, parser: suspend (context: Context, sessionId: String, response: HttpResponse) -> AuthenticatedResponse<T>): AuthenticatedResponse<T> {
     val client = HttpClient()
     val settings = context.credentialSettingsDataStore.data.first().inner!!
     if (System.currentTimeMillis() < settings.lastRequestTime + 30*60*1000) {
         Log.d(TAG, "No predictive session timeout, trying to fetch")
         val response = fetchAuthenticated(
-            sessionCookie, url
+            settings.sessionCookie, url
         )
         when (response) {
             is AuthenticatedResponse.SessionTimeout<*> -> { }
-            is AuthenticatedResponse.Success<HttpResponse> -> return parser(response.response)
+            is AuthenticatedResponse.Success<HttpResponse> -> return parser(context, settings.sessionId, response.response)
             else -> return response.map<T>()
         }
     } else {
@@ -91,15 +89,15 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, session
                         username = settings.username,
                         password = settings.password,
                         sessionId = loginResponse.sessionId,
-                        sessionCookie = loginResponse.sessionSecret,
+                        sessionCookie = loginResponse.sessionCookie,
                     )
                 )
             }
             val response = fetchAuthenticated(
-                sessionCookie, url
+                loginResponse.sessionCookie, url
             )
             when (response) {
-                is AuthenticatedResponse.Success<HttpResponse> -> return parser(response.response)
+                is AuthenticatedResponse.Success<HttpResponse> -> return parser(context, loginResponse.sessionId,response.response)
                 else -> return response.map<T>()
             }
         }
