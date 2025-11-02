@@ -10,30 +10,16 @@ import org.junit.Test
 class ModuleResultsTest {
 
     @Test
-    fun testParseModuleResults() {
-        val html = this::class.java.getResource("/module_results.html")!!.readText()
-
-        val doc: Document = Ksoup.parse(html = html)
-
-        runBlocking {
-            val result = root(doc) {
-                parseModuleResults("283072090184954")
-            }
-            print(result)
-        }
-    }
-
-    @Test
     fun testParseModuleResults2() {
         val html =
-            this::class.java.getResource("/parsingerrors/errorc140e046-9932-42fe-ad99-2d4c8d4bf2ab.html")!!
+            this::class.java.getResource("/module_results.html")!!
                 .readText()
 
         val doc: Document = Ksoup.parse(html = html)
 
         runBlocking {
             val result = root(doc) {
-                parseModuleResults("283072090184954")
+                parseModuleResults("183985067121045")
             }
             print(result)
         }
