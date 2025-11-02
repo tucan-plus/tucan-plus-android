@@ -4,7 +4,6 @@ import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.Serializer
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
-import androidx.datastore.dataStore
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -14,6 +13,11 @@ import kotlinx.serialization.json.encodeToStream
 import java.io.InputStream
 import java.io.OutputStream
 import kotlin.time.ExperimentalTime
+
+interface EncryptionHelper {
+    fun encrypt(inputText: String): Pair<String, String>
+    fun decrypt(data: Pair<String, String>): String
+}
 
 @Serializable
 data class CredentialSettings @OptIn(ExperimentalTime::class) constructor(
@@ -28,13 +32,13 @@ data class CredentialSettings @OptIn(ExperimentalTime::class) constructor(
 data class OptionalCredentialSettings(val inner: CredentialSettings?)
 
 // https://developer.android.com/topic/libraries/architecture/datastore
-object CredentialSettingsSerializer : Serializer<OptionalCredentialSettings> {
+class CredentialSettingsSerializer(val encryptionHelper: EncryptionHelper) : Serializer<OptionalCredentialSettings> {
     override val defaultValue: OptionalCredentialSettings = OptionalCredentialSettings(null)
 
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun readFrom(input: InputStream): OptionalCredentialSettings {
         try {
-            val decrypted = CipherManager.decrypt(Json.decodeFromStream(input))
+            val decrypted = encryptionHelper.decrypt(Json.decodeFromStream(input))
             return Json.decodeFromString(decrypted)
         } catch (serialization: SerializationException) {
             throw CorruptionException("Unable to read Settings", serialization)
@@ -47,15 +51,6 @@ object CredentialSettingsSerializer : Serializer<OptionalCredentialSettings> {
         output: OutputStream
     ) {
         val unencrypted = Json.encodeToString(t)
-        Json.encodeToStream(CipherManager.encrypt(unencrypted), output)
+        Json.encodeToStream(encryptionHelper.encrypt(unencrypted), output)
     }
 }
-
-val Context.credentialSettingsDataStore: DataStore<OptionalCredentialSettings> by dataStore(
-    fileName = "credential-settings.pb",
-    serializer = CredentialSettingsSerializer,
-    corruptionHandler = ReplaceFileCorruptionHandler {
-        Log.e("CredentialSettings", "CorruptionHandler", it)
-        OptionalCredentialSettings(null)
-    }
-)

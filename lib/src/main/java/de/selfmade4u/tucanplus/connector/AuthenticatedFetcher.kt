@@ -5,7 +5,6 @@ import de.selfmade4u.tucanplus.CredentialSettings
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.connector.AuthenticatedHttpResponse.NetworkLikelyTooSlow
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse.*
-import de.selfmade4u.tucanplus.credentialSettingsDataStore
 import io.ktor.client.HttpClient
 import io.ktor.client.request.cookie
 import io.ktor.client.request.get

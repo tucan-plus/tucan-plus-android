@@ -14,7 +14,7 @@ import javax.crypto.spec.GCMParameterSpec
 // https://developer.android.com/privacy-and-security/cryptography#security-crypto-jetpack-deprecated
 // https://developer.android.com/reference/javax/crypto/KeyGenerator
 
-object CipherManager {
+object CipherManager : EncryptionHelper {
 
     private const val ANDROID_KEY_STORE = "AndroidKeyStore"
     private const val AES_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
@@ -48,7 +48,7 @@ object CipherManager {
     }
 
     // TODO FIXME add tests that check that this roundtrips
-    fun encrypt(inputText: String): Pair<String, String> {
+    override fun encrypt(inputText: String): Pair<String, String> {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
         val encryptedBytes = cipher.doFinal(inputText.toByteArray())
@@ -58,7 +58,7 @@ object CipherManager {
         )
     }
 
-    fun decrypt(data: Pair<String, String>): String {
+    override fun decrypt(data: Pair<String, String>): String {
         val iv = Base64.decode(data.first, Base64.NO_WRAP + Base64.NO_PADDING)
         val encrypted = Base64.decode(data.second, Base64.NO_WRAP + Base64.NO_PADDING)
         val cipher = Cipher.getInstance(TRANSFORMATION)

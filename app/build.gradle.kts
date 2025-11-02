@@ -61,9 +61,6 @@ android {
     buildFeatures {
         compose = true
     }
-    /*room {
-        schemaDirectory("$projectDir/schemas")
-    }*/
     sourceSets {
         getByName("debug").assets.srcDirs(files("$projectDir/schemas")) // Room
     }
@@ -86,6 +83,8 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.cio)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.datastore)
+    implementation(project(":lib"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -14,6 +14,9 @@ kotlin {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     }
 }
+room {
+    schemaDirectory("$projectDir/schemas")
+}
 dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ksoup)
