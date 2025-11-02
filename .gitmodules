@@ -1,3 +1,6 @@
 [submodule "app/src/test/resources"]
 	path = app/src/test/resources
 	url = git@github.com:tucan-plus/tucan-plus-test-data.git
+[submodule "lib/src/test/resources"]
+	path = lib/src/test/resources
+	url = git@github.com:tucan-plus/tucan-plus-test-data.git
