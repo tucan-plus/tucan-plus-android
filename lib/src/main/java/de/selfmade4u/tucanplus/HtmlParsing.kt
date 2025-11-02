@@ -198,16 +198,15 @@ class Response(
 
 @OptIn(ExperimentalUuidApi::class)
 suspend fun <T> response(
-    context: Context? = null,
     response: HttpResponse,
     init: suspend Response.() -> T
 ): T {
-    val db = context?.let {
+    /*val db = context?.let {
         MyDatabase.getDatabase(context)
-    }
+    }*/
     try {
         val result = Response(response, response.headers.toMap().toMutableMap()).init()
-        db?.cacheDao()?.insertAll(
+        /*db?.cacheDao()?.insertAll(
             CacheEntry(
                 0,
                 response.request.url.toString(),
@@ -216,12 +215,12 @@ suspend fun <T> response(
                 LocalDateTime.now(Clock.systemUTC()),
                 null
             )
-        )
+        )*/
         return result
     } catch (e: IllegalStateException) {
         // cd app/src/test/resources
         // adb pull /data/data/de.selfmade4u.tucanplus/files/parsingerrors/
-        if (context != null) {
+        /*if (context != null) {
             val dir = File(context.filesDir, "parsingerrors")
             dir.mkdirs()
             val fileOutputStream = FileOutputStream(File(dir, "error${Uuid.random()}.html"))
@@ -238,7 +237,7 @@ suspend fun <T> response(
                     e.toString(),
                 )
             )
-        }
+        }*/
         throw e
     }
 }

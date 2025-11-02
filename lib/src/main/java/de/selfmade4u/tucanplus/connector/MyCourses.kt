@@ -1,7 +1,8 @@
 package de.selfmade4u.tucanplus.connector
 
+import androidx.datastore.core.DataStore
+import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.Root
-import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
@@ -11,6 +12,7 @@ import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleGrade
 import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleResultsResponse
 import de.selfmade4u.tucanplus.connector.ModuleResults.Semester
 import de.selfmade4u.tucanplus.connector.ModuleResults.Semesterauswahl
+import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
 import de.selfmade4u.tucanplus.input
@@ -38,17 +40,17 @@ import io.ktor.http.HttpStatusCode
 
 object MyCourses {
     suspend fun get(
-        context: Context,
+        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
     ): AuthenticatedResponse<ModuleResultsResponse> {
         return fetchAuthenticatedWithReauthentication(
-            context,
+            credentialSettingsDataStore,
             { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N000274," },
             parser = ::parseResponse
         )
     }
 
-    suspend fun parseResponse(context: Context, sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
-        return response(context, response) {
+    suspend fun parseResponse(sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+        return response(response) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",
@@ -76,12 +78,12 @@ object MyCourses {
             ignoreHeader("x-android-selected-protocol")
             ignoreHeader("x-android-sent-millis")
             root {
-                parseContent(context, sessionId)
+                parseContent(sessionId)
             }
         }
     }
 
-    fun Root.parseContent(context: Context, sessionId: String): ParserResponse<ModuleResultsResponse> {
+    fun Root.parseContent(sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null;
@@ -116,7 +118,6 @@ object MyCourses {
                         text("Bitte melden Sie sich erneut an.")
                     }
                 }
-                Log.e(TAG, "session timeout")
                 return@parseBase ParserResponse.SessionTimeout<ModuleResultsResponse>()
             }
             check(pageType == "course_results")

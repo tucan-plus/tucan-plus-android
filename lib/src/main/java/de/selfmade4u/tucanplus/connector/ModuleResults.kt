@@ -1,5 +1,6 @@
 package de.selfmade4u.tucanplus.connector
 
+import androidx.datastore.core.DataStore
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Embedded
@@ -11,14 +12,16 @@ import androidx.room.Relation
 import androidx.room.Transaction
 import androidx.room.TypeConverter
 import androidx.room.Upsert
-import androidx.room.withTransaction
+import androidx.room.immediateTransaction
+import androidx.room.useWriterConnection
 import de.selfmade4u.tucanplus.MyDatabase
+import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.Root
-import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
+import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
 import de.selfmade4u.tucanplus.input
@@ -44,16 +47,17 @@ import io.ktor.http.HttpStatusCode
 object ModuleResults {
 
     suspend fun getModuleResults(
-        context: Context,
+        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
+        database: MyDatabase
     ): AuthenticatedResponse<ModuleResultsResponse> {
         val response = fetchAuthenticatedWithReauthentication(
-            context,
+            credentialSettingsDataStore,
             { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," },
             parser = ::parseModuleResponse
         )
         return when (response) {
             is AuthenticatedResponse.Success<ModuleResultsResponse> -> {
-                AuthenticatedResponse.Success(persist(context, response.response))
+                AuthenticatedResponse.Success(persist(database, response.response))
             }
             else -> response
         }
@@ -156,8 +160,8 @@ object ModuleResults {
         suspend fun insertAll(vararg modules: Module): List<Long>
     }
 
-    suspend fun parseModuleResponse(context: Context, sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
-        return response(context, response) {
+    suspend fun parseModuleResponse(sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+        return response(response) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",
@@ -225,7 +229,6 @@ object ModuleResults {
                         text("Bitte melden Sie sich erneut an.")
                     }
                 }
-                Log.e(TAG, "session timeout")
                 return@parseBase ParserResponse.SessionTimeout<ModuleResultsResponse>()
             }
             check(pageType == "course_results")
@@ -468,21 +471,23 @@ object ModuleResults {
         return response
     }
 
-    suspend fun persist(context: Context, result: ModuleResultsResponse): ModuleResultsResponse {
-        // TODO separate parsing from caching
-        val db = MyDatabase.getDatabase(context);
-        val moduleResult = db.withTransaction {
-            db.semestersDao().insertAll(*result.semesters.toTypedArray())
-            val moduleResult = result.moduleResult
-            val moduleResultId = db.moduleResultsDao().insert(moduleResult)
-            moduleResult.id = moduleResultId
-            val modules = result.modules.map { m -> m.moduleResultId = moduleResultId; m }
-            val moduleIds = db.modulesDao().insertAll(*modules.toTypedArray())
-            /*modules.zip(moduleIds) { a, b ->
+
+    suspend fun persist(database: MyDatabase, result: ModuleResultsResponse): ModuleResultsResponse {
+        val moduleResult = database.useWriterConnection {
+            it.immediateTransaction {
+                database.semestersDao().insertAll(*result.semesters.toTypedArray())
+                val moduleResult = result.moduleResult
+                val moduleResultId = database.moduleResultsDao().insert(moduleResult)
+                moduleResult.id = moduleResultId
+                val modules = result.modules.map { m -> m.moduleResultId = moduleResultId; m }
+                val moduleIds = database.modulesDao().insertAll(*modules.toTypedArray())
+                /*modules.zip(moduleIds) { a, b ->
                 a.id = b
             }*/
-            moduleResult
+                moduleResult
+            }
         }
         return ModuleResultsResponse(moduleResult, result.semesters, result.modules)
     }
 }
+

@@ -51,7 +51,6 @@ object TucanLogin {
                     })
                 return r
             } catch (e: ConnectTimeoutException) {
-                Log.e("TucanLogin", "ConnectTimeoutException", e)
                 // TODO FIXME generalize for all requests (very important)
                 if (i == 5) {
                     throw e
@@ -65,9 +64,8 @@ object TucanLogin {
         client: HttpClient,
         username: String,
         password: String,
-        context: Context? = null
     ): LoginResponse {
-        return response(context, doFetch(client, username, password)) {
+        return response(doFetch(client, username, password)) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",

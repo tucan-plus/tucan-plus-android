@@ -1,5 +1,6 @@
 package de.selfmade4u.tucanplus.connector
 
+import androidx.datastore.core.DataStore
 import de.selfmade4u.tucanplus.CredentialSettings
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.connector.AuthenticatedHttpResponse.NetworkLikelyTooSlow
@@ -7,7 +8,9 @@ import de.selfmade4u.tucanplus.connector.AuthenticatedResponse.*
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
 import io.ktor.client.HttpClient
 import io.ktor.client.request.cookie
+import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import kotlinx.coroutines.flow.first
 
 sealed class AuthenticatedHttpResponse<T> {
     data class Success<T>(var response: T) :
@@ -60,7 +63,6 @@ sealed class AuthenticatedResponse<T> {
 suspend fun fetchAuthenticated(sessionCookie: String, url: String): AuthenticatedHttpResponse<HttpResponse> {
     val client = HttpClient()
     val r = try {
-        Log.e(TAG, "Fetching $url with $sessionCookie")
         client.get(url) {
             cookie("cnsc", sessionCookie)
         }
@@ -68,25 +70,23 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
         if (e.message?.contains("Content-Length mismatch") ?: true) {
             return NetworkLikelyTooSlow()
         }
-        Log.e(TAG, "Failed to fetch request", e)
         return NetworkLikelyTooSlow()
     }
     return AuthenticatedHttpResponse.Success(r)
 }
 
-suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (sessionId: String) -> String, parser: suspend (context: Context, sessionId: String, response: HttpResponse) -> ParserResponse<T>): AuthenticatedResponse<T> {
+suspend fun <T> fetchAuthenticatedWithReauthentication(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>, url: (sessionId: String) -> String, parser: suspend (sessionId: String, response: HttpResponse) -> ParserResponse<T>): AuthenticatedResponse<T> {
     val client = HttpClient()
-    var settings = context.credentialSettingsDataStore.data.first().inner!!
+    var settings = credentialSettingsDataStore.data.first().inner!!
     if (System.currentTimeMillis() < settings.lastRequestTime + 30*60*1000) {
-        Log.d(TAG, "No predictive session timeout, trying to fetch")
         val response = fetchAuthenticated(
             settings.sessionCookie, url(settings.sessionId)
         )
         when (response) {
             is AuthenticatedHttpResponse.Success<HttpResponse> -> {
-                when (val parserResponse = parser(context, settings.sessionId, response.response)) {
+                when (val parserResponse = parser(settings.sessionId, response.response)) {
                     is ParserResponse.Success<T> -> {
-                        context.credentialSettingsDataStore.updateData { currentSettings ->
+                        credentialSettingsDataStore.updateData { currentSettings ->
                             OptionalCredentialSettings(settings.copy(lastRequestTime = System.currentTimeMillis()))
                         }
                         return Success<T>(parserResponse.response)
@@ -99,19 +99,14 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (s
             is NetworkLikelyTooSlow<*> -> AuthenticatedResponse.NetworkLikelyTooSlow<T>()
         }
     } else {
-        Log.d(TAG, "Predictive session timeout, directly reauthenticating")
     }
-    Toast.makeText(context, "Reauthenticating", Toast.LENGTH_SHORT).show()
     val loginResponse = TucanLogin.doLogin(
         client,
         settings.username,
         settings.password,
-        context,
     )
     when (loginResponse) {
         is TucanLogin.LoginResponse.InvalidCredentials -> {
-            Toast.makeText(context, "Ungültiger Username oder Password", Toast.LENGTH_LONG)
-                .show()
             // backStack[backStack.size - 1] = MainNavKey
             // TODO clear store
             return InvalidCredentials()
@@ -124,7 +119,7 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (s
                 sessionCookie = loginResponse.sessionCookie,
                 lastRequestTime = System.currentTimeMillis()
             )
-            context.credentialSettingsDataStore.updateData { currentSettings ->
+            credentialSettingsDataStore.updateData { currentSettings ->
                 OptionalCredentialSettings(
                     settings
                 )
@@ -134,9 +129,9 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (s
             )
             return when (response) {
                 is AuthenticatedHttpResponse.Success<HttpResponse> -> {
-                    when (val parserResponse = parser(context, loginResponse.sessionId, response.response)) {
+                    when (val parserResponse = parser( loginResponse.sessionId, response.response)) {
                         is ParserResponse.Success<T> -> {
-                            context.credentialSettingsDataStore.updateData { currentSettings ->
+                            credentialSettingsDataStore.updateData { currentSettings ->
                                 OptionalCredentialSettings(settings.copy(lastRequestTime = System.currentTimeMillis()))
                             }
                             return Success<T>(parserResponse.response)
@@ -151,7 +146,6 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(context: Context, url: (s
         }
         is TucanLogin.LoginResponse.TooManyAttempts -> {
             // bad
-            Toast.makeText(context, "Zu viele Anmeldeversuche", Toast.LENGTH_LONG).show()
             return TooManyAttempts()
         }
     }
