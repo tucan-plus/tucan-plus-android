@@ -24,7 +24,7 @@ import de.selfmade4u.tucanplus.ext.discoverPeers
 import de.selfmade4u.tucanplus.ext.isWifiDirectSupported
 import de.selfmade4u.tucanplus.ext.peersFlow
 import de.selfmade4u.tucanplus.ext.wifiP2pState
-import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
+import de.selfmade4u.tucanplus.TAG
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch

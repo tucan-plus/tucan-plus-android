@@ -1,7 +1,5 @@
 package de.selfmade4u.tucanplus.connector
 
-import android.content.Context
-import android.util.Log
 import com.fleeksoft.ksoup.nodes.TextNode
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.body
@@ -24,7 +22,7 @@ import io.ktor.http.parameters
 object TucanLogin {
 
     sealed class LoginResponse {
-        data class Success(val sessionId: String, val sessionSecret: String) : LoginResponse()
+        data class Success(val sessionId: String, val sessionCookie: String) : LoginResponse()
         data object InvalidCredentials : LoginResponse()
         data object TooManyAttempts : LoginResponse()
     }
@@ -53,8 +51,7 @@ object TucanLogin {
                     })
                 return r
             } catch (e: ConnectTimeoutException) {
-                Log.e("TucanLogin", "ConnectTimeoutException", e)
-                // TODO FIXME generalize
+                // TODO FIXME generalize for all requests (very important)
                 if (i == 5) {
                     throw e
                 }
@@ -67,9 +64,8 @@ object TucanLogin {
         client: HttpClient,
         username: String,
         password: String,
-        context: Context? = null
     ): LoginResponse {
-        return response(context, doFetch(client, username, password)) {
+        return response(doFetch(client, username, password)) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",
@@ -85,7 +81,12 @@ object TucanLogin {
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
             ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
             ignoreHeader("Date")
-            ignoreHeader("Content-Length")
+            //ignoreHeader("Content-Length")
+            header("vary", "Accept-Encoding")
+            ignoreHeader("x-android-received-millis")
+            ignoreHeader("x-android-response-source")
+            ignoreHeader("x-android-selected-protocol")
+            ignoreHeader("x-android-sent-millis")
             if (hasHeader("Set-cookie")) {
                 val cookie = extractHeader("Set-cookie")[0].removePrefix("cnsc =")
                 val sessionId = extractHeader("REFRESH")[0]

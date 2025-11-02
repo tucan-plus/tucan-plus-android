@@ -1,11 +1,17 @@
 package de.selfmade4u.tucanplus.connector
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
+import de.selfmade4u.tucanplus.connector.ModuleResults.Module
+import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleGrade
+import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleResultsResponse
+import de.selfmade4u.tucanplus.connector.ModuleResults.Semester
+import de.selfmade4u.tucanplus.connector.ModuleResults.Semesterauswahl
 import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
@@ -26,24 +32,25 @@ import de.selfmade4u.tucanplus.td
 import de.selfmade4u.tucanplus.th
 import de.selfmade4u.tucanplus.thead
 import de.selfmade4u.tucanplus.tr
-import io.ktor.client.HttpClient
-import io.ktor.client.request.cookie
-import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 
-object ModuleResults {
+// TODO multilingual (at least allow using both languages but don't support switching)
+// TODO common interface between all these fetchers
 
-    suspend fun getModuleResults(
-        context: Context,
-        client: HttpClient,
-        sessionId: String,
-        sessionCookie: String
-    ): ModuleResultsResponse {
-        val r =
-            client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,") {
-                cookie("cnsc", sessionCookie)
-            }
-        return response(context, r) {
+object MyCourses {
+    suspend fun get(
+        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
+    ): AuthenticatedResponse<ModuleResultsResponse> {
+        return fetchAuthenticatedWithReauthentication(
+            credentialSettingsDataStore,
+            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N000274," },
+            parser = ::parseResponse
+        )
+    }
+
+    suspend fun parseResponse(sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+        return response(response) {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",
@@ -59,63 +66,27 @@ object ModuleResults {
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
             ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
             ignoreHeader("Date")
-            ignoreHeader("Content-Length")
+            //ignoreHeader("Content-Length")
             header("Connection", "close")
             header("Pragma", "no-cache")
             header("Expires", "0")
             header("Cache-Control", "private, no-cache, no-store")
+
+            header("vary", "Accept-Encoding")
+            ignoreHeader("x-android-received-millis")
+            ignoreHeader("x-android-response-source")
+            ignoreHeader("x-android-selected-protocol")
+            ignoreHeader("x-android-sent-millis")
             root {
-                parseModuleResults(sessionId)
+                parseContent(sessionId)
             }
         }
     }
 
-    // https://github.com/tucan-plus/tucan-plus/blob/640bb9cbb9e3f8d22e8b9d6ddaabb5256b2eb0e6/crates/tucan-types/src/lib.rs#L366
-    enum class ModuleGrade(val representation: String) {
-        G1_0("1,0"),
-        G1_3("1,3"),
-        G1_7("1,7"),
-        G2_0("2,0"),
-        G2_3("2,3"),
-        G2_7("2,7"),
-        G3_0("3,0"),
-        G3_3("3,3"),
-        G3_7("3,7"),
-        G4_0("4,0"),
-        G5_0("5,0"),
-    }
-
-    data class Module(
-        val id: String,
-        val name: String,
-        val grade: ModuleGrade,
-        val credits: Int,
-        val resultdetailsUrl: String,
-        val gradeoverviewUrl: String
-    )
-
-    enum class Semester {
-        Sommersemester,
-        Wintersemester
-    }
-
-    data class Semesterauswahl(
-        val id: Int,
-        val selected: Boolean,
-        val year: Int,
-        val semester: Semester
-    )
-
-    sealed class ModuleResultsResponse {
-        data class Success(var semesters: List<Semesterauswahl>, var modules: List<Module>) :
-            ModuleResultsResponse()
-
-        data object SessionTimeout : ModuleResultsResponse()
-    }
-
-    fun Root.parseModuleResults(sessionId: String): ModuleResultsResponse {
+    fun Root.parseContent(sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
+        var selectedSemester: Semesterauswahl? = null;
         val response = parseBase(sessionId, "000324", {
             if (peek() != null) {
                 style {
@@ -147,7 +118,7 @@ object ModuleResults {
                         text("Bitte melden Sie sich erneut an.")
                     }
                 }
-                return@parseBase ModuleResultsResponse.SessionTimeout
+                return@parseBase ParserResponse.SessionTimeout<ModuleResultsResponse>()
             }
             check(pageType == "course_results")
             script {
@@ -194,12 +165,12 @@ object ModuleResults {
                                     // we can predict the value so we could use this at some places do directly get correct value
                                     // maybe do everywhere for consistency
                                     while (peek() != null) {
-                                        val value: Int
+                                        val value: Long
                                         val selected: Boolean
                                         val semester: Semester
                                         val year: Int
                                         option {
-                                            value = attributeValue("value").trimStart('0').toInt()
+                                            value = attributeValue("value").trimStart('0').toLong()
                                             selected = if (peekAttribute()?.key == "selected") {
                                                 attribute("selected", "selected")
                                                 true
@@ -217,10 +188,16 @@ object ModuleResults {
                                                 semester = Semester.Wintersemester
                                             }
                                         }
+                                        if (selected) {
+                                            selectedSemester = Semesterauswahl(
+                                                value,
+                                                year,
+                                                semester
+                                            )
+                                        }
                                         semesters.add(
                                             Semesterauswahl(
                                                 value,
-                                                selected,
                                                 year,
                                                 semester
                                             )
@@ -348,6 +325,7 @@ object ModuleResults {
                                 }
                             }
                             val module = Module(
+                                0,
                                 moduleId,
                                 moduleName,
                                 moduleGrade,
@@ -376,7 +354,7 @@ object ModuleResults {
                     }
                 }
             }
-            return@parseBase ModuleResultsResponse.Success(semesters, modules)
+            return@parseBase ParserResponse.Success(ModuleResultsResponse(TODO(), semesters, modules))
         }
         return response
     }

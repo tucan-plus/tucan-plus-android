@@ -23,7 +23,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.selfmade4u.tucanplus.ext.addLocalService
 import de.selfmade4u.tucanplus.ext.setDnsSdResponseListenersFlow
-import de.selfmade4u.tucanplus.localfirst.LocalNetworkNSD.Companion.TAG
+import de.selfmade4u.tucanplus.TAG
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow

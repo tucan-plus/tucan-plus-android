@@ -2,8 +2,6 @@
 
 package de.selfmade4u.tucanplus
 
-import android.content.Context
-import androidx.room.Room
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Attribute
 import com.fleeksoft.ksoup.nodes.Comment
@@ -19,6 +17,9 @@ import io.ktor.util.toMap
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
+import java.time.Clock
+import java.time.LocalDateTime
+import kotlin.collections.filterNot
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -150,14 +151,14 @@ class Response(
 
     fun maybeHeader(key: String, values: List<String>) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        val actualValue = headers.remove(key)
+        val actualValue = headers.remove(key.lowercase())
         check(actualValue == null || actualValue == values) { "actual   $actualValue\nexpected $values" }
     }
 
     fun header(key: String, values: List<String>) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        val actualValue = headers.remove(key)
-        check(actualValue == values) { "actual   $actualValue\nexpected $values" }
+        val actualValue = headers.remove(key.lowercase())
+        check(actualValue == values) { "actual   $actualValue\nexpected $values\nremaining $headers" }
     }
 
     fun header(key: String, values: String) {
@@ -166,18 +167,18 @@ class Response(
 
     fun ignoreHeader(key: String) {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        val actualValue = headers.remove(key)
-        check(actualValue != null) { "expected header with key $key" }
+        val actualValue = headers.remove(key.lowercase())
+        check(actualValue != null) { "expected header with key $key\nremaining $headers" }
     }
 
     fun hasHeader(key: String): Boolean {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        return headers.containsKey(key)
+        return headers.containsKey(key.lowercase())
     }
 
     fun extractHeader(key: String): List<String> {
         check(checkedStatus) { "you need to check the status before checking the headers" }
-        return headers.remove(key)!!
+        return headers.remove(key.lowercase())!!
     }
 
     suspend fun <T> root(init: Root.() -> T): T {
@@ -197,35 +198,46 @@ class Response(
 
 @OptIn(ExperimentalUuidApi::class)
 suspend fun <T> response(
-    context: Context? = null,
     response: HttpResponse,
     init: suspend Response.() -> T
 ): T {
+    /*val db = context?.let {
+        MyDatabase.getDatabase(context)
+    }*/
     try {
-        return Response(response, response.headers.toMap().toMutableMap()).init()
+        val result = Response(response, response.headers.toMap().toMutableMap()).init()
+        /*db?.cacheDao()?.insertAll(
+            CacheEntry(
+                0,
+                response.request.url.toString(),
+                response.request.url.toString(), // TODO FIXME at least remove session id
+                response.bodyAsText(),
+                LocalDateTime.now(Clock.systemUTC()),
+                null
+            )
+        )*/
+        return result
     } catch (e: IllegalStateException) {
         // cd app/src/test/resources
         // adb pull /data/data/de.selfmade4u.tucanplus/files/parsingerrors/
-        if (context != null) {
+        /*if (context != null) {
             val dir = File(context.filesDir, "parsingerrors")
             dir.mkdirs()
             val fileOutputStream = FileOutputStream(File(dir, "error${Uuid.random()}.html"))
             fileOutputStream.use {
                 it.write(response.bodyAsText().toByteArray())
             }
-            val db = Room.databaseBuilder(
-                context,
-                ParsingErrorsDatabase::class.java, "parsing-errors"
-            ).fallbackToDestructiveMigration(true).build()
-            db.parsingErrorDao().insertAll(
-                ParsingError(
+            db?.cacheDao()?.insertAll(
+                CacheEntry(
                     0,
                     response.request.url.toString(),
+                    response.request.url.toString(),
+                    response.bodyAsText(),
+                    LocalDateTime.now(Clock.systemUTC()),
                     e.toString(),
-                    response.bodyAsText()
                 )
             )
-        }
+        }*/
         throw e
     }
 }
@@ -316,7 +328,7 @@ fun HtmlTag.peekAttribute(): Attribute? {
 fun <P : HtmlTag, C, R> P.initTag(
     tag: String,
     createTag: (iterator: MutableList<Node>, attributes: MutableList<Attribute>) -> C,
-    init: C.() -> R
+    init:  C.() -> R
 ): R {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)

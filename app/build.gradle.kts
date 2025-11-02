@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.serialization)
     id("kotlin-android")
     id("com.google.devtools.ksp")
-    id("androidx.room")
     id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
 }
 
@@ -62,8 +61,8 @@ android {
     buildFeatures {
         compose = true
     }
-    room {
-        schemaDirectory("$projectDir/schemas")
+    sourceSets {
+        getByName("debug").assets.srcDirs(files("$projectDir/schemas")) // Room
     }
 }
 
@@ -78,19 +77,15 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.kotlinx.serialization.core)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.datastore)
     implementation(libs.splashscreen)
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.android)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.cio)
-    implementation(libs.ksoup)
-    implementation(libs.room)
-    implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.work.runtime.ktx)
-    ksp(libs.room.compiler)
+    implementation(libs.androidx.datastore)
+    implementation(libs.room)
+    implementation(project(":lib"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
