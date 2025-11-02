@@ -1,7 +1,5 @@
 package de.selfmade4u.tucanplus
 
-import android.content.Context
-import android.os.Debug
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
