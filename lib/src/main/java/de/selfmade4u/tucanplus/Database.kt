@@ -61,37 +61,4 @@ abstract class MyDatabase : RoomDatabase() {
     abstract fun moduleResultsDao(): ModuleResults.ModuleResultsDao
     abstract fun modulesDao(): ModuleResults.ModulesDao
     abstract fun semestersDao(): ModuleResults.SemestersDao
-
-    companion object {
-        @Volatile
-        private var Instance: MyDatabase? = null
-        val mutex = Mutex()
-
-        suspend fun getDatabase(context: Context): MyDatabase {
-            return Instance ?: mutex.withLock {
-                return Instance ?: run {
-                    val db = if (Debug.isDebuggerConnected()) {
-                        val db: MyDatabase = Room.databaseBuilder(context, MyDatabase::class.java, "tucan-plus.db").build();
-                        try {
-                            db.useWriterConnection { _ -> } // check that schema identity hash has no mismatch
-                            db
-                        } catch (e: IllegalStateException) {
-                            e.printStackTrace()
-                            db.close()
-                            context.deleteDatabase("tucan-plus.db")
-                            val db = Room.databaseBuilder(context, MyDatabase::class.java, "tucan-plus.db").build()
-                            db.useWriterConnection { _ -> }
-                            db
-                        }
-                    } else {
-                        val db = Room.databaseBuilder(context, MyDatabase::class.java, "tucan-plus.db").build()
-                        db.useWriterConnection { _ -> }
-                        db
-                    }
-                    Instance = db
-                    db
-                }
-            }
-        }
-    }
 }
