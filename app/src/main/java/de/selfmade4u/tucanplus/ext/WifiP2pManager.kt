@@ -84,12 +84,12 @@ fun WifiP2pManager.setDnsSdResponseListenersFlow(
         channel,
         { instanceName, registrationType, srcDevice ->
             Log.d(TAG, "setDnsSdResponseListenersFlow $instanceName $registrationType $srcDevice")
-            discoveredServices = discoveredServices + srcDevice;
+            discoveredServices = discoveredServices + srcDevice
             trySendBlocking(discoveredServices)
         }
     ) { fullDomainName, txtRecordMap, srcDevice ->
         Log.d(TAG, "setDnsSdResponseListenersFlow $fullDomainName $txtRecordMap $srcDevice")
-        discoveredServices = discoveredServices + srcDevice;
+        discoveredServices = discoveredServices + srcDevice
         trySendBlocking(discoveredServices)
     }
     val serviceRequest = addServiceRequest(channel, request)

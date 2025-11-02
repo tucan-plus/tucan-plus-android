@@ -11,20 +11,13 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.TextNode
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.request
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.toMap
-import java.io.File
-import java.io.FileOutputStream
 import java.security.MessageDigest
-import java.time.Clock
-import java.time.LocalDateTime
-import kotlin.collections.filterNot
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 
 // https://kotlinlang.org/docs/type-safe-builders.html#how-it-works

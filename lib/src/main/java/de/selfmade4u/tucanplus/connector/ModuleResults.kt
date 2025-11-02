@@ -197,7 +197,7 @@ object ModuleResults {
     fun Root.parseModuleResults(sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
-        var selectedSemester: Semesterauswahl? = null;
+        var selectedSemester: Semesterauswahl? = null
         val response = parseBase(sessionId, "000324", {
             if (peek() != null) {
                 style {
@@ -480,7 +480,7 @@ object ModuleResults {
                 val moduleResultId = database.moduleResultsDao().insert(moduleResult)
                 moduleResult.id = moduleResultId
                 val modules = result.modules.map { m -> m.moduleResultId = moduleResultId; m }
-                val moduleIds = database.modulesDao().insertAll(*modules.toTypedArray())
+                database.modulesDao().insertAll(*modules.toTypedArray())
                 /*modules.zip(moduleIds) { a, b ->
                 a.id = b
             }*/

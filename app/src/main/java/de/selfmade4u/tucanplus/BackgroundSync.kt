@@ -37,11 +37,11 @@ class UpdateGradesWorker(context: Context, params: WorkerParameters) :
 
     override suspend fun doWork(): Result = coroutineScope {
         withContext(Dispatchers.IO) {
-            Log.d(TAG, "UpdateGradesWorker is starting....");
+            Log.d(TAG, "UpdateGradesWorker is starting....")
 
             //Result.retry()
 
-            Log.d(TAG, "UpdateGradesWorker finished");
+            Log.d(TAG, "UpdateGradesWorker finished")
             Result.success()
         }
     }
