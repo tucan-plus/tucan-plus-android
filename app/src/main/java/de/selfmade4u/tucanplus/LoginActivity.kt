@@ -90,7 +90,6 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                         client,
                         usernameState.text.toString(),
                         passwordState.text.toString(),
-                        context,
                     )
                     when (response) {
                         is TucanLogin.LoginResponse.InvalidCredentials -> launch {

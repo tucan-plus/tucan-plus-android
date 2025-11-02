@@ -44,9 +44,11 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.DetailedDrawerExample
 import de.selfmade4u.tucanplus.MyDatabase
+import de.selfmade4u.tucanplus.MyDatabaseProvider
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
 import de.selfmade4u.tucanplus.connector.ModuleResults
 import de.selfmade4u.tucanplus.connector.ModuleResults.getModuleResults
+import de.selfmade4u.tucanplus.credentialSettingsDataStore
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -127,7 +129,7 @@ fun ModuleComposable(
 fun loadModules(): State<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?> {
     val context = LocalContext.current
     return produceState(initialValue = null) {
-        value = getModuleResults(context)
+        value = getModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
         Log.e("LOADED", value.toString())
     }
 }
@@ -138,7 +140,7 @@ fun loadModules(): State<AuthenticatedResponse<ModuleResults.ModuleResultsRespon
 fun LongBasicDropdownMenu() {
     val context = LocalContext.current
     val semesters by produceState(listOf(), "key") {
-        val db = MyDatabase.getDatabase(context)
+        val db = MyDatabaseProvider.getDatabase(context)
         value = db.semestersDao().getAll()
     }
     var expanded by remember { mutableStateOf(false) }

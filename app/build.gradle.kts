@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.ktor.server.cio)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.datastore)
+    implementation(libs.room)
     implementation(project(":lib"))
 
     testImplementation(libs.junit)
