@@ -2,6 +2,7 @@
 plugins {
     id("java-library")
     alias(libs.plugins.jetbrains.kotlin.jvm)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
     id("com.google.devtools.ksp")
     id("androidx.room")
 }
@@ -25,5 +26,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.room)
+    testImplementation(libs.junit)
     ksp(libs.room.compiler)
 }
