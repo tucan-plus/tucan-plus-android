@@ -152,12 +152,18 @@ object ModuleResults {
 
         @Insert
         suspend fun insert(moduleResults: ModuleResult): Long
+
+        @Query("SELECT * FROM module_results ORDER BY id DESC LIMIT 1")
+        suspend fun getLast(): ModuleResultWithModules
     }
 
     @Dao
     interface ModulesDao {
         @Insert
         suspend fun insertAll(vararg modules: Module): List<Long>
+
+        @Query("SELECT * FROM module WHERE moduleResultId = :moduleResultId")
+        suspend fun getForModuleResult(moduleResultId: Long): List<Module>
     }
 
     suspend fun parseModuleResponse(sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
@@ -488,6 +494,12 @@ object ModuleResults {
             }
         }
         return ModuleResultsResponse(moduleResult, result.semesters, result.modules)
+    }
+
+    suspend fun getCached(database: MyDatabase): ModuleResultsResponse {
+        val semesters = database.semestersDao().getAll()
+        val lastModuleResult = database.moduleResultsDao().getLast();
+        return ModuleResultsResponse(lastModuleResult.moduleResult, semesters, lastModuleResult.modules)
     }
 }
 
