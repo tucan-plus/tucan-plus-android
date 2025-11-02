@@ -6,12 +6,13 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.serialization)
     id("kotlin-android")
     id("com.google.devtools.ksp")
-    id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
+    //id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
 }
-
+/*
 stacktraceDecoroutinator {
     embedDebugProbesForAndroid = true
-}
+
+}*/
 
 android {
     namespace = "de.selfmade4u.tucanplus"
@@ -44,7 +45,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                decoroutinatorAndroidProGuardRules,
+                //decoroutinatorAndroidProGuardRules,
                 "proguard-rules.pro"
             )
         }
