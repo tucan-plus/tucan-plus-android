@@ -43,7 +43,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.DetailedDrawerExample
-import de.selfmade4u.tucanplus.MyDatabase
 import de.selfmade4u.tucanplus.MyDatabaseProvider
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
 import de.selfmade4u.tucanplus.connector.ModuleResults
@@ -129,7 +128,11 @@ fun ModuleComposable(
 fun loadModules(): State<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?> {
     val context = LocalContext.current
     return produceState(initialValue = null) {
-        value = getModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
+        val result = getModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
+        if (result is AuthenticatedResponse.Success) {
+            ModuleResults.persist(MyDatabaseProvider.getDatabase(context), result.response)
+        }
+        value = result
         Log.e("LOADED", value.toString())
     }
 }

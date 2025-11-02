@@ -3,7 +3,6 @@ package de.selfmade4u.tucanplus.connector
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import de.selfmade4u.tucanplus.AccessesTucan
-import de.selfmade4u.tucanplus.connector.TucanLogin
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginFailure
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginSuccess
 import de.selfmade4u.tucanplus.root
