@@ -26,6 +26,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -100,26 +102,27 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val test = lifecycleScope.launch {
+        val isLoading = mutableStateOf(true)
+        lifecycleScope.launch {
             val credentialSettingsFlow: OptionalCredentialSettings =
                 this@MainActivity.credentialSettingsDataStore.data.first()
             val prepareDb = MyDatabaseProvider.getDatabase(this@MainActivity)
             setContent {
                 TUCaNPlusTheme {
-                    Entrypoint(credentialSettingsFlow)
+                    Entrypoint(credentialSettingsFlow, isLoading)
                 }
             }
         }
         splashScreen.apply {
             this.setKeepOnScreenCondition {
-                !test.isCompleted
+                isLoading.value
             }
         }
     }
 }
 
 @Composable
-fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings) {
+fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings, isLoading: MutableState<Boolean>) {
     val backStack = rememberNavBackStack(
         *(if (credentialSettingsFlow.inner == null) arrayOf(LoginNavKey) else arrayOf(
             MainNavKey,
@@ -133,9 +136,15 @@ fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings) {
         }
     }
     val entryProvider = entryProvider {
-        entry<MainNavKey> { Main(backStack) }
-        entry<LoginNavKey> { LoginForm(backStack) }
-        entry<ModuleResultsNavKey> { ModuleResultsComposable(backStack) }
+        entry<MainNavKey> {
+            isLoading.value = false
+            Main(backStack)
+        }
+        entry<LoginNavKey> {
+            isLoading.value = false
+            LoginForm(backStack)
+        }
+        entry<ModuleResultsNavKey> { ModuleResultsComposable(backStack, isLoading) }
     }
     NavDisplay(
         backStack = backStack,

@@ -27,6 +27,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -51,8 +52,8 @@ import de.selfmade4u.tucanplus.credentialSettingsDataStore
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ModuleResultsComposable(backStack: NavBackStack<NavKey>) {
-    val modules = loadModules()
+fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
+    val modules = loadModules(isLoading)
     var isRefreshing by remember { mutableStateOf(false) }
     val state = rememberPullToRefreshState()
     DetailedDrawerExample(backStack) { innerPadding ->
@@ -125,10 +126,11 @@ fun ModuleComposable(
 }
 
 @Composable
-fun loadModules(): State<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?> {
+fun loadModules(isLoading: MutableState<Boolean>): State<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?> {
     val context = LocalContext.current
     return produceState(initialValue = null) {
         ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
+        isLoading.value = false
         value = getModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
         Log.e("LOADED", value.toString())
     }

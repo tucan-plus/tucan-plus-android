@@ -498,7 +498,7 @@ object ModuleResults {
 
     suspend fun getCached(database: MyDatabase): ModuleResultsResponse? {
         val semesters = database.semestersDao().getAll()
-        val lastModuleResult = database.moduleResultsDao().getLast();
+        val lastModuleResult = database.moduleResultsDao().getLast()
         return lastModuleResult?.let {  ModuleResultsResponse(lastModuleResult.moduleResult, semesters, lastModuleResult.modules) }
     }
 }
