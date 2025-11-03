@@ -28,7 +28,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -53,8 +52,15 @@ import de.selfmade4u.tucanplus.credentialSettingsDataStore
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
-    val modules = loadModules(isLoading)
+    val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
+    val modules by produceState<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?>(initialValue = null, isRefreshing) {
+        ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
+        isLoading.value = false
+        value = getModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
+        isRefreshing = false
+        Log.e("LOADED", value.toString())
+    }
     val state = rememberPullToRefreshState()
     DetailedDrawerExample(backStack) { innerPadding ->
         PullToRefreshBox(isRefreshing, onRefresh = {
@@ -68,7 +74,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
         }, modifier = Modifier.padding(innerPadding)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 LongBasicDropdownMenu()
-                when (val value = modules.value) {
+                when (val value = modules) {
                     null -> {
                         Column(
                             Modifier.fillMaxSize(),
@@ -122,17 +128,6 @@ fun ModuleComposable(
             Text("${module.credits} CP")
             Text("Note ${module.grade.representation}")
         }
-    }
-}
-
-@Composable
-fun loadModules(isLoading: MutableState<Boolean>): State<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?> {
-    val context = LocalContext.current
-    return produceState(initialValue = null) {
-        ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
-        isLoading.value = false
-        value = getModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
-        Log.e("LOADED", value.toString())
     }
 }
 
