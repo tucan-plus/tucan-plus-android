@@ -103,6 +103,7 @@ class MainActivity : ComponentActivity() {
         val test = lifecycleScope.launch {
             val credentialSettingsFlow: OptionalCredentialSettings =
                 this@MainActivity.credentialSettingsDataStore.data.first()
+            val prepareDb = MyDatabaseProvider.getDatabase(this@MainActivity)
             setContent {
                 TUCaNPlusTheme {
                     Entrypoint(credentialSettingsFlow)

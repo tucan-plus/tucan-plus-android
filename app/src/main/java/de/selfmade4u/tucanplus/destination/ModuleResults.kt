@@ -128,7 +128,7 @@ fun ModuleComposable(
 fun loadModules(): State<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?> {
     val context = LocalContext.current
     return produceState(initialValue = null) {
-        value = AuthenticatedResponse.Success(ModuleResults.getCached(MyDatabaseProvider.getDatabase(context)))
+        ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
         value = getModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
         Log.e("LOADED", value.toString())
     }
