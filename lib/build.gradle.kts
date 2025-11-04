@@ -33,6 +33,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.room)
     testImplementation(libs.junit)
-    testImplementation(libs.ktor.client.android)
+    testImplementation(libs.ktor.client.java)
     ksp(libs.room.compiler)
 }
