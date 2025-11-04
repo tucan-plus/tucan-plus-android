@@ -233,7 +233,7 @@ object Common {
                                 "class",
                                 "img img_arrowImprint pageElementLeft"
                             ); text(
-                                "Impressum"
+                                localizer.imprint
                             )
                             }
                             a {
@@ -244,7 +244,7 @@ object Common {
                                 "class",
                                 "img img_arrowContact pageElementLeft"
                             ); text(
-                                "Kontakt"
+                                localizer.contact
                             )
                             }
                             a {
@@ -254,13 +254,13 @@ object Common {
                             ); attribute(
                                 "class",
                                 "img img_arrowPrint pageElementLeft"
-                            ); text("Drucken")
+                            ); text(localizer.print)
                             }
                             a {
                                 attribute("href", "#bottom"); attribute(
                                 "class",
                                 "img img_arrowDown pageElementRight"
-                            ); text("Zum Ende der Seite")
+                            ); text(localizer.move_to_bottom)
                             }
                         }
 
