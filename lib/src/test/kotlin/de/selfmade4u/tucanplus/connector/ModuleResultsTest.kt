@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import de.selfmade4u.tucanplus.AccessesTucan
+import de.selfmade4u.tucanplus.DoesNotAccessTucan
 import de.selfmade4u.tucanplus.LoginSingleton
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.connector.ModuleResults.parseModuleResults
@@ -16,10 +17,28 @@ import org.junit.experimental.categories.Category
 
 class ModuleResultsTest {
 
+    @Category(DoesNotAccessTucan::class)
     @Test
-    fun testParseModuleResults2() {
+    fun testParseModuleResultsDe() {
         val html =
             this::class.java.getResource("/module_results.html")!!
+                .readText()
+
+        val doc: Document = Ksoup.parse(html = html)
+
+        runBlocking {
+            val result = root(doc) {
+                parseModuleResults("183985067121045")
+            }
+            print(result)
+        }
+    }
+
+    @Category(DoesNotAccessTucan::class)
+    @Test
+    fun testParseModuleResultsEn() {
+        val html =
+            this::class.java.getResource("/module_results_en.html")!!
                 .readText()
 
         val doc: Document = Ksoup.parse(html = html)
