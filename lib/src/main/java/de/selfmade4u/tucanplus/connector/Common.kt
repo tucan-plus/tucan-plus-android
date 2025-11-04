@@ -184,7 +184,7 @@ object Common {
                         attribute("class", "hidden")
                         text("keypadDescription")
                     }
-                    text("Für maximale Nutzerfreundlichkeit empfehlen wir, die Ausführung von JavaScript und Cookies zu erlauben.Mithilfe der folgenden Accesskeys können Sie im Portal navigieren:")
+                    text(localizer.javascript_message)
                     a {
                         attribute("href", "#mainNavi"); attribute(
                         "accesskey",

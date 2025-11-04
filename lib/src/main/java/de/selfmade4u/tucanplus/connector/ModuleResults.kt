@@ -46,21 +46,24 @@ import io.ktor.http.HttpStatusCode
 
 object ModuleResults {
 
-    suspend fun getModuleResults(
-        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
-        database: MyDatabase
-    ): AuthenticatedResponse<ModuleResultsResponse> {
-        val response = fetchAuthenticatedWithReauthentication(
-            credentialSettingsDataStore,
-            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," },
-            parser = ::parseModuleResponse
-        )
-        return when (response) {
+    suspend fun getModuleResultsStoreCache(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
+                                           database: MyDatabase): AuthenticatedResponse<ModuleResultsResponse> {
+        return when (val response = getModuleResultsUncached(credentialSettingsDataStore)) {
             is AuthenticatedResponse.Success<ModuleResultsResponse> -> {
                 AuthenticatedResponse.Success(persist(database, response.response))
             }
             else -> response
         }
+    }
+
+    suspend fun getModuleResultsUncached(
+        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
+    ): AuthenticatedResponse<ModuleResultsResponse> {
+        return fetchAuthenticatedWithReauthentication(
+            credentialSettingsDataStore,
+            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," },
+            parser = ::parseModuleResponse
+        )
     }
 
     class ModuleResultsConverters {

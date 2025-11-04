@@ -15,6 +15,12 @@ kotlin {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     }
 }
+tasks.withType<Test>().configureEach {
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+}
+tasks.withType<Test>().configureEach {
+    forkEvery = 100
+}
 room {
     schemaDirectory("$projectDir/schemas")
 }

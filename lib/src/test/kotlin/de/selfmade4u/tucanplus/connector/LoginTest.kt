@@ -3,6 +3,7 @@ package de.selfmade4u.tucanplus.connector
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import de.selfmade4u.tucanplus.AccessesTucan
+import de.selfmade4u.tucanplus.LoginSingleton
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginFailure
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginSuccess
 import de.selfmade4u.tucanplus.root
@@ -66,13 +67,8 @@ class LoginTest {
     @Category(AccessesTucan::class)
     @Test
     fun testLoginCorrectUsernameAndPassword() {
-        val client = HttpClient()
         runBlocking {
-            TucanLogin.doLogin(
-                client,
-                System.getenv("TUCAN_USERNAME")!!,
-                System.getenv("TUCAN_PASSWORD")!!
-            )
+            LoginSingleton.getCredentials()
         }
     }
 }
