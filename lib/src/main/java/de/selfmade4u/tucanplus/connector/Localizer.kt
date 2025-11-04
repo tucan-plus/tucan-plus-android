@@ -7,6 +7,9 @@ interface Localizer {
     val contact: String
     val print: String
     val move_to_bottom: String
+    val my_tucan: String
+    val my_tucan_id: Int
+    val messages: String
 }
 
 object GermanLocalizer : Localizer {
@@ -21,6 +24,12 @@ object GermanLocalizer : Localizer {
         get() = "Drucken"
     override val move_to_bottom: String
         get() = "Zum Ende der Seite"
+    override val my_tucan: String
+        get() = "Aktuelles"
+    override val my_tucan_id: Int
+        get() = 19
+    override val messages: String
+        get() = "Nachrichten"
 }
 
 object EnglishLocalizer : Localizer {
@@ -35,5 +44,11 @@ object EnglishLocalizer : Localizer {
         get() = "Print"
     override val move_to_bottom: String
         get() = "Move to Bottom"
+    override val my_tucan: String
+        get() = "My TUCaN"
+    override val my_tucan_id: Int
+        get() = 350
+    override val messages: String
+        get() = "Messages"
 
 }

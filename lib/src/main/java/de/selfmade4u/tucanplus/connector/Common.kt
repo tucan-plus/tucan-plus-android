@@ -377,7 +377,7 @@ object Common {
                                 if (peek()?.attr("class")?.trim() == "intern depth_1 linkItem") {
                                     parseLoggedOutNavigation(localizer, sessionId)
                                 } else {
-                                    parseLoggedInNavigation(sessionId)
+                                    parseLoggedInNavigation(localizer, sessionId)
                                 }
                             }
                         }
@@ -708,14 +708,14 @@ object Common {
         }
     }
 
-    fun Body.parseLoggedInNavigation(sessionId: String) {
+    fun Body.parseLoggedInNavigation(localizer: Localizer, sessionId: String) {
         parseLiWithChildren(
-            "Aktuelles",
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N$sessionId,-N000019,",
-            19
+            localizer.my_tucan,
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N$sessionId,-N${localizer.my_tucan_id.toString().padStart(6, '0')},",
+            localizer.my_tucan_id
         ) {
             parseLiHref(
-                "Nachrichten",
+                localizer.messages,
                 299
             )
         }
