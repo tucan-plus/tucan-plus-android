@@ -25,6 +25,23 @@ import de.selfmade4u.tucanplus.span
 import de.selfmade4u.tucanplus.title
 import de.selfmade4u.tucanplus.ul
 
+interface Localizer {
+    val language: String
+    val title: String
+}
+
+object GermanLocalizer : Localizer {
+    override val language: String get() = "de"
+    override val title: String get() = "Hi"
+
+}
+
+object EnglishLocalizier : Localizer {
+    override val language: String get() = "en"
+    override val title: String get() = "test"
+
+}
+
 object Common {
     fun <T> Root.parseBase(
         sessionId: String,
@@ -43,8 +60,14 @@ object Common {
         }
         return html {
             attribute("xmlns", "http://www.w3.org/1999/xhtml")
-            attribute("xml:lang", "de")
-            attribute("lang", "de")
+            val language = attributeValue("xml:lang") // de or en
+            val localizer = when (language) {
+                "de" -> GermanLocalizer
+                "en" -> EnglishLocalizier
+                else -> throw IllegalStateException()
+            }
+            // well this is a problem. maybe use a completely different library or the compose multiplatform one? but compose is not nice because it doesn't allow java.* access
+            attribute("lang", localizer.language)
             head {
                 title {
                     text("Technische Universität Darmstadt")

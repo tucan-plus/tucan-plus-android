@@ -479,6 +479,8 @@ object ModuleResults {
 
 
     suspend fun persist(database: MyDatabase, result: ModuleResultsResponse): ModuleResultsResponse {
+        // TODO check whether there were changes?
+
         val moduleResult = database.useWriterConnection {
             it.immediateTransaction {
                 database.semestersDao().insertAll(*result.semesters.toTypedArray())
