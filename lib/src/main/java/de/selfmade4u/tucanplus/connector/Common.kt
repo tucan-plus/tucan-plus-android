@@ -25,22 +25,6 @@ import de.selfmade4u.tucanplus.span
 import de.selfmade4u.tucanplus.title
 import de.selfmade4u.tucanplus.ul
 
-interface Localizer {
-    val language: String
-    val title: String
-}
-
-object GermanLocalizer : Localizer {
-    override val language: String get() = "de"
-    override val title: String get() = "Hi"
-
-}
-
-object EnglishLocalizier : Localizer {
-    override val language: String get() = "en"
-    override val title: String get() = "test"
-
-}
 
 object Common {
     fun <T> Root.parseBase(
@@ -63,7 +47,7 @@ object Common {
             val language = attributeValue("xml:lang") // de or en
             val localizer = when (language) {
                 "de" -> GermanLocalizer
-                "en" -> EnglishLocalizier
+                "en" -> EnglishLocalizer
                 else -> throw IllegalStateException()
             }
             // well this is a problem. maybe use a completely different library or the compose multiplatform one? but compose is not nice because it doesn't allow java.* access
@@ -390,7 +374,7 @@ object Common {
                                 attribute("class", "nav depth_1 linkItemContainer")
 
                                 if (peek()?.attr("class")?.trim() == "intern depth_1 linkItem") {
-                                    parseLoggedOutNavigation(sessionId)
+                                    parseLoggedOutNavigation(localizer, sessionId)
                                 } else {
                                     parseLoggedInNavigation(sessionId)
                                 }
@@ -905,7 +889,7 @@ object Common {
         )
     }
 
-    fun Body.parseLoggedOutNavigation(sessionId: String) {
+    fun Body.parseLoggedOutNavigation(localizer: Localizer, sessionId: String) {
         li {
             attribute("class", "intern depth_1 linkItem")
             attribute("title", "Startseite")
@@ -931,7 +915,7 @@ object Common {
                 )
                 attribute(
                     "href",
-                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AR~11V0hv-BytBNU72hvo-g0Oo7Gxt48gGhIQg3tkSzSPyMYBsMwYzZvAR42~cq5pY91Gpt1Ii868MGJMX0wXM0QSwYibVfW-tlMSERpmHlkMGi0X7QGTv1gFEXOnpdnP07-Ah750gFYfr6umq0mTCKCkX~JNatm6cgmftrpaxn9ivmjyF4fYupfK8A__"
+                    localizer.vorlesungsverzeichnis
                 )
                 text("Vorlesungsverzeichnis (VV)")
             }

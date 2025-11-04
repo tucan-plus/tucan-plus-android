@@ -81,19 +81,23 @@ object TucanLogin {
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
             ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
             ignoreHeader("Date")
-            //ignoreHeader("Content-Length")
-            header("vary", "Accept-Encoding")
-            ignoreHeader("x-android-received-millis")
-            ignoreHeader("x-android-response-source")
-            ignoreHeader("x-android-selected-protocol")
-            ignoreHeader("x-android-sent-millis")
+            ignoreHeader("content-length")
+            // AndroidClientEngine
+            print(client.engine::class.simpleName)
+            if (client.engine::class.simpleName == "Hi") {
+                header("vary", "Accept-Encoding")
+                ignoreHeader("x-android-received-millis")
+                ignoreHeader("x-android-response-source")
+                ignoreHeader("x-android-selected-protocol")
+                ignoreHeader("x-android-sent-millis")
+            }
             if (hasHeader("Set-cookie")) {
                 val cookie = extractHeader("Set-cookie")[0].removePrefix("cnsc =")
-                val sessionId = extractHeader("REFRESH")[0]
-                val sessionIdMatch =
-                    Regex("""0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\d+),-N000019,-N000000000000000""").matchEntire(
-                        sessionId
-                    )!!
+                val refreshHeader = extractHeader("REFRESH")[0]
+                val a = Regex("""0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\d+),-N000(019|350),-N000000000000000""").matchEntire(
+                    refreshHeader
+                )
+                val sessionIdMatch = a ?: throw NullPointerException(refreshHeader)
                 root {
                     parseLoginSuccess()
                 }

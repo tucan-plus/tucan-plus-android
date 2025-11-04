@@ -27,5 +27,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.room)
     testImplementation(libs.junit)
+    testImplementation(libs.ktor.client.android)
     ksp(libs.room.compiler)
 }
