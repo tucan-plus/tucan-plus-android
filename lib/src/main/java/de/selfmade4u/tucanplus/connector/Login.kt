@@ -83,7 +83,7 @@ object TucanLogin {
             ignoreHeader("Date")
             ignoreHeader("content-length")
             // AndroidClientEngine
-            print(client.engine::class.simpleName)
+            println(client.engine::class.simpleName)
             if (client.engine::class.simpleName == "Hi") {
                 header("vary", "Accept-Encoding")
                 ignoreHeader("x-android-received-millis")

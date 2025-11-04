@@ -50,6 +50,7 @@ object Common {
                 "en" -> EnglishLocalizer
                 else -> throw IllegalStateException()
             }
+            println("chose $localizer")
             // well this is a problem. maybe use a completely different library or the compose multiplatform one? but compose is not nice because it doesn't allow java.* access
             attribute("lang", localizer.language)
             head {
@@ -913,9 +914,9 @@ object Common {
                     "class",
                     "depth_1 link000334 navLink branchLink"
                 )
-                attribute(
+                // URL regularly changes
+                val vvUrl = attributeValue(
                     "href",
-                    localizer.vorlesungsverzeichnis
                 )
                 text("Vorlesungsverzeichnis (VV)")
             }
