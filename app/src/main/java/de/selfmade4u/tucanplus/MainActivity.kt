@@ -55,8 +55,6 @@ import kotlinx.serialization.Serializable
 // https://developer.android.com/develop/ui/compose/navigation
 // https://developer.android.com/guide/navigation/navigation-3
 
-const val TAG: String = "TucanPlus"
-
 @Serializable
 data object MainNavKey : NavKey
 

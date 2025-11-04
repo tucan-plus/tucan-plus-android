@@ -2,6 +2,7 @@ package de.selfmade4u.tucanplus.connector
 
 import com.fleeksoft.ksoup.nodes.TextNode
 import de.selfmade4u.tucanplus.Root
+import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.body
 import de.selfmade4u.tucanplus.connector.Common.parseBase
 import de.selfmade4u.tucanplus.h1
@@ -18,6 +19,7 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
+import java.util.logging.Level
 
 object TucanLogin {
 
@@ -81,15 +83,15 @@ object TucanLogin {
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
             ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
             ignoreHeader("Date")
-            ignoreHeader("content-length")
-            // AndroidClientEngine
-            println(client.engine::class.simpleName)
-            if (client.engine::class.simpleName == "Hi") {
+            java.util.logging.Logger.getLogger(TAG).log(Level.INFO, client.engine::class.simpleName)
+            if (client.engine::class.simpleName == "AndroidClientEngine") {
                 header("vary", "Accept-Encoding")
                 ignoreHeader("x-android-received-millis")
                 ignoreHeader("x-android-response-source")
                 ignoreHeader("x-android-selected-protocol")
                 ignoreHeader("x-android-sent-millis")
+            } else {
+                ignoreHeader("content-length")
             }
             if (hasHeader("Set-cookie")) {
                 val cookie = extractHeader("Set-cookie")[0].removePrefix("cnsc =")
