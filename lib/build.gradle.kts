@@ -1,7 +1,7 @@
 // Put everything in here that does not depend on Android
 plugins {
-    id("java-library")
     alias(libs.plugins.jetbrains.kotlin.jvm)
+    id("java-library")
     alias(libs.plugins.jetbrains.kotlin.serialization)
     id("com.google.devtools.ksp")
     id("androidx.room")

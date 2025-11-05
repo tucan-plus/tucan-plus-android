@@ -1,5 +1,5 @@
 [versions]
-agp = "9.0.0-alpha11"
+agp = "9.0.0-alpha13"
 coreKtx = "1.17.0"
 datastore = "1.1.7"
 junit = "4.13.2"
@@ -18,7 +18,6 @@ ktor = "3.3.1"
 room = "2.8.3"
 workRuntimeKtx = "2.11.0"
 splashscreen = "1.0.1"
-jetbrainsKotlinJvm = "2.2.21"
 roomCommonJvm = "2.8.3"
 
 [libraries]
@@ -57,4 +56,4 @@ androidx-room-common-jvm = { group = "androidx.room", name = "room-common-jvm", 
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization"}
-jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm" }

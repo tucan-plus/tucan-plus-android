@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
-    id("kotlin-android")
     id("com.google.devtools.ksp")
     //id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
 }
@@ -63,7 +62,7 @@ android {
         compose = true
     }
     sourceSets {
-        getByName("debug").assets.srcDirs(files("$projectDir/schemas")) // Room
+        getByName("debug").assets.directories.add("$projectDir/schemas") // Room
     }
 }
 

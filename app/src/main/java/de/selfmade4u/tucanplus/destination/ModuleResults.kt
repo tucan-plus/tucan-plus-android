@@ -46,7 +46,6 @@ import de.selfmade4u.tucanplus.DetailedDrawerExample
 import de.selfmade4u.tucanplus.MyDatabaseProvider
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
 import de.selfmade4u.tucanplus.connector.ModuleResults
-import de.selfmade4u.tucanplus.connector.ModuleResults.getModuleResults
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -57,7 +56,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
     val modules by produceState<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?>(initialValue = null, isRefreshing) {
         ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
         isLoading.value = false
-        value = getModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
+        value = ModuleResults.getModuleResultsStoreCache(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
         isRefreshing = false
         Log.e("LOADED", value.toString())
     }
