@@ -748,9 +748,9 @@ object Common {
                 localizer.schedule_month.id
             )
             parseLi(
-                "Export",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N$sessionId,-N000272,",
-                272
+                localizer.schedule_export.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N$sessionId,-N${localizer.schedule_export.id6()},",
+                localizer.schedule_export.id
             )
         }
 

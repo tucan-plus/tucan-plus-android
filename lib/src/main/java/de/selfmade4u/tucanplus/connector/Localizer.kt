@@ -41,7 +41,7 @@ object GermanLocalizer : Localizer {
     override val schedule_day: TextAndId get() = TextAndId("Tagesansicht", 269)
     override val schedule_week: TextAndId get() = TextAndId("Wochenansicht", 270)
     override val schedule_month: TextAndId get() = TextAndId("Monatsansicht", 271)
-    override val schedule_export: TextAndId get() = TODO("Not yet implemented")
+    override val schedule_export: TextAndId get() = TextAndId("Export", 272)
 
 }
 
@@ -62,7 +62,7 @@ object EnglishLocalizer : Localizer {
     override val schedule_day: TextAndId get() = TextAndId("Days",55)
     override val schedule_week: TextAndId get() = TextAndId("Week", 56)
     override val schedule_month: TextAndId get() = TextAndId("Month", 57)
-    override val schedule_export: TextAndId get() = TODO("Not yet implemented")
+    override val schedule_export: TextAndId get() = TextAndId("Export", 354)
 
 
 }
