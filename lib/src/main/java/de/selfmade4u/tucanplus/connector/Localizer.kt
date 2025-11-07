@@ -42,6 +42,10 @@ interface Localizer {
     val performance_record: TextAndId
     val service: TextAndId
     val service_html: String
+    val personal_data: TextAndId
+    val my_documents: TextAndId
+    val forms: TextAndId
+    val hold_info: TextAndId
 }
 
 
@@ -83,6 +87,10 @@ object GermanLocalizer : Localizer {
     override val performance_record: TextAndId get() = TextAndId("Leistungsspiegel", 316)
     override val service: TextAndId get() = TextAndId("Service",337)
     override val service_html: String get() = "service%2Ehtml"
+    override val personal_data: TextAndId get() = TextAndId("Persönliche Daten",339)
+    override val my_documents: TextAndId get() = TextAndId("Meine Dokumente",557)
+    override val forms: TextAndId get() = TextAndId("Anträge",600)
+    override val hold_info: TextAndId get() = TextAndId("Sperren",652)
 
 }
 
@@ -124,5 +132,9 @@ object EnglishLocalizer : Localizer {
     override val performance_record: TextAndId get() = TextAndId("Performance Record",365)
     override val service: TextAndId get() = TextAndId("Service", 376)
     override val service_html: String get() = "eservice%2Ehtml"
+    override val personal_data: TextAndId get() = TextAndId("Personal Data",377)
+    override val my_documents: TextAndId get() = TextAndId("My Documents",558)
+    override val forms: TextAndId get() = TextAndId("Forms",609)
+    override val hold_info: TextAndId get() = TextAndId("Hold Info",653)
 
 }

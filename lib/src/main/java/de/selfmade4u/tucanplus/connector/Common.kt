@@ -781,25 +781,10 @@ object Common {
             "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.service.id6()},-A${localizer.service_html}",
             localizer.service.id
         ) {
-            parseLi(
-                "Persönliche Daten",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N$sessionId,-N000339,-A",
-                339
-            )
-            parseLi(
-                "Meine Dokumente",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N$sessionId,-N000557,",
-                557
-            )
-            parseLiHref(
-                "Anträge",
-                600
-            )
-            parseLi(
-                "Sperren",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N$sessionId,-N000652,",
-                652
-            )
+            parseLi(localizer.personal_data) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N$sessionId,-N$id6,-A" }
+            parseLi(localizer.my_documents) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N$sessionId,-N$id6," }
+            parseLiHref(localizer.forms.text, localizer.forms.id)
+            parseLi(localizer.hold_info,) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N$sessionId,-N$id6," }
         }
 
         parseLiWithChildren(
