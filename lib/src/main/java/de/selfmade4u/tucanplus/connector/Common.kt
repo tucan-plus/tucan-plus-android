@@ -733,9 +733,9 @@ object Common {
             localizer.schedule_id
         ) {
             parseLi(
-                "Tagesansicht",
+                localizer.schedule_day,
                 "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N000269,-A,-A,-N0",
-                269
+                localizer.schedule_day_id
             )
             parseLi(
                 "Wochenansicht",
