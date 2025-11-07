@@ -91,8 +91,9 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
         check(next is DataNode) { next }
         // https://github.com/JetBrains/intellij-community/blob/master/java/java-runtime/src/com/intellij/rt/execution/testFrameworks/AbstractExpectedPatterns.java#L10
         // https://github.com/JetBrains/intellij-community/blob/master/plugins/junit_rt/src/com/intellij/junit4/ExpectedPatterns.java
+        // /home/moritz/Documents/intellij-community/plugins/gradle/java/src/execution/test/runner/events/AssertionMessageParser.kt
         check(next.getWholeData().hashedWithSha256() == hash) {
-            "ewfwe expected:<abc> but was:<def>"
+            "Mismatched Hash ${next.getWholeData()} expected:<${hash}> but was:<${next.getWholeData().hashedWithSha256()}>"
         }
     }
 
