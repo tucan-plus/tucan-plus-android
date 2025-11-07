@@ -89,10 +89,10 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
         check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is DataNode) { next }
+        // https://github.com/JetBrains/intellij-community/blob/master/java/java-runtime/src/com/intellij/rt/execution/testFrameworks/AbstractExpectedPatterns.java#L10
+        // https://github.com/JetBrains/intellij-community/blob/master/plugins/junit_rt/src/com/intellij/junit4/ExpectedPatterns.java
         check(next.getWholeData().hashedWithSha256() == hash) {
-            "${
-                next.getWholeData().hashedWithSha256()
-            } $${next.getWholeData()}$"
+            "ewfwe expected:<abc> but was:<def>"
         }
     }
 
