@@ -724,13 +724,13 @@ object Common {
             localizer.vorlesungsverzeichnis,
             localizer.vorlesungsverzeichnis_id
         ) {
-            parseVV(sessionId, 327, 387, 464)
+            parseVV(localizer, sessionId, localizer.course_search_id, localizer.room_search_id, localizer.archive_id)
         }
 
         parseLiWithChildren(
-            "Stundenplan",
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N000268,-A,-A,-N1",
-            268
+            localizer.schedule,
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule_id.toString().padStart(6, '0')},-A,-A,-N1",
+            localizer.schedule_id
         ) {
             parseLi(
                 "Tagesansicht",
@@ -924,7 +924,7 @@ object Common {
             ul {
                 attribute("class", "nav depth_2 linkItemContainer")
 
-                parseVV(sessionId, 335, 385, 463)
+                parseVV(localizer, sessionId, 335, 385, 463)
             }
         }
 
@@ -969,16 +969,16 @@ object Common {
         )
     }
 
-    private fun Body.parseVV(sessionId: String, id1: Int, id2: Int, id3: Int) {
+    private fun Body.parseVV(localizer: Localizer, sessionId: String, course_search_id: Int, room_search_id: Int, archive_id: Int) {
         parseLiHref(
-            "Lehrveranstaltungssuche",
-            id1
+            localizer.course_search,
+            course_search_id
         )
 
         parseLi(
-            "Raumsuche",
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SEARCHROOM&ARGUMENTS=-N$sessionId,-N000$id2,",
-            id2
+            localizer.room_search,
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SEARCHROOM&ARGUMENTS=-N$sessionId,-N000$room_search_id,",
+            room_search_id
         )
         while (peek()?.attr("class")
                 ?.trim() == "intern depth_2 linkItem"
@@ -1000,18 +1000,18 @@ object Common {
                 "class",
                 "tree depth_2 linkItem branchLinkItem"
             )
-            attribute("title", "Archiv")
-            attribute("id", "link000$id3")
+            attribute("title", localizer.archive)
+            attribute("id", "link000$archive_id")
             a {
                 attribute(
                     "class",
-                    "depth_2 link000$id3 navLink branchLink"
+                    "depth_2 link000$archive_id navLink branchLink"
                 )
                 attribute(
                     "href",
-                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000$id3,-Avvarchivstart%2Ehtml"
+                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000$archive_id,-Avvarchivstart%2Ehtml"
                 )
-                text("Archiv")
+                text(localizer.archive)
             }
 
             ul {

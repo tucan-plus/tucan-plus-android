@@ -13,6 +13,14 @@ interface Localizer {
     val messages_id: Int
     val vorlesungsverzeichnis: String
     val vorlesungsverzeichnis_id: Int
+    val course_search: String
+    val course_search_id: Int
+    val room_search: String
+    val room_search_id: Int
+    val archive: String
+    val archive_id: Int
+    val schedule: String
+    val schedule_id: Int
 }
 
 object GermanLocalizer : Localizer {
@@ -39,6 +47,22 @@ object GermanLocalizer : Localizer {
         get() = "VV"
     override val vorlesungsverzeichnis_id: Int
         get() = 326
+    override val course_search: String
+        get() = "Lehrveranstaltungssuche"
+    override val course_search_id: Int
+        get() = 327
+    override val room_search: String
+        get() = "Raumsuche"
+    override val room_search_id: Int
+        get() = 387
+    override val archive: String
+        get() = "Archiv"
+    override val archive_id: Int
+        get() = 464
+    override val schedule: String
+        get() = "Stundenplan"
+    override val schedule_id: Int
+        get() = 268
 }
 
 object EnglishLocalizer : Localizer {
@@ -65,5 +89,21 @@ object EnglishLocalizer : Localizer {
         get() = "Course Catalogue"
     override val vorlesungsverzeichnis_id: Int
         get() = 352
+    override val course_search: String
+        get() = "Course Search"
+    override val course_search_id: Int
+        get() = 353
+    override val room_search: String
+        get() = "Room Search"
+    override val room_search_id: Int
+        get() = 388
+    override val archive: String
+        get() = "Archive"
+    override val archive_id: Int
+        get() = 484
+    override val schedule: String
+        get() = "Schedule"
+    override val schedule_id: Int
+        get() = 54
 
 }
