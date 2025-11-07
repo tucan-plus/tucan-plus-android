@@ -410,8 +410,8 @@ object Common {
                                         )
                                         attribute("id", "logoutButton")
                                         attribute("class", "img img_arrowLogout logout")
-                                        attribute("title", "Abmelden")
-                                        text("Abmelden")
+                                        attribute("title", localizer.logout)
+                                        text(localizer.logout)
                                     }
                                 }
                             }
@@ -588,7 +588,7 @@ object Common {
                                         span {
                                             attribute("class", "loginDataLoggedAs")
                                             b {
-                                                text("Sie sind angemeldet als")
+                                                text(localizer.youre_logged_in_as)
                                                 span { attribute("class", "colon"); text(":") }
                                             }
                                         }
@@ -604,7 +604,7 @@ object Common {
                                         span {
                                             attribute("class", "loginDataDate")
                                             b {
-                                                text("am")
+                                                text(localizer.on)
                                                 span {
                                                     attribute("class", "colon")
                                                     text(":")
@@ -615,7 +615,7 @@ object Common {
                                         span {
                                             attribute("class", "loginDataTime")
                                             b {
-                                                text("um")
+                                                text(localizer.at)
                                                 span {
                                                     attribute("class", "colon time_colon")
                                                     text(":")

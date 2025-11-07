@@ -5,6 +5,7 @@ data class TextAndId(val text: String, val id: Int) {
 }
 
 sealed interface Localizer {
+    val at: String
     val language: String
     val javascript_message: String
     val imprint: String
@@ -56,9 +57,14 @@ sealed interface Localizer {
     val other_language_id: String
     val other_language_css: String
     val other_language: String
+    val logout: String
+    val youre_logged_in_as: String
+    val on: String
 }
 
 object GermanLocalizer : Localizer {
+    override val at: String
+        get() = "um"
     override val language: String get() = "de"
     override val javascript_message: String get() = "Für maximale Nutzerfreundlichkeit empfehlen wir, die Ausführung von JavaScript und Cookies zu erlauben.Mithilfe der folgenden Accesskeys können Sie im Portal navigieren:"
     override val imprint: String get() = "Impressum"
@@ -115,9 +121,17 @@ object GermanLocalizer : Localizer {
         get() = "img_LangEnglish"
     override val other_language: String
         get() = "English"
+    override val logout: String
+        get() = "Abmelden"
+    override val youre_logged_in_as: String
+        get() = "Sie sind angemeldet als"
+    override val on: String
+        get() = "am"
 }
 
 object EnglishLocalizer : Localizer {
+    override val at: String
+        get() = "on"
     override val language: String get() = "en"
     override val javascript_message: String get() = "We recommend to enable JavaScript and cookies for maximum usability of these pages. With the following access keys you can navigate through the portal:"
     override val imprint: String get() = "Imprint"
@@ -174,5 +188,11 @@ object EnglishLocalizer : Localizer {
         get() = "img_LangGerman"
     override val other_language: String
         get() = "Deutsch"
+    override val logout: String
+        get() = "log out"
+    override val youre_logged_in_as: String
+        get() = "You are logged in as"
+    override val on: String
+        get() = "on"
 
 }

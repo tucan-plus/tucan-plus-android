@@ -57,7 +57,7 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
                     key,
                     value
                 )
-            ) {  "Mismatched Attribute expected:<${Attribute.createFromEncoded(key, value)}> but was:<${attribute}>" }
+            ) {  "Mismatched attribute expected:<${Attribute.createFromEncoded(key, value)}> but was:<${attribute}>" }
         }
     }
 
@@ -82,7 +82,7 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
         check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is TextNode) { next }
-        check(next.text().trim() == text) { "actual   $${next.text().trim()}$\nexpected $${text}$" }
+        check(next.text().trim() == text) { "Mismatched text expected:<${text}> but was:<${next.text().trim()}>" }
     }
 
     fun dataHash(hash: String) {
