@@ -710,32 +710,32 @@ object Common {
 
     fun Body.parseLoggedInNavigation(localizer: Localizer, sessionId: String) {
         parseLiWithChildren(
-            localizer.my_tucan,
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N$sessionId,-N${localizer.my_tucan_id.toString().padStart(6, '0')},",
-            localizer.my_tucan_id
+            localizer.my_tucan.text,
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N$sessionId,-N${localizer.my_tucan.id6()},",
+            localizer.my_tucan.id
         ) {
             parseLiHref(
-                localizer.messages,
-                localizer.messages_id
+                localizer.messages.text,
+                localizer.messages.id
             )
         }
 
         parseLiWithChildrenHref(
-            localizer.vorlesungsverzeichnis,
-            localizer.vorlesungsverzeichnis_id
+            localizer.vorlesungsverzeichnis.text,
+            localizer.vorlesungsverzeichnis.id
         ) {
-            parseVV(localizer, sessionId, localizer.course_search_id, localizer.room_search_id, localizer.archive_id)
+            parseVV(localizer, sessionId, localizer.course_search.id, localizer.room_search.id, localizer.archive.id)
         }
 
         parseLiWithChildren(
-            localizer.schedule,
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule_id.toString().padStart(6, '0')},-A,-A,-N1",
-            localizer.schedule_id
+            localizer.schedule.text,
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule.id6()},-A,-A,-N1",
+            localizer.schedule.id
         ) {
             parseLi(
-                localizer.schedule_day,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule_day_id.toString().padStart(6, '0')},-A,-A,-N0",
-                localizer.schedule_day_id
+                localizer.schedule_day.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule_day.id6()},-A,-A,-N0",
+                localizer.schedule_day.id
             )
             parseLi(
                 localizer.schedule_week.text,
@@ -971,12 +971,12 @@ object Common {
 
     private fun Body.parseVV(localizer: Localizer, sessionId: String, course_search_id: Int, room_search_id: Int, archive_id: Int) {
         parseLiHref(
-            localizer.course_search,
+            localizer.course_search.text,
             course_search_id
         )
 
         parseLi(
-            localizer.room_search,
+            localizer.room_search.text,
             "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SEARCHROOM&ARGUMENTS=-N$sessionId,-N000$room_search_id,",
             room_search_id
         )
@@ -1000,7 +1000,7 @@ object Common {
                 "class",
                 "tree depth_2 linkItem branchLinkItem"
             )
-            attribute("title", localizer.archive)
+            attribute("title", localizer.archive.text)
             attribute("id", "link000$archive_id")
             a {
                 attribute(
@@ -1011,7 +1011,7 @@ object Common {
                     "href",
                     "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000$archive_id,-Avvarchivstart%2Ehtml"
                 )
-                text(localizer.archive)
+                text(localizer.archive.text)
             }
 
             ul {
