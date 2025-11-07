@@ -57,7 +57,7 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
                     key,
                     value
                 )
-            ) { "actual   ${attribute}\nexpected ${Attribute.createFromEncoded(key, value)}" }
+            ) {  "Mismatched Attribute expected:<${Attribute.createFromEncoded(key, value)}> but was:<${attribute}>" }
         }
     }
 

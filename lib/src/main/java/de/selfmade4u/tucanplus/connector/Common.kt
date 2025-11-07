@@ -721,8 +721,8 @@ object Common {
         }
 
         parseLiWithChildrenHref(
-            "VV",
-            326
+            localizer.vorlesungsverzeichnis,
+            localizer.vorlesungsverzeichnis_id
         ) {
             parseVV(sessionId, 327, 387, 464)
         }

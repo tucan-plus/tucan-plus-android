@@ -11,6 +11,8 @@ interface Localizer {
     val my_tucan_id: Int
     val messages: String
     val messages_id: Int
+    val vorlesungsverzeichnis: String
+    val vorlesungsverzeichnis_id: Int
 }
 
 object GermanLocalizer : Localizer {
@@ -33,6 +35,10 @@ object GermanLocalizer : Localizer {
         get() = "Nachrichten"
     override val messages_id: Int
         get() = 299
+    override val vorlesungsverzeichnis: String
+        get() = "VV"
+    override val vorlesungsverzeichnis_id: Int
+        get() = 326
 }
 
 object EnglishLocalizer : Localizer {
@@ -55,5 +61,9 @@ object EnglishLocalizer : Localizer {
         get() = "Messages"
     override val messages_id: Int
         get() = 351
+    override val vorlesungsverzeichnis: String
+        get() = "Course Catalogue"
+    override val vorlesungsverzeichnis_id: Int
+        get() = 352
 
 }
