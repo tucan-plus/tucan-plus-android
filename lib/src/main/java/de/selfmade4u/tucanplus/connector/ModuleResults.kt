@@ -377,11 +377,11 @@ object ModuleResults {
 
                     thead {
                         tr {
-                            td { attribute("class", "tbsubhead"); text("Nr.") }
-                            td { attribute("class", "tbsubhead"); text("Kursname") }
-                            td { attribute("class", "tbsubhead"); text("Endnote") }
-                            td { attribute("class", "tbsubhead"); text("Credits") }
-                            td { attribute("class", "tbsubhead"); text("Status") }
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_no) }
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_course_name)}
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_final_grade) }
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_credits) }
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_status) }
                             td {
                                 attribute("class", "tbsubhead")
                                 attribute("colspan", "2")
@@ -425,7 +425,7 @@ object ModuleResults {
                                         resultdetailsUrl = attributeValue(
                                             "href",
                                         )
-                                        text("Prüfungen")
+                                        text(localizer.module_results_exams)
                                     }
                                     script {
                                         attribute("type", "text/javascript")
@@ -440,7 +440,7 @@ object ModuleResults {
                                             "href",
                                         )
                                         attribute("class", "link")
-                                        attribute("title", "Notenspiegel")
+                                        attribute("title", localizer.module_results_grade_statistics)
                                         b { text("Ø") }
                                     }
                                     script {
@@ -464,7 +464,7 @@ object ModuleResults {
                         tr {
                             th {
                                 attribute("colspan", "2")
-                                text("Semester-GPA")
+                                text(localizer.module_results_semester_gpa)
                             }
                             th {
                                 attribute("class", "tbdata")

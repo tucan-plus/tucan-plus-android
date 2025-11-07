@@ -62,7 +62,16 @@ sealed interface Localizer {
     val logout: String
     val youre_logged_in_as: String
     val on: String
+    val module_results_no: String
+    val module_results_course_name: String
+    val module_results_final_grade: String
+    val module_results_credits: String
+    val module_results_status: String
+    val module_results_exams: String
+    val module_results_grade_statistics: String
+    val module_results_semester_gpa: String
 }
+
 
 object GermanLocalizer : Localizer {
     override val refresh: String get() = "Aktualisieren"
@@ -122,6 +131,22 @@ object GermanLocalizer : Localizer {
     override val logout: String get() = "Abmelden"
     override val youre_logged_in_as: String get() = "Sie sind angemeldet als"
     override val on: String get() = "am"
+    override val module_results_no: String
+        get() = "Nr."
+    override val module_results_course_name: String
+        get() = "Kursname"
+    override val module_results_final_grade: String
+        get() = "Endnote"
+    override val module_results_credits: String
+        get() = "Credits"
+    override val module_results_status: String
+        get() = "Status"
+    override val module_results_exams: String
+        get() = "Prüfungen"
+    override val module_results_grade_statistics: String
+        get() = "Notenspiegel"
+    override val module_results_semester_gpa: String
+        get() = "Semester-GPA"
 }
 
 object EnglishLocalizer : Localizer {
@@ -182,5 +207,21 @@ object EnglishLocalizer : Localizer {
     override val logout: String get() = "log out"
     override val youre_logged_in_as: String get() = "You are logged in as"
     override val on: String get() = "on"
+    override val module_results_no: String
+        get() = "No."
+    override val module_results_course_name: String
+        get() = "Course name"
+    override val module_results_final_grade: String
+        get() = "Final grade"
+    override val module_results_credits: String
+        get() = "Credits"
+    override val module_results_status: String
+        get() = "Status"
+    override val module_results_exams: String
+        get() = "Exams"
+    override val module_results_grade_statistics: String
+        get() = "Grade statistics"
+    override val module_results_semester_gpa: String
+        get() = "Semester GPA"
 
 }
