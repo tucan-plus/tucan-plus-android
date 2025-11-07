@@ -62,7 +62,7 @@ object ModuleResults {
         return fetchAuthenticatedWithReauthentication(
             credentialSettingsDataStore,
             { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," },
-            parser = ::parseModuleResponse
+            parser = { a, b -> parseModuleResponse("000324", a, b) }
         )
     }
 
@@ -169,7 +169,7 @@ object ModuleResults {
         suspend fun getForModuleResult(moduleResultId: Long): List<Module>
     }
 
-    suspend fun parseModuleResponse(sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+    suspend fun parseModuleResponse(menuId: String, sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
         return response(response) {
             status(HttpStatusCode.OK)
             header(
@@ -202,28 +202,29 @@ object ModuleResults {
                 ignoreHeader("content-length")
             }
             root {
-                parseModuleResults(sessionId)
+                parseModuleResults(menuId, sessionId)
             }
         }
     }
 
-    fun Root.parseModuleResults(sessionId: String): ParserResponse<ModuleResultsResponse> {
+    fun Root.parseModuleResults(menuId: String, sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null
-        val response = parseBase(sessionId, "000324", {
+        // menu id changes depending on language
+        val response = parseBase(sessionId, menuId, {
             if (peek() != null) {
                 style {
                     attribute("type", "text/css")
-                    dataHash("8359c082fbd232a6739e5e2baec433802e3a0e2121ff2ff7d5140de3955fa905")
+                    extractData()
                 }
                 style {
                     attribute("type", "text/css")
-                    dataHash("c7cbaeb4c3ca010326679083d945831e5a08d230c5542d335e297a524f1e9b61")
+                    extractData()
                 }
                 style {
                     attribute("type", "text/css")
-                    dataHash("7fa9b301efd5a3e8f3a1c11c4283cbcf24ab1d7090b1bad17e8246e46bc31c45")
+                    extractData()
                 }
             } else {
                 print("not the normal page")

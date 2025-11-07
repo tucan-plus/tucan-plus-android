@@ -28,7 +28,7 @@ class ModuleResultsTest {
 
         runBlocking {
             val result = root(doc) {
-                parseModuleResults("183985067121045")
+                parseModuleResults("000324", "183985067121045")
             }
             print(result)
         }
@@ -45,7 +45,7 @@ class ModuleResultsTest {
 
         runBlocking {
             val result = root(doc) {
-                parseModuleResults("183985067121045")
+                parseModuleResults("000363", "059144925859855")
             }
             print(result)
         }
