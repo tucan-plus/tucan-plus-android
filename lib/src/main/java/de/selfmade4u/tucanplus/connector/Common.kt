@@ -734,13 +734,13 @@ object Common {
         ) {
             parseLi(
                 localizer.schedule_day,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N000269,-A,-A,-N0",
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule_day_id.toString().padStart(6, '0')},-A,-A,-N0",
                 localizer.schedule_day_id
             )
             parseLi(
-                "Wochenansicht",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N000270,-A,-A,-N1",
-                270
+                localizer.schedule_week.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule_week.id6()},-A,-A,-N1",
+                localizer.schedule_week.id
             )
             parseLi(
                 "Monatsansicht",

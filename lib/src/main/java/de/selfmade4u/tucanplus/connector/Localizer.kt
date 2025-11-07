@@ -1,5 +1,11 @@
 package de.selfmade4u.tucanplus.connector
 
+data class TextAndId(val text: String, val id: Int) {
+    fun id6() {
+        id.toString().padStart(6, '0')
+    }
+}
+
 interface Localizer {
     val language: String
     val javascript_message: String
@@ -23,6 +29,9 @@ interface Localizer {
     val schedule_id: Int
     val schedule_day: String
     val schedule_day_id: Int
+    val schedule_week: TextAndId
+    val schedule_month: TextAndId
+    val schedule_export: TextAndId
 }
 
 object GermanLocalizer : Localizer {
@@ -48,6 +57,13 @@ object GermanLocalizer : Localizer {
     override val schedule_id: Int get() = 268
     override val schedule_day: String get() = "Tagesansicht"
     override val schedule_day_id: Int get() = 269
+    override val schedule_week: TextAndId
+        get() = TextAndId("Wochenansicht", 270)
+    override val schedule_month: TextAndId
+        get() = TODO("Not yet implemented")
+    override val schedule_export: TextAndId
+        get() = TODO("Not yet implemented")
+
 }
 
 object EnglishLocalizer : Localizer {
@@ -72,6 +88,13 @@ object EnglishLocalizer : Localizer {
     override val schedule: String get() = "Schedule"
     override val schedule_id: Int get() = 54
     override val schedule_day: String get() = "Days"
-    override val schedule_day_id: Int get() = TODO("Not yet implemented")
+    override val schedule_day_id: Int get() = 55
+    override val schedule_week: TextAndId
+        get() = TODO("Not yet implemented")
+    override val schedule_month: TextAndId
+        get() = TODO("Not yet implemented")
+    override val schedule_export: TextAndId
+        get() = TODO("Not yet implemented")
+
 
 }
