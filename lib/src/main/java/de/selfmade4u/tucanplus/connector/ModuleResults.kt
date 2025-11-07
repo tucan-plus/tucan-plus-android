@@ -283,7 +283,7 @@ object ModuleResults {
                                     attribute("name", "semester")
                                     attribute(
                                         "onchange",
-                                        "reloadpage.createUrlAndReload('/scripts/mgrqispi.dll','CampusNet','COURSERESULTS','$sessionId','000324','-N'+this.value);"
+                                        "reloadpage.createUrlAndReload('/scripts/mgrqispi.dll','CampusNet','COURSERESULTS','$sessionId','$menuId','-N'+this.value);"
                                     )
                                     attribute("class", "tabledata")
 
@@ -333,7 +333,7 @@ object ModuleResults {
                                 input {
                                     attribute("name", "Refresh")
                                     attribute("type", "submit")
-                                    attribute("value", "Aktualisieren")
+                                    attribute("value", localizer.refresh)
                                     attribute("class", "img img_arrowReload")
                                 }
                             }
@@ -366,7 +366,7 @@ object ModuleResults {
                         input {
                             attribute("name", "menuno"); attribute("type", "hidden"); attribute(
                             "value",
-                            "000324"
+                            menuId
                         )
                         }
                     }

@@ -5,6 +5,7 @@ data class TextAndId(val text: String, val id: Int) {
 }
 
 sealed interface Localizer {
+    val refresh: String
     val choose_semester: String
     val at: String
     val language: String
@@ -64,10 +65,9 @@ sealed interface Localizer {
 }
 
 object GermanLocalizer : Localizer {
-    override val choose_semester: String
-        get() = "Wählen Sie ein Semester"
-    override val at: String
-        get() = "um"
+    override val refresh: String get() = "Aktualisieren"
+    override val choose_semester: String get() = "Wählen Sie ein Semester"
+    override val at: String get() = "um"
     override val language: String get() = "de"
     override val javascript_message: String get() = "Für maximale Nutzerfreundlichkeit empfehlen wir, die Ausführung von JavaScript und Cookies zu erlauben.Mithilfe der folgenden Accesskeys können Sie im Portal navigieren:"
     override val imprint: String get() = "Impressum"
@@ -114,29 +114,20 @@ object GermanLocalizer : Localizer {
     override val application_welcome: TextAndId get() = TextAndId("Herzlich Willkommen",442)
     override val my_application: TextAndId get() = TextAndId("Meine Bewerbung",443)
     override val application_my_documents: TextAndId get() = TextAndId("Meine Dokumente",444)
-    override val help: TextAndId
-        get() = TextAndId("Hilfe", 340)
-    override val help_html: String
-        get() = "hilfe%2Ehtml"
-    override val other_language_id: String
-        get() = "002"
-    override val other_language_css: String
-        get() = "img_LangEnglish"
-    override val other_language: String
-        get() = "English"
-    override val logout: String
-        get() = "Abmelden"
-    override val youre_logged_in_as: String
-        get() = "Sie sind angemeldet als"
-    override val on: String
-        get() = "am"
+    override val help: TextAndId get() = TextAndId("Hilfe", 340)
+    override val help_html: String get() = "hilfe%2Ehtml"
+    override val other_language_id: String get() = "002"
+    override val other_language_css: String get() = "img_LangEnglish"
+    override val other_language: String get() = "English"
+    override val logout: String get() = "Abmelden"
+    override val youre_logged_in_as: String get() = "Sie sind angemeldet als"
+    override val on: String get() = "am"
 }
 
 object EnglishLocalizer : Localizer {
-    override val choose_semester: String
-        get() = "Choose a semester"
-    override val at: String
-        get() = "on"
+    override val refresh: String get() = "Refresh"
+    override val choose_semester: String get() = "Choose a semester"
+    override val at: String get() = "on"
     override val language: String get() = "en"
     override val javascript_message: String get() = "We recommend to enable JavaScript and cookies for maximum usability of these pages. With the following access keys you can navigate through the portal:"
     override val imprint: String get() = "Imprint"
@@ -183,21 +174,13 @@ object EnglishLocalizer : Localizer {
     override val application_welcome: TextAndId get() = TextAndId("Welcome",516)
     override val my_application: TextAndId get() = TextAndId("My Application",517)
     override val application_my_documents: TextAndId get() = TextAndId("My Documents",518)
-    override val help: TextAndId
-        get() = TextAndId("Help", 382)
-    override val help_html: String
-        get() = "edshelp%2Ehtml"
-    override val other_language_id: String
-        get() = "001"
-    override val other_language_css: String
-        get() = "img_LangGerman"
-    override val other_language: String
-        get() = "Deutsch"
-    override val logout: String
-        get() = "log out"
-    override val youre_logged_in_as: String
-        get() = "You are logged in as"
-    override val on: String
-        get() = "on"
+    override val help: TextAndId get() = TextAndId("Help", 382)
+    override val help_html: String get() = "edshelp%2Ehtml"
+    override val other_language_id: String get() = "001"
+    override val other_language_css: String get() = "img_LangGerman"
+    override val other_language: String get() = "Deutsch"
+    override val logout: String get() = "log out"
+    override val youre_logged_in_as: String get() = "You are logged in as"
+    override val on: String get() = "on"
 
 }
