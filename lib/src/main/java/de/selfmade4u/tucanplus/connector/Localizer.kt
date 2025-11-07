@@ -4,7 +4,7 @@ data class TextAndId(val text: String, val id: Int) {
     fun id6(): String = id.toString().padStart(6, '0')
 }
 
-interface Localizer {
+sealed interface Localizer {
     val language: String
     val javascript_message: String
     val imprint: String
@@ -53,6 +53,9 @@ interface Localizer {
     val application_my_documents: TextAndId
     val help: TextAndId
     val help_html: String
+    val other_language_id: String
+    val other_language_css: String
+    val other_language: String
 }
 
 object GermanLocalizer : Localizer {
@@ -106,6 +109,12 @@ object GermanLocalizer : Localizer {
         get() = TextAndId("Hilfe", 340)
     override val help_html: String
         get() = "hilfe%2Ehtml"
+    override val other_language_id: String
+        get() = "002"
+    override val other_language_css: String
+        get() = "img_LangEnglish"
+    override val other_language: String
+        get() = "English"
 }
 
 object EnglishLocalizer : Localizer {
@@ -159,5 +168,11 @@ object EnglishLocalizer : Localizer {
         get() = TextAndId("Help", 382)
     override val help_html: String
         get() = "edshelp%2Ehtml"
+    override val other_language_id: String
+        get() = "001"
+    override val other_language_css: String
+        get() = "img_LangGerman"
+    override val other_language: String
+        get() = "Deutsch"
 
 }

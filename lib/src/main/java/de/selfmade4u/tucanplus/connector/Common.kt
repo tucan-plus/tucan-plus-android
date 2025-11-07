@@ -395,11 +395,11 @@ object Common {
                                 a {
                                     attribute(
                                         "href",
-                                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N${if (sessionId == "000000000000001") "000000000000002" else sessionId},-N002"
+                                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N${if (sessionId == "000000000000001") "000000000000002" else sessionId},-N${localizer.other_language_id}"
                                     ); attribute(
                                     "class",
-                                    "img img_LangEnglish pageElementLeft"
-                                ); attribute("title", "English"); text("English")
+                                    "img ${localizer.other_language_css} pageElementLeft"
+                                ); attribute("title", localizer.other_language); text(localizer.other_language)
                                 }
 
                                 if (sessionId != "000000000000001") {
