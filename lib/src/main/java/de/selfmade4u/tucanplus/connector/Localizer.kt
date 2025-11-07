@@ -29,6 +29,14 @@ interface Localizer {
     val my_elective_subjects: TextAndId
     val registration: TextAndId
     val my_current_registrations: TextAndId
+    val examinations: TextAndId
+    val examinations_html: String
+    val my_examinations: TextAndId
+    val my_examination_schedule: TextAndId
+    val my_examination_schedule_important_notes: TextAndId
+    val my_examination_schedule_important_notes_html: String
+    val semester_results: TextAndId
+    val semester_results_html: String
 }
 
 object GermanLocalizer : Localizer {
@@ -56,6 +64,16 @@ object GermanLocalizer : Localizer {
     override val my_elective_subjects: TextAndId get() = TextAndId("Meine Wahlbereiche",307)
     override val registration: TextAndId get() = TextAndId("Anmeldung",311)
     override val my_current_registrations: TextAndId get() = TextAndId("Mein aktueller Anmeldestatus",308)
+    override val examinations: TextAndId get() = TextAndId("Prüfungen",280)
+    override val examinations_html: String get() = "studpruefungen%2Ehtml"
+    override val my_examinations: TextAndId get() = TextAndId("Meine Prüfungen",318)
+    override val my_examination_schedule: TextAndId get() = TextAndId("Mein Prüfungsplan",389)
+    override val my_examination_schedule_important_notes: TextAndId get() = TextAndId("Wichtige Hinweise",391)
+    override val my_examination_schedule_important_notes_html: String get() = "studplan%2Ehtml"
+    override val semester_results: TextAndId
+        get() = TextAndId("Semesterergebnisse",323)
+    override val semester_results_html: String
+        get() = "studergebnis%2Ehtml"
 
 }
 
@@ -84,6 +102,15 @@ object EnglishLocalizer : Localizer {
     override val my_elective_subjects: TextAndId get() = TextAndId("My Elective Subjects",357)
     override val registration: TextAndId get() = TextAndId("Registration",358)
     override val my_current_registrations: TextAndId get() = TextAndId("My Current Registrations",359)
-
+    override val examinations: TextAndId get() = TextAndId("Examinations",360)
+    override val examinations_html: String get() = "estexams%2Ehtml"
+    override val my_examinations: TextAndId get() = TextAndId("My Examinations",361)
+    override val my_examination_schedule: TextAndId get() = TextAndId("My Examination Schedule",390)
+    override val my_examination_schedule_important_notes: TextAndId get() = TextAndId("Important notes",392)
+    override val my_examination_schedule_important_notes_html: String get() = "estplan%2Ehtml"
+    override val semester_results: TextAndId
+        get() = TextAndId("Semester Results",362)
+    override val semester_results_html: String
+        get() = "estresult%2Ehtml"
 
 }

@@ -732,22 +732,10 @@ object Common {
             "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule.id6()},-A,-A,-N1",
             localizer.schedule.id
         ) {
-            parseLi(
-                localizer.schedule_day,
-                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N$id6,-A,-A,-N0" }
-            )
-            parseLi(
-                localizer.schedule_week,
-                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N$id6,-A,-A,-N1" }
-            )
-            parseLi(
-                localizer.schedule_month,
-                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N$sessionId,-N$id6,-A" }
-            )
-            parseLi(
-                localizer.schedule_export,
-                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N$sessionId,-N$id6," }
-            )
+            parseLi(localizer.schedule_day) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N$id6,-A,-A,-N0" }
+            parseLi(localizer.schedule_week) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N$id6,-A,-A,-N1" }
+            parseLi(localizer.schedule_month) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N$sessionId,-N$id6,-A" }
+            parseLi(localizer.schedule_export) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N$sessionId,-N$id6," }
         }
 
         parseLiWithChildren(
@@ -755,55 +743,36 @@ object Common {
             "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.courses.id6()},-A${localizer.courses_html}",
             localizer.courses.id
         ) {
-            parseLi(
-                localizer.my_modules,
-                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N$sessionId,-N$id6," }
-            )
-            parseLi(
-                localizer.my_courses,
-                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N$id6," }
-            )
-            parseLi(
-                localizer.my_elective_subjects,
-                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N$sessionId,-N$id6," }
-            )
-            parseLi(
-                localizer.registration,
-                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N$sessionId,-N$id6,-A" }
-            )
-            parseLi(
-                localizer.my_current_registrations,
-                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N$sessionId,-N$id6,-N000000000000000" }
-            )
+            parseLi(localizer.my_modules) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N$sessionId,-N$id6," }
+            parseLi(localizer.my_courses) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N$id6," }
+            parseLi(localizer.my_elective_subjects) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N$sessionId,-N$id6," }
+            parseLi(localizer.registration) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N$sessionId,-N$id6,-A" }
+            parseLi(localizer.my_current_registrations) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N$sessionId,-N$id6,-N000000000000000" }
         }
 
         parseLiWithChildren(
-            "Prüfungen",
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000280,-Astudpruefungen%2Ehtml",
-            280
+            localizer.examinations.text,
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.examinations.id6()},-A${localizer.examinations_html}",
+            localizer.examinations.id
         ) {
-            parseLi(
-                "Meine Prüfungen",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N$sessionId,-N000318,",
-                318
-            )
+            parseLi(localizer.my_examinations) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N$sessionId,-N$id6," }
             parseLiWithChildren(
-                "Mein Prüfungsplan",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N$sessionId,-N000389,",
-                389,
+                localizer.my_examination_schedule.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N$sessionId,-N${localizer.my_examination_schedule.id6()},",
+                localizer.my_examination_schedule.id,
                 depth = 2
             ) {
                 parseLi(
-                    "Wichtige Hinweise",
-                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000391,-Astudplan%2Ehtml",
-                    391,
+                    localizer.my_examination_schedule_important_notes.text,
+                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.my_examination_schedule_important_notes.id6()},-A${localizer.my_examination_schedule_important_notes_html}",
+                    localizer.my_examination_schedule_important_notes.id,
                     depth = 3
                 )
             }
             parseLiWithChildren(
-                "Semesterergebnisse",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000323,-Astudergebnis%2Ehtml",
-                323,
+                localizer.semester_results.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.semester_results.id6()},-A${localizer.semester_results_html}",
+                localizer.semester_results.id,
                 depth = 2,
             ) {
                 parseLi(
@@ -1048,8 +1017,8 @@ object Common {
         }
     }
 
-    private fun Body.parseLi(name: TextAndId, url: (id6: String) -> String, depth: Int = 2) {
-        parseLi(name.text, url(name.id6()), name.id, depth)
+    private fun Body.parseLi(name: TextAndId, url: (id6: String) -> String) {
+        parseLi(name.text, url(name.id6()), name.id)
     }
 
     private fun Body.parseLiHref(name: String, id: Int, depth: Int = 2): String {
