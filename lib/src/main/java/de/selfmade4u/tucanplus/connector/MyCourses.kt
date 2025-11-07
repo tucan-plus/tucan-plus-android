@@ -104,7 +104,7 @@ object MyCourses {
             } else {
                 print("not the normal page")
             }
-        }) { pageType ->
+        }) { localizer, pageType ->
             if (pageType == "timeout") {
                 script {
                     attribute("type", "text/javascript")

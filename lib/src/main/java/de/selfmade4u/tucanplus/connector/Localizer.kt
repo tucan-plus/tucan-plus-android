@@ -5,6 +5,7 @@ data class TextAndId(val text: String, val id: Int) {
 }
 
 sealed interface Localizer {
+    val choose_semester: String
     val at: String
     val language: String
     val javascript_message: String
@@ -63,6 +64,8 @@ sealed interface Localizer {
 }
 
 object GermanLocalizer : Localizer {
+    override val choose_semester: String
+        get() = "Wählen Sie ein Semester"
     override val at: String
         get() = "um"
     override val language: String get() = "de"
@@ -130,6 +133,8 @@ object GermanLocalizer : Localizer {
 }
 
 object EnglishLocalizer : Localizer {
+    override val choose_semester: String
+        get() = "Choose a semester"
     override val at: String
         get() = "on"
     override val language: String get() = "en"

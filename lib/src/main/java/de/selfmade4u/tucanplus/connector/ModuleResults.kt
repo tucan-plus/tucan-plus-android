@@ -229,7 +229,7 @@ object ModuleResults {
             } else {
                 print("not the normal page")
             }
-        }) { pageType ->
+        }) { localizer, pageType ->
             if (pageType == "timeout") {
                 script {
                     attribute("type", "text/javascript")
@@ -267,7 +267,7 @@ object ModuleResults {
 
                         div {
                             attribute("class", "tbsubhead")
-                            text("Wählen Sie ein Semester")
+                            text(localizer.choose_semester)
                         }
 
                         div {

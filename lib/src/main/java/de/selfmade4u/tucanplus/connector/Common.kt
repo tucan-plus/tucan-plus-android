@@ -31,7 +31,7 @@ object Common {
         sessionId: String,
         menuId: String,
         headInit: Head.() -> Unit,
-        inner: Body.(pageType: String) -> T
+        inner: Body.(localizer: Localizer, pageType: String) -> T
     ): T {
         var sessionId = sessionId
         var menuId = menuId
@@ -631,7 +631,7 @@ object Common {
                                 "class",
                                 "pageElementTop"
                             )
-                                inner(pageType)
+                                inner(localizer, pageType)
                             }
                         }
                         result
