@@ -756,7 +756,7 @@ object Common {
 
         parseLiWithChildren(
             localizer.courses.text,
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.courses.id6()},-Astudveranst%2Ehtml",
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.courses.id6()},-A${localizer.courses_html}",
             localizer.courses.id
         ) {
             parseLi(
@@ -770,19 +770,19 @@ object Common {
                 localizer.my_courses.id
             )
             parseLi(
-                "Meine Wahlbereiche",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N$sessionId,-N000307,",
-                307
+                localizer.my_elective_subjects.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N$sessionId,-N${localizer.my_elective_subjects.id6()},",
+                localizer.my_elective_subjects.id
             )
             parseLi(
-                "Anmeldung",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N$sessionId,-N000311,-A",
-                311
+                localizer.registration.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N$sessionId,-N${localizer.registration.id6()},-A",
+                localizer.registration.id
             )
             parseLi(
-                "Mein aktueller Anmeldestatus",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N$sessionId,-N000308,-N000000000000000",
-                308
+                localizer.my_current_registrations.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N$sessionId,-N${localizer.my_current_registrations.id6()},-N000000000000000",
+                localizer.my_current_registrations.id
             )
         }
 

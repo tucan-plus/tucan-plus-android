@@ -25,6 +25,10 @@ interface Localizer {
     val courses: TextAndId
     val my_modules: TextAndId
     val my_courses: TextAndId
+    val courses_html: String
+    val my_elective_subjects: TextAndId
+    val registration: TextAndId
+    val my_current_registrations: TextAndId
 }
 
 object GermanLocalizer : Localizer {
@@ -48,6 +52,10 @@ object GermanLocalizer : Localizer {
     override val courses: TextAndId get() = TextAndId("Veranstaltungen", 273)
     override val my_modules: TextAndId get() = TextAndId("Meine Module",275)
     override val my_courses: TextAndId get() = TextAndId("Meine Veranstaltungen",274)
+    override val courses_html: String get() = "studveranst%2Ehtml"
+    override val my_elective_subjects: TextAndId get() = TextAndId("Meine Wahlbereiche",307)
+    override val registration: TextAndId get() = TextAndId("Anmeldung",311)
+    override val my_current_registrations: TextAndId get() = TextAndId("Mein aktueller Anmeldestatus",308)
 
 }
 
@@ -70,8 +78,12 @@ object EnglishLocalizer : Localizer {
     override val schedule_month: TextAndId get() = TextAndId("Month", 57)
     override val schedule_export: TextAndId get() = TextAndId("Export", 354)
     override val courses: TextAndId get() = TextAndId("Courses", 176)
-    override val my_modules: TextAndId get() = TextAndId("Not yet implemented", 2)
-    override val my_courses: TextAndId get() = TextAndId("Not yet implemented", 3)
+    override val my_modules: TextAndId get() = TextAndId("My Modules", 177)
+    override val my_courses: TextAndId get() = TextAndId("My Courses", 356)
+    override val courses_html: String get() = "estcourses%2Ehtml"
+    override val my_elective_subjects: TextAndId get() = TextAndId("My Elective Subjects",357)
+    override val registration: TextAndId get() = TextAndId("Registration",358)
+    override val my_current_registrations: TextAndId get() = TextAndId("My Current Registrations",359)
 
 
 }
