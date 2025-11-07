@@ -37,7 +37,13 @@ interface Localizer {
     val my_examination_schedule_important_notes_html: String
     val semester_results: TextAndId
     val semester_results_html: String
+    val module_results: TextAndId
+    val examination_results: TextAndId
+    val performance_record: TextAndId
+    val service: TextAndId
+    val service_html: String
 }
+
 
 object GermanLocalizer : Localizer {
     override val language: String get() = "de"
@@ -70,10 +76,13 @@ object GermanLocalizer : Localizer {
     override val my_examination_schedule: TextAndId get() = TextAndId("Mein Prüfungsplan",389)
     override val my_examination_schedule_important_notes: TextAndId get() = TextAndId("Wichtige Hinweise",391)
     override val my_examination_schedule_important_notes_html: String get() = "studplan%2Ehtml"
-    override val semester_results: TextAndId
-        get() = TextAndId("Semesterergebnisse",323)
-    override val semester_results_html: String
-        get() = "studergebnis%2Ehtml"
+    override val semester_results: TextAndId get() = TextAndId("Semesterergebnisse",323)
+    override val semester_results_html: String get() = "studergebnis%2Ehtml"
+    override val module_results: TextAndId get() = TextAndId("Modulergebnisse",324)
+    override val examination_results: TextAndId get() = TextAndId("Prüfungsergebnisse",325)
+    override val performance_record: TextAndId get() = TextAndId("Leistungsspiegel", 316)
+    override val service: TextAndId get() = TextAndId("Service",337)
+    override val service_html: String get() = "service%2Ehtml"
 
 }
 
@@ -108,9 +117,12 @@ object EnglishLocalizer : Localizer {
     override val my_examination_schedule: TextAndId get() = TextAndId("My Examination Schedule",390)
     override val my_examination_schedule_important_notes: TextAndId get() = TextAndId("Important notes",392)
     override val my_examination_schedule_important_notes_html: String get() = "estplan%2Ehtml"
-    override val semester_results: TextAndId
-        get() = TextAndId("Semester Results",362)
-    override val semester_results_html: String
-        get() = "estresult%2Ehtml"
+    override val semester_results: TextAndId get() = TextAndId("Semester Results",362)
+    override val semester_results_html: String get() = "estresult%2Ehtml"
+    override val module_results: TextAndId get() = TextAndId("Module Results",363)
+    override val examination_results: TextAndId get() = TextAndId("Examination Results",364)
+    override val performance_record: TextAndId get() = TextAndId("Performance Record",365)
+    override val service: TextAndId get() = TextAndId("Service", 376)
+    override val service_html: String get() = "eservice%2Ehtml"
 
 }

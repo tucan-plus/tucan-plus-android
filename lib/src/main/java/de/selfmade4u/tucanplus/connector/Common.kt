@@ -762,12 +762,7 @@ object Common {
                 localizer.my_examination_schedule.id,
                 depth = 2
             ) {
-                parseLi(
-                    localizer.my_examination_schedule_important_notes.text,
-                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.my_examination_schedule_important_notes.id6()},-A${localizer.my_examination_schedule_important_notes_html}",
-                    localizer.my_examination_schedule_important_notes.id,
-                    depth = 3
-                )
+                parseLi(localizer.my_examination_schedule_important_notes, depth = 3) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N$id6,-A${localizer.my_examination_schedule_important_notes_html}" }
             }
             parseLiWithChildren(
                 localizer.semester_results.text,
@@ -775,30 +770,16 @@ object Common {
                 localizer.semester_results.id,
                 depth = 2,
             ) {
-                parseLi(
-                    "Modulergebnisse",
-                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,",
-                    324,
-                    depth = 3
-                )
-                parseLi(
-                    "Prüfungsergebnisse",
-                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N$sessionId,-N000325,",
-                    325,
-                    depth = 3
-                )
+                parseLi(localizer.module_results, depth = 3) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N$id6," }
+                parseLi(localizer.examination_results, depth = 3) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N$sessionId,-N$id6," }
             }
-            parseLi(
-                "Leistungsspiegel",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N$sessionId,-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000",
-                316
-            )
+            parseLi(localizer.performance_record) { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N$sessionId,-N$id6,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000" }
         }
 
         parseLiWithChildren(
-            "Service",
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000337,-Aservice%2Ehtml",
-            337
+            localizer.service.text,
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.service.id6()},-A${localizer.service_html}",
+            localizer.service.id
         ) {
             parseLi(
                 "Persönliche Daten",
@@ -1017,8 +998,8 @@ object Common {
         }
     }
 
-    private fun Body.parseLi(name: TextAndId, url: (id6: String) -> String) {
-        parseLi(name.text, url(name.id6()), name.id)
+    private fun Body.parseLi(name: TextAndId, depth: Int = 2, url: (id6: String) -> String) {
+        parseLi(name.text, url(name.id6()), name.id, depth)
     }
 
     private fun Body.parseLiHref(name: String, id: Int, depth: Int = 2): String {
