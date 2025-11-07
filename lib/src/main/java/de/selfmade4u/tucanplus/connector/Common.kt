@@ -653,7 +653,7 @@ object Common {
                                     ); attribute(
                                     "class",
                                     "img img_arrowImprint pageElementLeft"
-                                ); attribute("id", "pageFootControl_imp"); text("Impressum")
+                                ); attribute("id", "pageFootControl_imp"); text(localizer.imprint)
                                 }
                                 a {
                                     attribute(
@@ -662,7 +662,7 @@ object Common {
                                     ); attribute(
                                     "class",
                                     "img img_arrowContact pageElementLeft"
-                                ); attribute("id", "pageFootControl_con"); text("Kontakt")
+                                ); attribute("id", "pageFootControl_con"); text(localizer.contact)
                                 }
                                 a {
                                     attribute("href", "#"); attribute(
@@ -671,7 +671,7 @@ object Common {
                                 ); attribute(
                                     "class",
                                     "img img_arrowPrint pageElementLeft"
-                                ); attribute("id", "pageFootControl_pri"); text("Drucken")
+                                ); attribute("id", "pageFootControl_pri"); text(localizer.print)
                                 }
                             }
                             div {
