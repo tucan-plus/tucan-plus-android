@@ -22,6 +22,9 @@ interface Localizer {
     val schedule_week: TextAndId
     val schedule_month: TextAndId
     val schedule_export: TextAndId
+    val courses: TextAndId
+    val my_modules: TextAndId
+    val my_courses: TextAndId
 }
 
 object GermanLocalizer : Localizer {
@@ -42,6 +45,9 @@ object GermanLocalizer : Localizer {
     override val schedule_week: TextAndId get() = TextAndId("Wochenansicht", 270)
     override val schedule_month: TextAndId get() = TextAndId("Monatsansicht", 271)
     override val schedule_export: TextAndId get() = TextAndId("Export", 272)
+    override val courses: TextAndId get() = TextAndId("Veranstaltungen", 273)
+    override val my_modules: TextAndId get() = TextAndId("Meine Module",275)
+    override val my_courses: TextAndId get() = TextAndId("Meine Veranstaltungen",274)
 
 }
 
@@ -63,6 +69,9 @@ object EnglishLocalizer : Localizer {
     override val schedule_week: TextAndId get() = TextAndId("Week", 56)
     override val schedule_month: TextAndId get() = TextAndId("Month", 57)
     override val schedule_export: TextAndId get() = TextAndId("Export", 354)
+    override val courses: TextAndId get() = TextAndId("Courses", 176)
+    override val my_modules: TextAndId get() = TextAndId("Not yet implemented", 2)
+    override val my_courses: TextAndId get() = TextAndId("Not yet implemented", 3)
 
 
 }

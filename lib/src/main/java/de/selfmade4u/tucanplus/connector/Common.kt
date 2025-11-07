@@ -755,19 +755,19 @@ object Common {
         }
 
         parseLiWithChildren(
-            "Veranstaltungen",
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000273,-Astudveranst%2Ehtml",
-            273
+            localizer.courses.text,
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.courses.id6()},-Astudveranst%2Ehtml",
+            localizer.courses.id
         ) {
             parseLi(
-                "Meine Module",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N$sessionId,-N000275,",
-                275
+                localizer.my_modules.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N$sessionId,-N${localizer.my_modules.id6()},",
+                localizer.my_modules.id
             )
             parseLi(
-                "Meine Veranstaltungen",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N000274,",
-                274
+                localizer.my_courses.text,
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N${localizer.my_courses.id6()},",
+                localizer.my_courses.id
             )
             parseLi(
                 "Meine Wahlbereiche",
