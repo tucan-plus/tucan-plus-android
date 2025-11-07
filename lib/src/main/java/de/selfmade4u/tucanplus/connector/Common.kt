@@ -733,24 +733,20 @@ object Common {
             localizer.schedule.id
         ) {
             parseLi(
-                localizer.schedule_day.text,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule_day.id6()},-A,-A,-N0",
-                localizer.schedule_day.id
+                localizer.schedule_day,
+                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N$id6,-A,-A,-N0" }
             )
             parseLi(
-                localizer.schedule_week.text,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N${localizer.schedule_week.id6()},-A,-A,-N1",
-                localizer.schedule_week.id
+                localizer.schedule_week,
+                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N$sessionId,-N$id6,-A,-A,-N1" }
             )
             parseLi(
-                localizer.schedule_month.text,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N$sessionId,-N${localizer.schedule_month.id6()},-A",
-                localizer.schedule_month.id
+                localizer.schedule_month,
+                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N$sessionId,-N$id6,-A" }
             )
             parseLi(
-                localizer.schedule_export.text,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N$sessionId,-N${localizer.schedule_export.id6()},",
-                localizer.schedule_export.id
+                localizer.schedule_export,
+                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N$sessionId,-N$id6," }
             )
         }
 
@@ -760,29 +756,24 @@ object Common {
             localizer.courses.id
         ) {
             parseLi(
-                localizer.my_modules.text,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N$sessionId,-N${localizer.my_modules.id6()},",
-                localizer.my_modules.id
+                localizer.my_modules,
+                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N$sessionId,-N$id6," }
             )
             parseLi(
-                localizer.my_courses.text,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N${localizer.my_courses.id6()},",
-                localizer.my_courses.id
+                localizer.my_courses,
+                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N$sessionId,-N$id6," }
             )
             parseLi(
-                localizer.my_elective_subjects.text,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N$sessionId,-N${localizer.my_elective_subjects.id6()},",
-                localizer.my_elective_subjects.id
+                localizer.my_elective_subjects,
+                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N$sessionId,-N$id6," }
             )
             parseLi(
-                localizer.registration.text,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N$sessionId,-N${localizer.registration.id6()},-A",
-                localizer.registration.id
+                localizer.registration,
+                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N$sessionId,-N$id6,-A" }
             )
             parseLi(
-                localizer.my_current_registrations.text,
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N$sessionId,-N${localizer.my_current_registrations.id6()},-N000000000000000",
-                localizer.my_current_registrations.id
+                localizer.my_current_registrations,
+                { id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N$sessionId,-N$id6,-N000000000000000" }
             )
         }
 
@@ -1055,6 +1046,10 @@ object Common {
                 text(name)
             }
         }
+    }
+
+    private fun Body.parseLi(name: TextAndId, url: (id6: String) -> String, depth: Int = 2) {
+        parseLi(name.text, url(name.id6()), name.id, depth)
     }
 
     private fun Body.parseLiHref(name: String, id: Int, depth: Int = 2): String {
