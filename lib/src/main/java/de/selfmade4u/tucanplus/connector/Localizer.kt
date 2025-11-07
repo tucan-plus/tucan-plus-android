@@ -46,8 +46,14 @@ interface Localizer {
     val my_documents: TextAndId
     val forms: TextAndId
     val hold_info: TextAndId
+    val application: TextAndId
+    val application_html: String
+    val application_welcome: TextAndId
+    val my_application: TextAndId
+    val application_my_documents: TextAndId
+    val help: TextAndId
+    val help_html: String
 }
-
 
 object GermanLocalizer : Localizer {
     override val language: String get() = "de"
@@ -91,7 +97,15 @@ object GermanLocalizer : Localizer {
     override val my_documents: TextAndId get() = TextAndId("Meine Dokumente",557)
     override val forms: TextAndId get() = TextAndId("Anträge",600)
     override val hold_info: TextAndId get() = TextAndId("Sperren",652)
-
+    override val application: TextAndId get() = TextAndId("Bewerbung", 441)
+    override val application_html: String get() = "bewerbung"
+    override val application_welcome: TextAndId get() = TextAndId("Herzlich Willkommen",442)
+    override val my_application: TextAndId get() = TextAndId("Meine Bewerbung",443)
+    override val application_my_documents: TextAndId get() = TextAndId("Meine Dokumente",444)
+    override val help: TextAndId
+        get() = TextAndId("Hilfe", 340)
+    override val help_html: String
+        get() = "hilfe%2Ehtml"
 }
 
 object EnglishLocalizer : Localizer {
@@ -136,5 +150,14 @@ object EnglishLocalizer : Localizer {
     override val my_documents: TextAndId get() = TextAndId("My Documents",558)
     override val forms: TextAndId get() = TextAndId("Forms",609)
     override val hold_info: TextAndId get() = TextAndId("Hold Info",653)
+    override val application: TextAndId get() = TextAndId("Application", 515)
+    override val application_html: String get() = "ebewerbung"
+    override val application_welcome: TextAndId get() = TextAndId("Welcome",516)
+    override val my_application: TextAndId get() = TextAndId("My Application",517)
+    override val application_my_documents: TextAndId get() = TextAndId("My Documents",518)
+    override val help: TextAndId
+        get() = TextAndId("Help", 382)
+    override val help_html: String
+        get() = "edshelp%2Ehtml"
 
 }

@@ -788,32 +788,28 @@ object Common {
         }
 
         parseLiWithChildren(
-            "Bewerbung",
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000441,-Abewerbung",
-            441
+            localizer.application.text,
+            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N${localizer.application.id6()},-A${localizer.application_html}",
+            localizer.application.id
         ) {
-            parseLi(
-                "Herzlich Willkommen",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000442,-Abewerbung",
-                442
-            )
+            parseLi(localizer.application_welcome) {
+                id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N$id6,-A${localizer.application_html}"
+            }
             parseLiHref(
-                "Meine Bewerbung",
-                443
+                localizer.my_application.text,
+                localizer.my_application.id
             )
-            parseLi(
-                "Meine Dokumente",
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N$sessionId,-N000444,",
-                444
-            )
+            parseLi(localizer.application_my_documents) {
+                id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N$sessionId,-N$id6,"
+            }
         }
 
         parseLi(
-            "Hilfe",
-            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N000340,-Ahilfe%2Ehtml",
-            340,
+            localizer.help,
             depth = 1
-        )
+        ) {
+            id6 -> "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N$sessionId,-N$id6,-A${localizer.help_html}"
+        }
     }
 
     fun Body.parseLoggedOutNavigation(localizer: Localizer, sessionId: String) {
