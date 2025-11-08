@@ -130,6 +130,7 @@ fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings, isLoading: Mu
     val context = LocalContext.current
     LaunchedEffect(true) {
         if (credentialSettingsFlow.inner != null) {
+            // TODO FIXME do this also after you log in, not only on app startup
             setupBackgroundTasks(context)
         }
     }
