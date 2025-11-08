@@ -1,9 +1,5 @@
 package de.selfmade4u.tucanplus
 
-import android.Manifest
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +14,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,13 +48,13 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
     var loading by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     // https://developer.android.com/develop/ui/compose/libraries#requesting-runtime-permissions
-    val launcher =
+    /*val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { value ->
             Toast.makeText(context, "Permission response $value", Toast.LENGTH_SHORT).show()
         }
     LaunchedEffect(true) {
         launcher.launch(arrayOf(Manifest.permission.NEARBY_WIFI_DEVICES))
-    }
+    }*/
     Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
     }) { innerPadding ->

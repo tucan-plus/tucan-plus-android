@@ -65,6 +65,9 @@ android {
     sourceSets {
         getByName("debug").assets.directories.add("$projectDir/schemas") // Room
     }
+    baselineProfile {
+        dexLayoutOptimization = true
+    }
 }
 
 dependencies {
