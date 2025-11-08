@@ -2,6 +2,7 @@ package de.selfmade4u.tucanplus.connector
 
 import com.fleeksoft.ksoup.nodes.TextNode
 import de.selfmade4u.tucanplus.Root
+import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.body
 import de.selfmade4u.tucanplus.connector.Common.parseBase
 import de.selfmade4u.tucanplus.h1
@@ -18,6 +19,7 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
+import java.util.logging.Level
 
 object TucanLogin {
 
@@ -81,19 +83,23 @@ object TucanLogin {
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
             ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
             ignoreHeader("Date")
-            //ignoreHeader("Content-Length")
-            header("vary", "Accept-Encoding")
-            ignoreHeader("x-android-received-millis")
-            ignoreHeader("x-android-response-source")
-            ignoreHeader("x-android-selected-protocol")
-            ignoreHeader("x-android-sent-millis")
+            java.util.logging.Logger.getLogger(TAG).log(Level.INFO, client.engine::class.simpleName)
+            if (client.engine::class.simpleName == "AndroidClientEngine") {
+                header("vary", "Accept-Encoding")
+                ignoreHeader("x-android-received-millis")
+                ignoreHeader("x-android-response-source")
+                ignoreHeader("x-android-selected-protocol")
+                ignoreHeader("x-android-sent-millis")
+            } else {
+                ignoreHeader("content-length")
+            }
             if (hasHeader("Set-cookie")) {
                 val cookie = extractHeader("Set-cookie")[0].removePrefix("cnsc =")
-                val sessionId = extractHeader("REFRESH")[0]
-                val sessionIdMatch =
-                    Regex("""0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\d+),-N000019,-N000000000000000""").matchEntire(
-                        sessionId
-                    )!!
+                val refreshHeader = extractHeader("REFRESH")[0]
+                val a = Regex("""0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\d+),-N000(019|350),-N000000000000000""").matchEntire(
+                    refreshHeader
+                )
+                val sessionIdMatch = a ?: throw NullPointerException(refreshHeader)
                 root {
                     parseLoginSuccess()
                 }
@@ -107,7 +113,7 @@ object TucanLogin {
     }
 
     fun Root.parseLoginFailure(): LoginResponse {
-        return parseBase("000000000000001", "000000", {}) { pageType ->
+        return parseBase("000000000000001", "000000", {}) { localizer, pageType ->
             check(pageType == "accessdenied")
             script { attribute("type", "text/javascript"); }
             val child = peek()?.firstChild()

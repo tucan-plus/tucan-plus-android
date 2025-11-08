@@ -4,14 +4,15 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
-    id("kotlin-android")
     id("com.google.devtools.ksp")
-    id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
+    alias(libs.plugins.baselineprofile)
+    //id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
 }
-
+/*
 stacktraceDecoroutinator {
     embedDebugProbesForAndroid = true
-}
+
+}*/
 
 android {
     namespace = "de.selfmade4u.tucanplus"
@@ -44,7 +45,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                decoroutinatorAndroidProGuardRules,
+                //decoroutinatorAndroidProGuardRules,
                 "proguard-rules.pro"
             )
         }
@@ -62,7 +63,10 @@ android {
         compose = true
     }
     sourceSets {
-        getByName("debug").assets.srcDirs(files("$projectDir/schemas")) // Room
+        getByName("debug").assets.directories.add("$projectDir/schemas") // Room
+    }
+    baselineProfile {
+        dexLayoutOptimization = true
     }
 }
 
@@ -86,12 +90,14 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.room)
     implementation(project(":lib"))
+    implementation(libs.androidx.profileinstaller)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    "baselineProfile"(project(":baselineprofile"))
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

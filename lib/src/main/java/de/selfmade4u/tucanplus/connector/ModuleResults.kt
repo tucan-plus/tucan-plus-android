@@ -46,21 +46,24 @@ import io.ktor.http.HttpStatusCode
 
 object ModuleResults {
 
-    suspend fun getModuleResults(
-        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
-        database: MyDatabase
-    ): AuthenticatedResponse<ModuleResultsResponse> {
-        val response = fetchAuthenticatedWithReauthentication(
-            credentialSettingsDataStore,
-            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," },
-            parser = ::parseModuleResponse
-        )
-        return when (response) {
+    suspend fun getModuleResultsStoreCache(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
+                                           database: MyDatabase): AuthenticatedResponse<ModuleResultsResponse> {
+        return when (val response = getModuleResultsUncached(credentialSettingsDataStore)) {
             is AuthenticatedResponse.Success<ModuleResultsResponse> -> {
                 AuthenticatedResponse.Success(persist(database, response.response))
             }
             else -> response
         }
+    }
+
+    suspend fun getModuleResultsUncached(
+        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
+    ): AuthenticatedResponse<ModuleResultsResponse> {
+        return fetchAuthenticatedWithReauthentication(
+            credentialSettingsDataStore,
+            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," },
+            parser = { a, b -> parseModuleResponse("000324", a, b) }
+        )
     }
 
     class ModuleResultsConverters {
@@ -152,15 +155,21 @@ object ModuleResults {
 
         @Insert
         suspend fun insert(moduleResults: ModuleResult): Long
+
+        @Query("SELECT * FROM module_results ORDER BY id DESC LIMIT 1")
+        suspend fun getLast(): ModuleResultWithModules?
     }
 
     @Dao
     interface ModulesDao {
         @Insert
         suspend fun insertAll(vararg modules: Module): List<Long>
+
+        @Query("SELECT * FROM module WHERE moduleResultId = :moduleResultId")
+        suspend fun getForModuleResult(moduleResultId: Long): List<Module>
     }
 
-    suspend fun parseModuleResponse(sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+    suspend fun parseModuleResponse(menuId: String, sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
         return response(response) {
             status(HttpStatusCode.OK)
             header(
@@ -182,40 +191,45 @@ object ModuleResults {
             header("Pragma", "no-cache")
             header("Expires", "0")
             header("Cache-Control", "private, no-cache, no-store")
-
-            header("vary", "Accept-Encoding")
-            ignoreHeader("x-android-received-millis")
-            ignoreHeader("x-android-response-source")
-            ignoreHeader("x-android-selected-protocol")
-            ignoreHeader("x-android-sent-millis")
+            // JavaHttpEngine
+            if (response.call.client.engine::class.simpleName == "AndroidClientEngine") {
+                header("vary", "Accept-Encoding")
+                ignoreHeader("x-android-received-millis")
+                ignoreHeader("x-android-response-source")
+                ignoreHeader("x-android-selected-protocol")
+                ignoreHeader("x-android-sent-millis")
+            } else {
+                ignoreHeader("content-length")
+            }
             root {
-                parseModuleResults(sessionId)
+                parseModuleResults(menuId, sessionId)
             }
         }
     }
 
-    fun Root.parseModuleResults(sessionId: String): ParserResponse<ModuleResultsResponse> {
+    fun Root.parseModuleResults(menuId: String, sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
-        var selectedSemester: Semesterauswahl? = null;
-        val response = parseBase(sessionId, "000324", {
+        var selectedSemester: Semesterauswahl? = null
+        // menu id changes depending on language
+        val response = parseBase(sessionId, menuId, {
             if (peek() != null) {
                 style {
                     attribute("type", "text/css")
-                    dataHash("8359c082fbd232a6739e5e2baec433802e3a0e2121ff2ff7d5140de3955fa905")
+                    extractData()
                 }
                 style {
                     attribute("type", "text/css")
-                    dataHash("c7cbaeb4c3ca010326679083d945831e5a08d230c5542d335e297a524f1e9b61")
+                    extractData()
                 }
                 style {
                     attribute("type", "text/css")
-                    dataHash("7fa9b301efd5a3e8f3a1c11c4283cbcf24ab1d7090b1bad17e8246e46bc31c45")
+                    extractData()
                 }
             } else {
                 print("not the normal page")
             }
-        }) { pageType ->
+        }) { localizer, pageType ->
             if (pageType == "timeout") {
                 script {
                     attribute("type", "text/javascript")
@@ -253,7 +267,7 @@ object ModuleResults {
 
                         div {
                             attribute("class", "tbsubhead")
-                            text("Wählen Sie ein Semester")
+                            text(localizer.choose_semester)
                         }
 
                         div {
@@ -269,7 +283,7 @@ object ModuleResults {
                                     attribute("name", "semester")
                                     attribute(
                                         "onchange",
-                                        "reloadpage.createUrlAndReload('/scripts/mgrqispi.dll','CampusNet','COURSERESULTS','$sessionId','000324','-N'+this.value);"
+                                        "reloadpage.createUrlAndReload('/scripts/mgrqispi.dll','CampusNet','COURSERESULTS','$sessionId','$menuId','-N'+this.value);"
                                     )
                                     attribute("class", "tabledata")
 
@@ -319,7 +333,7 @@ object ModuleResults {
                                 input {
                                     attribute("name", "Refresh")
                                     attribute("type", "submit")
-                                    attribute("value", "Aktualisieren")
+                                    attribute("value", localizer.refresh)
                                     attribute("class", "img img_arrowReload")
                                 }
                             }
@@ -352,7 +366,7 @@ object ModuleResults {
                         input {
                             attribute("name", "menuno"); attribute("type", "hidden"); attribute(
                             "value",
-                            "000324"
+                            menuId
                         )
                         }
                     }
@@ -363,11 +377,11 @@ object ModuleResults {
 
                     thead {
                         tr {
-                            td { attribute("class", "tbsubhead"); text("Nr.") }
-                            td { attribute("class", "tbsubhead"); text("Kursname") }
-                            td { attribute("class", "tbsubhead"); text("Endnote") }
-                            td { attribute("class", "tbsubhead"); text("Credits") }
-                            td { attribute("class", "tbsubhead"); text("Status") }
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_no) }
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_course_name)}
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_final_grade) }
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_credits) }
+                            td { attribute("class", "tbsubhead"); text(localizer.module_results_status) }
                             td {
                                 attribute("class", "tbsubhead")
                                 attribute("colspan", "2")
@@ -411,7 +425,7 @@ object ModuleResults {
                                         resultdetailsUrl = attributeValue(
                                             "href",
                                         )
-                                        text("Prüfungen")
+                                        text(localizer.module_results_exams)
                                     }
                                     script {
                                         attribute("type", "text/javascript")
@@ -426,7 +440,7 @@ object ModuleResults {
                                             "href",
                                         )
                                         attribute("class", "link")
-                                        attribute("title", "Notenspiegel")
+                                        attribute("title", localizer.module_results_grade_statistics)
                                         b { text("Ø") }
                                     }
                                     script {
@@ -450,7 +464,7 @@ object ModuleResults {
                         tr {
                             th {
                                 attribute("colspan", "2")
-                                text("Semester-GPA")
+                                text(localizer.module_results_semester_gpa)
                             }
                             th {
                                 attribute("class", "tbdata")
@@ -473,6 +487,8 @@ object ModuleResults {
 
 
     suspend fun persist(database: MyDatabase, result: ModuleResultsResponse): ModuleResultsResponse {
+        // TODO check whether there were changes?
+
         val moduleResult = database.useWriterConnection {
             it.immediateTransaction {
                 database.semestersDao().insertAll(*result.semesters.toTypedArray())
@@ -480,7 +496,7 @@ object ModuleResults {
                 val moduleResultId = database.moduleResultsDao().insert(moduleResult)
                 moduleResult.id = moduleResultId
                 val modules = result.modules.map { m -> m.moduleResultId = moduleResultId; m }
-                val moduleIds = database.modulesDao().insertAll(*modules.toTypedArray())
+                database.modulesDao().insertAll(*modules.toTypedArray())
                 /*modules.zip(moduleIds) { a, b ->
                 a.id = b
             }*/
@@ -488,6 +504,12 @@ object ModuleResults {
             }
         }
         return ModuleResultsResponse(moduleResult, result.semesters, result.modules)
+    }
+
+    suspend fun getCached(database: MyDatabase): ModuleResultsResponse? {
+        val semesters = database.semestersDao().getAll()
+        val lastModuleResult = database.moduleResultsDao().getLast()
+        return lastModuleResult?.let {  ModuleResultsResponse(lastModuleResult.moduleResult, semesters, lastModuleResult.modules) }
     }
 }
 

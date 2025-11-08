@@ -8,10 +8,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import de.selfmade4u.tucanplus.TAG
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -37,11 +34,11 @@ class UpdateGradesWorker(context: Context, params: WorkerParameters) :
 
     override suspend fun doWork(): Result = coroutineScope {
         withContext(Dispatchers.IO) {
-            Log.d(TAG, "UpdateGradesWorker is starting....");
+            Log.d(TAG, "UpdateGradesWorker is starting....")
 
             //Result.retry()
 
-            Log.d(TAG, "UpdateGradesWorker finished");
+            Log.d(TAG, "UpdateGradesWorker finished")
             Result.success()
         }
     }

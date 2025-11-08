@@ -1,9 +1,7 @@
 package de.selfmade4u.tucanplus
 
 import androidx.datastore.core.CorruptionException
-import androidx.datastore.core.DataStore
 import androidx.datastore.core.Serializer
-import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException

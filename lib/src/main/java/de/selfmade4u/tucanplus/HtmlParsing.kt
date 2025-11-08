@@ -11,20 +11,13 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.TextNode
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.request
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.toMap
-import java.io.File
-import java.io.FileOutputStream
 import java.security.MessageDigest
-import java.time.Clock
-import java.time.LocalDateTime
-import kotlin.collections.filterNot
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 
 // https://kotlinlang.org/docs/type-safe-builders.html#how-it-works
@@ -64,7 +57,7 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
                     key,
                     value
                 )
-            ) { "actual   ${attribute}\nexpected ${Attribute.createFromEncoded(key, value)}" }
+            ) {  "Mismatched attribute expected:<${Attribute.createFromEncoded(key, value)}> but was:<${attribute}>" }
         }
     }
 
@@ -89,17 +82,18 @@ abstract class HtmlTag(val children: MutableList<Node>, val attributes: MutableL
         check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is TextNode) { next }
-        check(next.text().trim() == text) { "actual   $${next.text().trim()}$\nexpected $${text}$" }
+        check(next.text().trim() == text) { "Mismatched text expected:<${text}> but was:<${next.text().trim()}>" }
     }
 
     fun dataHash(hash: String) {
         check(attributes.isEmpty()) { attributes.removeAt(0) }
         val next = this.children.removeAt(0)
         check(next is DataNode) { next }
+        // https://github.com/JetBrains/intellij-community/blob/master/java/java-runtime/src/com/intellij/rt/execution/testFrameworks/AbstractExpectedPatterns.java#L10
+        // https://github.com/JetBrains/intellij-community/blob/master/plugins/junit_rt/src/com/intellij/junit4/ExpectedPatterns.java
+        // /home/moritz/Documents/intellij-community/plugins/gradle/java/src/execution/test/runner/events/AssertionMessageParser.kt
         check(next.getWholeData().hashedWithSha256() == hash) {
-            "${
-                next.getWholeData().hashedWithSha256()
-            } $${next.getWholeData()}$"
+            "Mismatched Hash ${next.getWholeData()} expected:<${hash}> but was:<${next.getWholeData().hashedWithSha256()}>"
         }
     }
 

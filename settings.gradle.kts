@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "TUCaN Plus"
 include(":app")
 include(":lib")
+include(":baselineprofile")

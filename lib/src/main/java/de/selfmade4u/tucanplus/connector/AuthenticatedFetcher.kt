@@ -3,13 +3,19 @@ package de.selfmade4u.tucanplus.connector
 import androidx.datastore.core.DataStore
 import de.selfmade4u.tucanplus.CredentialSettings
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
+import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.connector.AuthenticatedHttpResponse.NetworkLikelyTooSlow
-import de.selfmade4u.tucanplus.connector.AuthenticatedResponse.*
+import de.selfmade4u.tucanplus.connector.AuthenticatedResponse.InvalidCredentials
+import de.selfmade4u.tucanplus.connector.AuthenticatedResponse.SessionTimeout
+import de.selfmade4u.tucanplus.connector.AuthenticatedResponse.Success
+import de.selfmade4u.tucanplus.connector.AuthenticatedResponse.TooManyAttempts
 import io.ktor.client.HttpClient
 import io.ktor.client.request.cookie
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import kotlinx.coroutines.flow.first
+import java.net.SocketException
+import java.util.logging.Level
 
 sealed class AuthenticatedHttpResponse<T> {
     data class Success<T>(var response: T) :
@@ -70,6 +76,9 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
             return NetworkLikelyTooSlow()
         }
         return NetworkLikelyTooSlow()
+    } catch (e: SocketException) {
+        java.util.logging.Logger.getLogger(TAG).log(Level.WARNING, "Request failed", e)
+        return AuthenticatedHttpResponse.NetworkLikelyTooSlow()
     }
     return AuthenticatedHttpResponse.Success(r)
 }

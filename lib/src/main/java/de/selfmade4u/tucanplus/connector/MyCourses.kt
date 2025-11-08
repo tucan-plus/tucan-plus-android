@@ -86,7 +86,7 @@ object MyCourses {
     fun Root.parseContent(sessionId: String): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
-        var selectedSemester: Semesterauswahl? = null;
+        var selectedSemester: Semesterauswahl? = null
         val response = parseBase(sessionId, "000324", {
             if (peek() != null) {
                 style {
@@ -104,7 +104,7 @@ object MyCourses {
             } else {
                 print("not the normal page")
             }
-        }) { pageType ->
+        }) { localizer, pageType ->
             if (pageType == "timeout") {
                 script {
                     attribute("type", "text/javascript")

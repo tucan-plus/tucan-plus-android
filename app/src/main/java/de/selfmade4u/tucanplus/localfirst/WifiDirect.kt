@@ -42,7 +42,7 @@ fun WifiDirect() {
     }
     val channel = remember {
         manager.initialize(context, Looper.getMainLooper(), {
-            Log.d(TAG, "CHANNEL LOST");
+            Log.d(TAG, "CHANNEL LOST")
             Toast.makeText(context, "Channel LOST", Toast.LENGTH_LONG).show()
             // TODO try reaquire
         })
@@ -74,7 +74,7 @@ fun WifiDirect() {
             key(peer.deviceName) {
                 var currentPeer by remember { mutableStateOf(peer) }
                 Text(
-                    currentPeer.deviceName ?: currentPeer.toString(), modifier = Modifier.Companion
+                    currentPeer.deviceName ?: currentPeer.toString(), modifier = Modifier
                         .clickable(enabled = true) {
                             coroutineScope.launch {
                                 manager.connect(channel, currentPeer)

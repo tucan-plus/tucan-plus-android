@@ -16,7 +16,7 @@ object MyDatabaseProvider {
         return Instance ?: mutex.withLock {
             return Instance ?: run {
                 val db = if (Debug.isDebuggerConnected()) {
-                    val db: MyDatabase = Room.databaseBuilder(context, MyDatabase::class.java, "tucan-plus.db").build();
+                    val db: MyDatabase = Room.databaseBuilder(context, MyDatabase::class.java, "tucan-plus.db").build()
                     try {
                         db.useWriterConnection { _ -> } // check that schema identity hash has no mismatch
                         db

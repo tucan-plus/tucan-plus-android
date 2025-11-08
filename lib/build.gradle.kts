@@ -1,7 +1,7 @@
 // Put everything in here that does not depend on Android
 plugins {
-    id("java-library")
     alias(libs.plugins.jetbrains.kotlin.jvm)
+    id("java-library")
     alias(libs.plugins.jetbrains.kotlin.serialization)
     id("com.google.devtools.ksp")
     id("androidx.room")
@@ -15,6 +15,12 @@ kotlin {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     }
 }
+tasks.withType<Test>().configureEach {
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+}
+tasks.withType<Test>().configureEach {
+    forkEvery = 100
+}
 room {
     schemaDirectory("$projectDir/schemas")
 }
@@ -27,5 +33,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.room)
     testImplementation(libs.junit)
+    testImplementation(libs.ktor.client.java)
     ksp(libs.room.compiler)
 }
