@@ -68,7 +68,7 @@ object ModuleResults {
     )
 
     @Entity
-    data class ModuleResult(@PrimaryKey var id: Long)
+    data class ModuleResult(@PrimaryKey(autoGenerate = true) var id: Long)
 
     data class ModuleResultWithModules(
         @Embedded val moduleResult: ModuleResult,

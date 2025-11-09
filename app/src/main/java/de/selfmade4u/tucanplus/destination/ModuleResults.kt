@@ -2,7 +2,6 @@ package de.selfmade4u.tucanplus.destination
 
 import android.content.res.Configuration
 import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -106,7 +105,7 @@ fun ModuleComposable(
         Semesterauswahl(1, 2025, Semester.Wintersemester),
         "id",
         "Tin one ewfwf wefwe ewfw efw efwe wfwe fewfwe fweline",
-        ModuleGrade.G1_0,
+        ModuleGrade.NOCH_NICHT_GESETZT,
         1,
         "url",
         "url"
@@ -118,7 +117,7 @@ fun ModuleComposable(
             Text(module.name)
             Text(module.id, fontSize = 10.sp, color = Color.Gray)
         }
-        Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(modifier = Modifier.fillMaxHeight(), horizontalAlignment = Alignment.End) {
             Text("${module.credits} CP")
             Text("Note ${module.grade?.representation}")
         }
