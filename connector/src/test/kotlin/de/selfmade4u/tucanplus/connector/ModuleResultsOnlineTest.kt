@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import de.selfmade4u.tucanplus.AccessesTucan
 import de.selfmade4u.tucanplus.LoginSingleton
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
+import de.selfmade4u.tucanplus.ParallelizedParameterized
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
@@ -14,7 +15,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 
-@RunWith(Parameterized::class)
+@RunWith(ParallelizedParameterized::class)
 class ModuleResultsOnlineTest(var offset: Int) {
 
     companion object {
@@ -43,7 +44,7 @@ class ModuleResultsOnlineTest(var offset: Int) {
                     return value.value
                 }
             }
-            val semesters = ModuleResultsConnector.getModuleResultsUncached(
+            ModuleResultsConnector.getModuleResultsUncached(
                 store, semester.toString()
             )
         }

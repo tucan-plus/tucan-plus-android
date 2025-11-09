@@ -44,6 +44,8 @@ enum class ModuleGrade(val representation: String) {
     G3_7("3,7"),
     G4_0("4,0"),
     G5_0("5,0"),
+    B("b"),
+    NB("nb"),
 }
 
 enum class Semester {

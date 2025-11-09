@@ -13,12 +13,6 @@ kotlin {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     }
 }
-tasks.withType<Test>().configureEach {
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
-}
-tasks.withType<Test>().configureEach {
-    forkEvery = 100
-}
 dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ksoup)
@@ -28,4 +22,10 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
+}
+tasks.withType<Test>().configureEach {
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+}
+tasks.withType<Test>().configureEach {
+    forkEvery = 100
 }

@@ -7,3 +7,14 @@ plugins {
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.baselineprofile) apply false
 }
+tasks.withType<Test>().configureEach {
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+}
+tasks.withType<Test>().configureEach {
+    forkEvery = 100
+}
+subprojects {
+    tasks.withType<Test>().configureEach {
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+    }
+}
