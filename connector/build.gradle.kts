@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 // Put everything in here that does not depend on Android
 plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
@@ -22,10 +24,4 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
-}
-tasks.withType<Test>().configureEach {
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
-}
-tasks.withType<Test>().configureEach {
-    forkEvery = 100
 }
