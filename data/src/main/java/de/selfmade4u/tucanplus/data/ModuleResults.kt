@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Insert
+import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Transaction
@@ -29,7 +30,7 @@ object ModuleResults {
                 response.response.semesters.forEach { semester ->
                     when (val response = getModuleResultsUncached(credentialSettingsDataStore, semester.id.toString().padStart(15, '0'))) {
                         is AuthenticatedResponse.Success<ModuleResults.ModuleResultsResponse> -> {
-                            modules += response.response.modules.map { m -> ModuleResultModule(0, semester, m) }
+                            modules += response.response.modules.map { m -> ModuleResultModule(0, semester, m.id, m.name, m.grade, m.credits, m.resultdetailsUrl, m.gradeoverviewUrl) }
                         }
                         else -> return response.map()
                     }
@@ -53,16 +54,22 @@ object ModuleResults {
         }
     }
 
-    @Entity
+    @Entity(primaryKeys = ["moduleResultId", "id"])
     data class ModuleResultModule(
         var moduleResultId: Long,
-        var semester: Semesterauswahl,
         @Embedded
-        var inner: ModuleResults.Module
+        var semester: Semesterauswahl,
+        // embedded module
+        var id: String,
+        val name: String,
+        val grade: ModuleGrade,
+        val credits: Int,
+        val resultdetailsUrl: String,
+        val gradeoverviewUrl: String
     )
 
     @Entity
-    data class ModuleResult(var id: Long)
+    data class ModuleResult(@PrimaryKey var id: Long)
 
     data class ModuleResultWithModules(
         @Embedded val moduleResult: ModuleResult,
@@ -85,6 +92,7 @@ object ModuleResults {
         @Insert
         suspend fun insert(moduleResults: ModuleResult): Long
 
+        @Transaction
         @Query("SELECT * FROM moduleresult ORDER BY id DESC LIMIT 1")
         suspend fun getLast(): ModuleResultWithModules?
     }
