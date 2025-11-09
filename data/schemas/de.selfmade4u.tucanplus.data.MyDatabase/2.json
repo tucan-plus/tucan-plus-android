@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "70d2fdd64d0814fb1023be7ae86ba332",
+    "identityHash": "ff2cd9fa9a0f7cb54bf25b0dcbc280c5",
     "entities": [
       {
         "tableName": "ModuleResult",
@@ -24,7 +24,7 @@
       },
       {
         "tableName": "ModuleResultModule",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`moduleResultId` INTEGER NOT NULL, `id` TEXT NOT NULL, `name` TEXT NOT NULL, `grade` TEXT, `credits` INTEGER NOT NULL, `resultdetailsUrl` TEXT, `gradeoverviewUrl` TEXT, `semester_id` INTEGER NOT NULL, `semester_year` INTEGER NOT NULL, `semester_semester` TEXT NOT NULL, PRIMARY KEY(`moduleResultId`, `id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`moduleResultId` INTEGER NOT NULL, `id` TEXT NOT NULL, `name` TEXT NOT NULL, `grade` TEXT, `credits` INTEGER NOT NULL, `resultdetailsUrl` TEXT, `gradeoverviewUrl` TEXT, `semester_id` INTEGER NOT NULL, `semester_year` INTEGER NOT NULL, `semester_semester` TEXT NOT NULL, PRIMARY KEY(`moduleResultId`, `id`, `semester_id`))",
         "fields": [
           {
             "fieldPath": "moduleResultId",
@@ -88,14 +88,15 @@
           "autoGenerate": false,
           "columnNames": [
             "moduleResultId",
-            "id"
+            "id",
+            "semester_id"
           ]
         }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '70d2fdd64d0814fb1023be7ae86ba332')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ff2cd9fa9a0f7cb54bf25b0dcbc280c5')"
     ]
   }
 }

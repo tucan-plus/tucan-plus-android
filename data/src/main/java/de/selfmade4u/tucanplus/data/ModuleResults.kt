@@ -53,7 +53,7 @@ object ModuleResults {
         }
     }
 
-    @Entity(primaryKeys = ["moduleResultId", "id"])
+    @Entity(primaryKeys = ["moduleResultId", "id", "semester_id"])
     data class ModuleResultModule(
         var moduleResultId: Long,
         @Embedded(prefix = "semester_")
