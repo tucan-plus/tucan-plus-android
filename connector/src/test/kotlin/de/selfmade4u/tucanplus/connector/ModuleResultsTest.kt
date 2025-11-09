@@ -53,26 +53,4 @@ class ModuleResultsTest {
             print(result)
         }
     }
-
-    @Category(AccessesTucan::class)
-    @Test
-    fun testModuleResults() {
-        Assume.assumeTrue("Credentials provided", System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null)
-        runBlocking {
-            val credentials = LoginSingleton.getCredentials()
-            ModuleResultsConnector.getModuleResultsUncached(
-                object : DataStore<OptionalCredentialSettings> {
-                    val value = MutableStateFlow(OptionalCredentialSettings(credentials))
-
-                    override val data: Flow<OptionalCredentialSettings>
-                        get() = value
-
-                    override suspend fun updateData(transform: suspend (t: OptionalCredentialSettings) -> OptionalCredentialSettings): OptionalCredentialSettings {
-                        value.value = transform(value.value)
-                        return value.value
-                    }
-                }
-            )
-        }
-    }
 }
