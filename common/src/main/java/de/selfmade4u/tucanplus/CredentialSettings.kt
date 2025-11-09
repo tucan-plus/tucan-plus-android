@@ -2,7 +2,6 @@ package de.selfmade4u.tucanplus
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
-import de.selfmade4u.tucanplus.connector.Localizer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException

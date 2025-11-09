@@ -5,6 +5,8 @@ import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
 import de.selfmade4u.tucanplus.AccessesTucan
 import de.selfmade4u.tucanplus.DoesNotAccessTucan
+import de.selfmade4u.tucanplus.EnglishLocalizer
+import de.selfmade4u.tucanplus.GermanLocalizer
 import de.selfmade4u.tucanplus.LoginSingleton
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.connector.ModuleResults.parseModuleResults

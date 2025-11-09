@@ -1,8 +1,12 @@
 package de.selfmade4u.tucanplus.connector
 
 import de.selfmade4u.tucanplus.Body
+import de.selfmade4u.tucanplus.EnglishLocalizer
+import de.selfmade4u.tucanplus.GermanLocalizer
 import de.selfmade4u.tucanplus.Head
+import de.selfmade4u.tucanplus.Localizer
 import de.selfmade4u.tucanplus.Root
+import de.selfmade4u.tucanplus.TextAndId
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.body

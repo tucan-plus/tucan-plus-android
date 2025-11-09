@@ -1,6 +1,9 @@
 package de.selfmade4u.tucanplus.connector
 
 import com.fleeksoft.ksoup.nodes.TextNode
+import de.selfmade4u.tucanplus.EnglishLocalizer
+import de.selfmade4u.tucanplus.GermanLocalizer
+import de.selfmade4u.tucanplus.Localizer
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.body

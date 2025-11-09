@@ -2,6 +2,7 @@ package de.selfmade4u.tucanplus.connector
 
 import androidx.datastore.core.DataStore
 import de.selfmade4u.tucanplus.CredentialSettings
+import de.selfmade4u.tucanplus.Localizer
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.connector.AuthenticatedHttpResponse.NetworkLikelyTooSlow

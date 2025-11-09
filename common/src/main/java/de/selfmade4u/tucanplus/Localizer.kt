@@ -1,4 +1,4 @@
-package de.selfmade4u.tucanplus.connector
+package de.selfmade4u.tucanplus
 
 import kotlinx.serialization.Serializable
 
