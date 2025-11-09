@@ -4,9 +4,12 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -102,7 +105,7 @@ fun ModuleComposable(
         42,
         Semesterauswahl(1, 2025, Semester.Wintersemester),
         "id",
-        "name",
+        "Tin one ewfwf wefwe ewfw efw efwe wfwe fewfwe fweline",
         ModuleGrade.G1_0,
         1,
         "url",
@@ -110,15 +113,12 @@ fun ModuleComposable(
     )
 ) {
     // https://developer.android.com/develop/ui/compose/layouts/basics
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column {
-            Text("${module.name}")
-            Text("${module.id}", fontSize = 10.sp, color = Color.Gray)
+    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(module.name)
+            Text(module.id, fontSize = 10.sp, color = Color.Gray)
         }
-        Column(horizontalAlignment = Alignment.End) {
+        Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
             Text("${module.credits} CP")
             Text("Note ${module.grade?.representation}")
         }
