@@ -58,7 +58,7 @@ data class Semesterauswahl(
 )
 
 
-object ModuleResults {
+object ModuleResultsConnector {
 
     data class Module(
         var id: String,

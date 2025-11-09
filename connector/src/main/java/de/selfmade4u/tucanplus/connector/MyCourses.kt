@@ -8,8 +8,8 @@ import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
-import de.selfmade4u.tucanplus.connector.ModuleResults.Module
-import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleResultsResponse
+import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.Module
+import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.ModuleResultsResponse
 import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1

@@ -9,7 +9,7 @@ import de.selfmade4u.tucanplus.EnglishLocalizer
 import de.selfmade4u.tucanplus.GermanLocalizer
 import de.selfmade4u.tucanplus.LoginSingleton
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
-import de.selfmade4u.tucanplus.connector.ModuleResults.parseModuleResults
+import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.parseModuleResults
 import de.selfmade4u.tucanplus.root
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,7 +60,7 @@ class ModuleResultsTest {
         Assume.assumeTrue("Credentials provided", System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null)
         runBlocking {
             val credentials = LoginSingleton.getCredentials()
-            ModuleResults.getModuleResultsUncached(
+            ModuleResultsConnector.getModuleResultsUncached(
                 object : DataStore<OptionalCredentialSettings> {
                     val value = MutableStateFlow(OptionalCredentialSettings(credentials))
 

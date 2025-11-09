@@ -15,28 +15,27 @@ import androidx.room.useWriterConnection
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
 import de.selfmade4u.tucanplus.connector.ModuleGrade
-import de.selfmade4u.tucanplus.connector.ModuleResults
-import de.selfmade4u.tucanplus.connector.ModuleResults.getModuleResultsUncached
+import de.selfmade4u.tucanplus.connector.ModuleResultsConnector
+import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.getModuleResultsUncached
 import de.selfmade4u.tucanplus.connector.Semesterauswahl
 
 object ModuleResults {
 
     // fetch for all semesters and store all at once.
     suspend fun refreshModuleResults(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
-                                           database: MyDatabase): AuthenticatedResponse<Unit> {
+                                           database: MyDatabase): AuthenticatedResponse<ModuleResultWithModules> {
         val modules = mutableListOf<ModuleResultModule>()
-        return when (val response = getModuleResultsUncached(credentialSettingsDataStore, null)) {
-            is AuthenticatedResponse.Success<ModuleResults.ModuleResultsResponse> -> {
+        when (val response = getModuleResultsUncached(credentialSettingsDataStore, null)) {
+            is AuthenticatedResponse.Success<ModuleResultsConnector.ModuleResultsResponse> -> {
                 response.response.semesters.forEach { semester ->
                     when (val response = getModuleResultsUncached(credentialSettingsDataStore, semester.id.toString().padStart(15, '0'))) {
-                        is AuthenticatedResponse.Success<ModuleResults.ModuleResultsResponse> -> {
+                        is AuthenticatedResponse.Success<ModuleResultsConnector.ModuleResultsResponse> -> {
                             modules += response.response.modules.map { m -> ModuleResultModule(0, semester, m.id, m.name, m.grade, m.credits, m.resultdetailsUrl, m.gradeoverviewUrl) }
                         }
                         else -> return response.map()
                     }
                 }
-                persist(database, modules.toList())
-                AuthenticatedResponse.Success(Unit)
+                return AuthenticatedResponse.Success(persist(database, modules.toList()))
             }
             else -> return response.map()
         }
@@ -107,20 +106,19 @@ object ModuleResults {
     }
 
     // only store all once
-    suspend fun persist(database: MyDatabase, result: List<ModuleResultModule>): Long {
+    suspend fun persist(database: MyDatabase, result: List<ModuleResultModule>): ModuleResultWithModules {
         // TODO check whether there were changes?
         return database.useWriterConnection {
             it.immediateTransaction {
                 val moduleResultId = database.moduleResultsDao().insert(ModuleResult(0))
                 val modules = result.map { m -> m.copy(moduleResultId = moduleResultId) }
                 database.modulesDao().insertAll(*modules.toTypedArray())
-                moduleResultId
+                ModuleResultWithModules(ModuleResult(moduleResultId), modules)
             }
         }
     }
 
-    suspend fun getCached(database: MyDatabase, semester: String?): List<ModuleResultModule>? {
-        val lastModuleResult = database.moduleResultsDao().getLast()
-        return lastModuleResult?.let { lastModuleResult.modules }
+    suspend fun getCached(database: MyDatabase): ModuleResultWithModules? {
+       return database.moduleResultsDao().getLast()
     }
 }

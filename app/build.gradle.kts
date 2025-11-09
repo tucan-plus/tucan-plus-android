@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.room)
     implementation(project(":common"))
     implementation(project(":data"))
+    implementation(project(":connector"))
     implementation(libs.androidx.profileinstaller)
 
     testImplementation(libs.junit)
