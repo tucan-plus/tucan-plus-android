@@ -1,20 +1,6 @@
 package de.selfmade4u.tucanplus.connector
 
 import androidx.datastore.core.DataStore
-import androidx.room.ColumnInfo
-import androidx.room.Dao
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.PrimaryKey
-import androidx.room.Query
-import androidx.room.Relation
-import androidx.room.Transaction
-import androidx.room.TypeConverter
-import androidx.room.Upsert
-import androidx.room.immediateTransaction
-import androidx.room.useWriterConnection
-import de.selfmade4u.tucanplus.MyDatabase
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
@@ -46,39 +32,6 @@ import io.ktor.http.HttpStatusCode
 
 object ModuleResults {
 
-    suspend fun getModuleResultsStoreCache(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
-                                           database: MyDatabase, semester: String?): AuthenticatedResponse<ModuleResultsResponse> {
-        return when (val response = getModuleResultsUncached(credentialSettingsDataStore, semester)) {
-            is AuthenticatedResponse.Success<ModuleResultsResponse> -> {
-                AuthenticatedResponse.Success(persist(database, response.response))
-            }
-            else -> response
-        }
-    }
-
-    suspend fun getModuleResultsUncached(
-        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
-        semester: String?
-    ): AuthenticatedResponse<ModuleResultsResponse> {
-        return fetchAuthenticatedWithReauthentication(
-            credentialSettingsDataStore,
-            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,${if (semester != null) { "-N$semester" } else { "" }}" },
-            parser = { sessionId, menuLocalizer, response -> parseModuleResponse("000324", sessionId, menuLocalizer, response) }
-        )
-    }
-
-    class ModuleResultsConverters {
-        @TypeConverter
-        fun fromModuleGrade(value: ModuleGrade?): String? {
-            return value?.representation
-        }
-
-        @TypeConverter
-        fun toModuleGrade(value: String?): ModuleGrade? {
-           return ModuleGrade.entries.find { it.representation == value }
-        }
-    }
-
     // https://github.com/tucan-plus/tucan-plus/blob/640bb9cbb9e3f8d22e8b9d6ddaabb5256b2eb0e6/crates/tucan-types/src/lib.rs#L366
     enum class ModuleGrade(val representation: String) {
         G1_0("1,0"),
@@ -99,25 +52,12 @@ object ModuleResults {
         Wintersemester
     }
 
-    @Entity(tableName = "semesters")
     data class Semesterauswahl(
-        @PrimaryKey
-        @ColumnInfo(name = "semester_id")
         val id: Long,
         val year: Int,
         val semester: Semester
     )
 
-    @Dao
-    interface SemestersDao {
-        @Upsert
-        suspend fun insertAll(vararg modules: Semesterauswahl)
-
-        @Query("SELECT * FROM semesters")
-        suspend fun getAll(): List<Semesterauswahl>
-    }
-
-    @Entity(tableName = "module", primaryKeys = ["moduleResultId", "id"])
     data class Module(
         var moduleResultId: Long,
         var id: String,
@@ -128,44 +68,17 @@ object ModuleResults {
         val gradeoverviewUrl: String
     )
 
-    @Entity(tableName = "module_results")
-    data class ModuleResult(@PrimaryKey(autoGenerate = true) var id: Long, @Embedded var selectedSemester: Semesterauswahl)
+    data class ModuleResultsResponse(var selectedSemester: Semesterauswahl, var semesters: List<Semesterauswahl>, var modules: List<Module>)
 
-    data class ModuleResultWithModules(
-        @Embedded val moduleResult: ModuleResult,
-        @Relation(
-            parentColumn = "id",
-            entityColumn = "moduleResultId"
+    suspend fun getModuleResultsUncached(
+        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
+        semester: String?
+    ): AuthenticatedResponse<ModuleResultsResponse> {
+        return fetchAuthenticatedWithReauthentication(
+            credentialSettingsDataStore,
+            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,${if (semester != null) { "-N$semester" } else { "" }}" },
+            parser = { sessionId, menuLocalizer, response -> parseModuleResponse("000324", sessionId, menuLocalizer, response) }
         )
-        val modules: List<Module>
-    )
-
-    // TODO FIXME immutable?
-    data class ModuleResultsResponse(var moduleResult: ModuleResult, var semesters: List<Semesterauswahl>, var modules: List<Module>)
-
-    @Dao
-    interface ModuleResultsDao {
-        @Query("SELECT * FROM module_results")
-        suspend fun getAll(): List<ModuleResult>
-
-        @Transaction
-        @Query("SELECT * FROM module_results")
-        suspend fun getModuleResultsWithModules(): List<ModuleResultWithModules>
-
-        @Insert
-        suspend fun insert(moduleResults: ModuleResult): Long
-
-        @Query("SELECT * FROM module_results ORDER BY id DESC LIMIT 1")
-        suspend fun getLast(): ModuleResultWithModules?
-    }
-
-    @Dao
-    interface ModulesDao {
-        @Insert
-        suspend fun insertAll(vararg modules: Module): List<Long>
-
-        @Query("SELECT * FROM module WHERE moduleResultId = :moduleResultId")
-        suspend fun getForModuleResult(moduleResultId: Long): List<Module>
     }
 
     suspend fun parseModuleResponse(menuId: String, sessionId: String, menuLocalizer: Localizer, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
@@ -478,37 +391,9 @@ object ModuleResults {
                     }
                 }
             }
-            val moduleResult = ModuleResult(0, selectedSemester!!)
-            return@parseBase ParserResponse.Success(ModuleResultsResponse(moduleResult, semesters, modules))
+            return@parseBase ParserResponse.Success(ModuleResultsResponse(selectedSemester!!, semesters, modules))
         }
         return response
-    }
-
-    // only store all once
-    suspend fun persist(database: MyDatabase, result: List<ModuleResultsResponse>): ModuleResultsResponse {
-        // TODO check whether there were changes?
-
-        val moduleResult = database.useWriterConnection {
-            it.immediateTransaction {
-                database.semestersDao().insertAll(*result.first().semesters.toTypedArray())
-                val moduleResult = result.moduleResult
-                val moduleResultId = database.moduleResultsDao().insert(moduleResult)
-                moduleResult.id = moduleResultId
-                val modules = result.modules.map { m -> m.moduleResultId = moduleResultId; m }
-                database.modulesDao().insertAll(*modules.toTypedArray())
-                /*modules.zip(moduleIds) { a, b ->
-                a.id = b
-            }*/
-                moduleResult
-            }
-        }
-        return ModuleResultsResponse(moduleResult, result.semesters, result.modules)
-    }
-
-    suspend fun getCached(database: MyDatabase, semester: String?): ModuleResultsResponse? {
-        val semesters = database.semestersDao().getAll()
-        val lastModuleResult = database.moduleResultsDao().getLast()
-        return lastModuleResult?.let {  ModuleResultsResponse(lastModuleResult.moduleResult, semesters, lastModuleResult.modules) }
     }
 }
 

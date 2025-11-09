@@ -1,4 +1,4 @@
-package de.selfmade4u.tucanplus
+package de.selfmade4u.tucanplus.data
 
 import androidx.room.Dao
 import androidx.room.Database

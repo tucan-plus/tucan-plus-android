@@ -21,4 +21,5 @@ dependencies {
     implementation(libs.room)
     ksp(libs.room.compiler)
     implementation(project(":connector"))
+    implementation(libs.androidx.datastore)
 }
