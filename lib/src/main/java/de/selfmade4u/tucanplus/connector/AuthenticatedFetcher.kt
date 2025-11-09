@@ -83,7 +83,7 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
     return AuthenticatedHttpResponse.Success(r)
 }
 
-suspend fun <T> fetchAuthenticatedWithReauthentication(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>, url: (sessionId: String) -> String, parser: suspend (sessionId: String, response: HttpResponse) -> ParserResponse<T>): AuthenticatedResponse<T> {
+suspend fun <T> fetchAuthenticatedWithReauthentication(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>, url: (sessionId: String) -> String, parser: suspend (sessionId: String, menuLocalizer: Localizer, response: HttpResponse) -> ParserResponse<T>): AuthenticatedResponse<T> {
     val client = HttpClient()
     var settings = credentialSettingsDataStore.data.first().inner!!
     if (System.currentTimeMillis() < settings.lastRequestTime + 30*60*1000) {
@@ -92,7 +92,7 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(credentialSettingsDataSto
         )
         when (response) {
             is AuthenticatedHttpResponse.Success<HttpResponse> -> {
-                when (val parserResponse = parser(settings.sessionId, response.response)) {
+                when (val parserResponse = parser(settings.sessionId, settings.menuLocalizer, response.response)) {
                     is ParserResponse.Success<T> -> {
                         credentialSettingsDataStore.updateData { currentSettings ->
                             OptionalCredentialSettings(settings.copy(lastRequestTime = System.currentTimeMillis()))
@@ -138,7 +138,7 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(credentialSettingsDataSto
             )
             return when (response) {
                 is AuthenticatedHttpResponse.Success<HttpResponse> -> {
-                    when (val parserResponse = parser( loginResponse.sessionId, response.response)) {
+                    when (val parserResponse = parser( loginResponse.sessionId, loginResponse.menuLocalizer, response.response)) {
                         is ParserResponse.Success<T> -> {
                             credentialSettingsDataStore.updateData { currentSettings ->
                                 OptionalCredentialSettings(settings.copy(lastRequestTime = System.currentTimeMillis()))

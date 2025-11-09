@@ -117,7 +117,7 @@ object TucanLogin {
     }
 
     fun Root.parseLoginFailure(): LoginResponse {
-        return parseBase("000000000000001", "000000", {}) { localizer, pageType ->
+        return parseBase("000000000000001", GermanLocalizer, "000000", {}) { localizer, pageType ->
             check(pageType == "accessdenied")
             script { attribute("type", "text/javascript"); }
             val child = peek()?.firstChild()

@@ -49,7 +49,7 @@ object MyCourses {
         )
     }
 
-    suspend fun parseResponse(sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+    suspend fun parseResponse(sessionId: String, menuLocalizer: Localizer, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
         return response(response) {
             status(HttpStatusCode.OK)
             header(
@@ -78,16 +78,16 @@ object MyCourses {
             ignoreHeader("x-android-selected-protocol")
             ignoreHeader("x-android-sent-millis")
             root {
-                parseContent(sessionId)
+                parseContent(sessionId, menuLocalizer)
             }
         }
     }
 
-    fun Root.parseContent(sessionId: String): ParserResponse<ModuleResultsResponse> {
+    fun Root.parseContent(sessionId: String, menuLocalizer: Localizer): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null
-        val response = parseBase(sessionId, "000324", {
+        val response = parseBase(sessionId, menuLocalizer, "000324", {
             if (peek() != null) {
                 style {
                     attribute("type", "text/css")

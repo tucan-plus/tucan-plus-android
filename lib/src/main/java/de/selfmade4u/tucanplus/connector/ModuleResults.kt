@@ -62,7 +62,7 @@ object ModuleResults {
         return fetchAuthenticatedWithReauthentication(
             credentialSettingsDataStore,
             { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," },
-            parser = { a, b -> parseModuleResponse("000324", a, b) }
+            parser = { sessionId, menuLocalizer, response -> parseModuleResponse("000324", sessionId, menuLocalizer, response) }
         )
     }
 
@@ -169,7 +169,7 @@ object ModuleResults {
         suspend fun getForModuleResult(moduleResultId: Long): List<Module>
     }
 
-    suspend fun parseModuleResponse(menuId: String, sessionId: String, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+    suspend fun parseModuleResponse(menuId: String, sessionId: String, menuLocalizer: Localizer, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
         return response(response) {
             status(HttpStatusCode.OK)
             header(
@@ -202,17 +202,17 @@ object ModuleResults {
                 ignoreHeader("content-length")
             }
             root {
-                parseModuleResults(menuId, sessionId)
+                parseModuleResults(menuId, sessionId, menuLocalizer)
             }
         }
     }
 
-    fun Root.parseModuleResults(menuId: String, sessionId: String): ParserResponse<ModuleResultsResponse> {
+    fun Root.parseModuleResults(menuId: String, sessionId: String, menuLocalizer: Localizer): ParserResponse<ModuleResultsResponse> {
         val modules = mutableListOf<Module>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null
         // menu id changes depending on language
-        val response = parseBase(sessionId, menuId, {
+        val response = parseBase(sessionId, menuLocalizer, menuId, {
             if (peek() != null) {
                 style {
                     attribute("type", "text/css")
