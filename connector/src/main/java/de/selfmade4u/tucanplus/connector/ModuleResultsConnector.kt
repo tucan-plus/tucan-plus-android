@@ -107,16 +107,12 @@ object ModuleResultsConnector {
             header("Pragma", "no-cache")
             header("Expires", "0")
             header("Cache-Control", "private, no-cache, no-store")
-            // JavaHttpEngine
-            if (response.call.client.engine::class.simpleName == "AndroidClientEngine") {
-                header("vary", "Accept-Encoding")
-                ignoreHeader("x-android-received-millis")
-                ignoreHeader("x-android-response-source")
-                ignoreHeader("x-android-selected-protocol")
-                ignoreHeader("x-android-sent-millis")
-            } else {
-                ignoreHeader("content-length")
-            }
+            maybeIgnoreHeader("vary")
+            maybeIgnoreHeader("x-android-received-millis")
+            maybeIgnoreHeader("x-android-response-source")
+            maybeIgnoreHeader("x-android-selected-protocol")
+            maybeIgnoreHeader("x-android-sent-millis")
+            maybeIgnoreHeader("content-length")
             root {
                 parseModuleResults(menuId, sessionId, menuLocalizer)
             }

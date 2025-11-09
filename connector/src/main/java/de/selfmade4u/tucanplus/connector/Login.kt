@@ -87,15 +87,12 @@ object TucanLogin {
             ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
             ignoreHeader("Date")
             java.util.logging.Logger.getLogger(TAG).log(Level.INFO, client.engine::class.simpleName)
-            if (client.engine::class.simpleName == "AndroidClientEngine") {
-                header("vary", "Accept-Encoding")
-                ignoreHeader("x-android-received-millis")
-                ignoreHeader("x-android-response-source")
-                ignoreHeader("x-android-selected-protocol")
-                ignoreHeader("x-android-sent-millis")
-            } else {
-                ignoreHeader("content-length")
-            }
+            maybeIgnoreHeader("vary")
+            maybeIgnoreHeader("x-android-received-millis")
+            maybeIgnoreHeader("x-android-response-source")
+            maybeIgnoreHeader("x-android-selected-protocol")
+            maybeIgnoreHeader("x-android-sent-millis")
+            maybeIgnoreHeader("content-length")
             if (hasHeader("Set-cookie")) {
                 val cookie = extractHeader("Set-cookie")[0].removePrefix("cnsc =")
                 val refreshHeader = extractHeader("REFRESH")[0]

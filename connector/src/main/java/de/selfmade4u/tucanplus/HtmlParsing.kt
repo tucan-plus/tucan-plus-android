@@ -177,6 +177,11 @@ class Response(
         check(actualValue != null) { "expected header with key $key\nremaining $headers" }
     }
 
+    fun maybeIgnoreHeader(key: String) {
+        check(checkedStatus) { "you need to check the status before checking the headers" }
+        headers.remove(key.lowercase())
+    }
+
     fun hasHeader(key: String): Boolean {
         check(checkedStatus) { "you need to check the status before checking the headers" }
         return headers.containsKey(key.lowercase())
