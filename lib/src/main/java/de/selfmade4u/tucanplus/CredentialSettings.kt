@@ -2,6 +2,7 @@ package de.selfmade4u.tucanplus
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
+import de.selfmade4u.tucanplus.connector.Localizer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -23,6 +24,7 @@ data class CredentialSettings @OptIn(ExperimentalTime::class) constructor(
     val password: String,
     val sessionId: String,
     val sessionCookie: String,
+    val menuLocalizer: Localizer,
     val lastRequestTime: Long
 )
 

@@ -45,6 +45,7 @@ object Common {
         return html {
             attribute("xmlns", "http://www.w3.org/1999/xhtml")
             val language = attributeValue("xml:lang") // de or en
+
             // TODO FIXME we need two localizers. If I understand correctly this is the language of the body but the language of the menu around it is depend on the language at session startup. (try storing that language with the session to confirm)
             val localizer = when (language) {
                 "de" -> GermanLocalizer

@@ -24,7 +24,7 @@ import java.util.logging.Level
 object TucanLogin {
 
     sealed class LoginResponse {
-        data class Success(val sessionId: String, val sessionCookie: String) : LoginResponse()
+        data class Success(val sessionId: String, val sessionCookie: String, val menuLocalizer: Localizer) : LoginResponse()
         data object InvalidCredentials : LoginResponse()
         data object TooManyAttempts : LoginResponse()
     }
@@ -103,7 +103,11 @@ object TucanLogin {
                 root {
                     parseLoginSuccess()
                 }
-                LoginResponse.Success(sessionIdMatch.groupValues[1], cookie)
+                LoginResponse.Success(sessionIdMatch.groupValues[1], cookie, when (sessionIdMatch.groupValues[2]) {
+                    "019" -> GermanLocalizer
+                    "350" -> EnglishLocalizer
+                    else -> throw IllegalStateException("Unknown language ${sessionIdMatch.groupValues[2]}")
+                })
             } else {
                 root {
                     parseLoginFailure()

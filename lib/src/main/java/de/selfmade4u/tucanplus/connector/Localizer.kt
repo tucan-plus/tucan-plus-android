@@ -1,9 +1,12 @@
 package de.selfmade4u.tucanplus.connector
 
+import kotlinx.serialization.Serializable
+
 data class TextAndId(val text: String, val id: Int) {
     fun id6(): String = id.toString().padStart(6, '0')
 }
 
+@Serializable
 sealed interface Localizer {
     val refresh: String
     val choose_semester: String
@@ -72,7 +75,7 @@ sealed interface Localizer {
     val module_results_semester_gpa: String
 }
 
-
+@Serializable
 object GermanLocalizer : Localizer {
     override val refresh: String get() = "Aktualisieren"
     override val choose_semester: String get() = "Wählen Sie ein Semester"
@@ -149,6 +152,7 @@ object GermanLocalizer : Localizer {
         get() = "Semester-GPA"
 }
 
+@Serializable
 object EnglishLocalizer : Localizer {
     override val refresh: String get() = "Refresh"
     override val choose_semester: String get() = "Choose a semester"

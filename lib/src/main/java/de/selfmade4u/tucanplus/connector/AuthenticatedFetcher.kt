@@ -125,7 +125,8 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(credentialSettingsDataSto
                 password = settings.password,
                 sessionId = loginResponse.sessionId,
                 sessionCookie = loginResponse.sessionCookie,
-                lastRequestTime = System.currentTimeMillis()
+                lastRequestTime = System.currentTimeMillis(),
+                menuLocalizer = loginResponse.menuLocalizer
             )
             credentialSettingsDataStore.updateData { currentSettings ->
                 OptionalCredentialSettings(
