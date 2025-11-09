@@ -61,10 +61,10 @@ object ModuleResults {
         // embedded module
         var id: String,
         val name: String,
-        val grade: ModuleGrade,
+        val grade: ModuleGrade?,
         val credits: Int,
-        val resultdetailsUrl: String,
-        val gradeoverviewUrl: String
+        val resultdetailsUrl: String?,
+        val gradeoverviewUrl: String?
     )
 
     @Entity

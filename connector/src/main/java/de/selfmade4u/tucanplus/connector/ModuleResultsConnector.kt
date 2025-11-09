@@ -46,6 +46,7 @@ enum class ModuleGrade(val representation: String) {
     G5_0("5,0"),
     B("b"),
     NB("nb"),
+    NOCH_NICHT_GESETZT("noch nicht gesetzt")
 }
 
 enum class Semester {
@@ -65,10 +66,10 @@ object ModuleResultsConnector {
     data class Module(
         var id: String,
         val name: String,
-        val grade: ModuleGrade,
+        val grade: ModuleGrade?,
         val credits: Int,
-        val resultdetailsUrl: String,
-        val gradeoverviewUrl: String
+        val resultdetailsUrl: String?,
+        val gradeoverviewUrl: String?
     )
 
     data class ModuleResultsResponse(var selectedSemester: Semesterauswahl, var semesters: List<Semesterauswahl>, var modules: List<Module>)
@@ -310,57 +311,77 @@ object ModuleResultsConnector {
                         ) {
                             val moduleId: String
                             val moduleName: String
-                            val moduleGrade: ModuleGrade
+                            val moduleGrade: ModuleGrade?
                             val moduleCredits: Int
-                            val resultdetailsUrl: String
-                            val gradeoverviewUrl: String
+                            val resultdetailsUrl: String?
+                            val gradeoverviewUrl: String?
                             tr {
                                 td { attribute("class", "tbdata"); moduleId = extractText() }
                                 moduleName = td { attribute("class", "tbdata"); extractText() }
                                 td {
                                     attribute("class", "tbdata_numeric")
                                     attribute("style", "vertical-align:top;")
-                                    val moduleGradeText = extractText()
-                                    moduleGrade =
-                                        ModuleGrade.entries.find { it.representation == moduleGradeText }
-                                            ?: run {
-                                                throw IllegalStateException("Unknown grade `$moduleGradeText`")
-                                            }
+                                    if (peek() != null) {
+                                        val moduleGradeText = extractText()
+                                        moduleGrade =
+                                            ModuleGrade.entries.find { it.representation == moduleGradeText }
+                                                ?: run {
+                                                    throw IllegalStateException("Unknown grade `$moduleGradeText`")
+                                                }
+                                    } else {
+                                        moduleGrade = null;
+                                    }
                                 }
                                 td {
                                     attribute("class", "tbdata_numeric"); moduleCredits =
                                     extractText().replace(",0", "").toInt()
                                 }
-                                td { attribute("class", "tbdata"); extractText() }
                                 td {
                                     attribute("class", "tbdata")
-                                    attribute("style", "vertical-align:top;")
-                                    a {
-                                        attributeValue("id")
-                                        resultdetailsUrl = attributeValue(
-                                            "href",
-                                        )
-                                        text(localizer.module_results_exams)
-                                    }
-                                    script {
-                                        attribute("type", "text/javascript")
-                                        extractData()
+                                    if (peek() != null) {
+                                        extractText()
                                     }
                                 }
                                 td {
                                     attribute("class", "tbdata")
-                                    a {
-                                        attributeValue("id")
-                                        gradeoverviewUrl = attributeValue(
-                                            "href",
-                                        )
-                                        attribute("class", "link")
-                                        attribute("title", localizer.module_results_grade_statistics)
-                                        b { text("Ø") }
+                                    attribute("style", "vertical-align:top;")
+                                    if (peek() != null) {
+                                        a {
+                                            attributeValue("id")
+                                            resultdetailsUrl = attributeValue(
+                                                "href",
+                                            )
+                                            text(localizer.module_results_exams)
+                                        }
+                                        script {
+                                            attribute("type", "text/javascript")
+                                            extractData()
+                                        }
+                                    } else {
+                                        resultdetailsUrl = null
                                     }
-                                    script {
-                                        attribute("type", "text/javascript")
-                                        extractData()
+                                }
+                                td {
+                                    attribute("class", "tbdata")
+                                    if (peek() != null) {
+                                        a {
+                                            attributeValue("id")
+                                            gradeoverviewUrl = attributeValue(
+                                                "href",
+                                            )
+                                            attribute("class", "link")
+                                            attribute(
+                                                "title",
+                                                localizer.module_results_grade_statistics
+                                            )
+                                            b { text("Ø") }
+                                        }
+                                        script {
+                                            attribute("type", "text/javascript")
+                                            extractData()
+                                        }
+                                    } else {
+                                        gradeoverviewUrl = null
                                     }
                                 }
                             }

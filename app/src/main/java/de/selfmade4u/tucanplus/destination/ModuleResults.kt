@@ -120,7 +120,7 @@ fun ModuleComposable(
         }
         Column(horizontalAlignment = Alignment.End) {
             Text("${module.credits} CP")
-            Text("Note ${module.grade.representation}")
+            Text("Note ${module.grade?.representation}")
         }
     }
 }

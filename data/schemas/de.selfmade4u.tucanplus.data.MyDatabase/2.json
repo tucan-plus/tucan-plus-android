@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "af9de3c0b8b3b1af0446ba07420b1444",
+    "identityHash": "70d2fdd64d0814fb1023be7ae86ba332",
     "entities": [
       {
         "tableName": "ModuleResult",
@@ -24,7 +24,7 @@
       },
       {
         "tableName": "ModuleResultModule",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`moduleResultId` INTEGER NOT NULL, `id` TEXT NOT NULL, `name` TEXT NOT NULL, `grade` TEXT NOT NULL, `credits` INTEGER NOT NULL, `resultdetailsUrl` TEXT NOT NULL, `gradeoverviewUrl` TEXT NOT NULL, `semester_id` INTEGER NOT NULL, `semester_year` INTEGER NOT NULL, `semester_semester` TEXT NOT NULL, PRIMARY KEY(`moduleResultId`, `id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`moduleResultId` INTEGER NOT NULL, `id` TEXT NOT NULL, `name` TEXT NOT NULL, `grade` TEXT, `credits` INTEGER NOT NULL, `resultdetailsUrl` TEXT, `gradeoverviewUrl` TEXT, `semester_id` INTEGER NOT NULL, `semester_year` INTEGER NOT NULL, `semester_semester` TEXT NOT NULL, PRIMARY KEY(`moduleResultId`, `id`))",
         "fields": [
           {
             "fieldPath": "moduleResultId",
@@ -47,8 +47,7 @@
           {
             "fieldPath": "grade",
             "columnName": "grade",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "credits",
@@ -59,14 +58,12 @@
           {
             "fieldPath": "resultdetailsUrl",
             "columnName": "resultdetailsUrl",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "gradeoverviewUrl",
             "columnName": "gradeoverviewUrl",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "semester.id",
@@ -98,7 +95,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'af9de3c0b8b3b1af0446ba07420b1444')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '70d2fdd64d0814fb1023be7ae86ba332')"
     ]
   }
 }

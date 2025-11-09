@@ -72,6 +72,9 @@ abstract class HtmlTag(val node: Node, val children: MutableList<Node>, val attr
 
     fun extractText(): String {
         check(attributes.isEmpty()) { attributes.removeAt(0) }
+        if (this.children.isEmpty()) {
+            throw IllegalStateException("${node} actual no children, expected at least one")
+        }
         val next = this.children.removeAt(0)
         check(next is TextNode) { next }
         return next.text().trim()
@@ -80,6 +83,9 @@ abstract class HtmlTag(val node: Node, val children: MutableList<Node>, val attr
     fun text(text: String) {
         check(text.trim().isNotEmpty()) { "expected text cannot be empty" }
         check(attributes.isEmpty()) { attributes.removeAt(0) }
+        if (this.children.isEmpty()) {
+            throw IllegalStateException("${node} actual no children, expected at least one")
+        }
         val next = this.children.removeAt(0)
         check(next is TextNode) { next }
         check(next.text().trim() == text) { "Mismatched text expected:<${text}> but was:<${next.text().trim()}>" }
@@ -87,6 +93,9 @@ abstract class HtmlTag(val node: Node, val children: MutableList<Node>, val attr
 
     fun dataHash(hash: String) {
         check(attributes.isEmpty()) { attributes.removeAt(0) }
+        if (this.children.isEmpty()) {
+            throw IllegalStateException("${node} actual no children, expected at least one")
+        }
         val next = this.children.removeAt(0)
         check(next is DataNode) { next }
         // https://github.com/JetBrains/intellij-community/blob/master/java/java-runtime/src/com/intellij/rt/execution/testFrameworks/AbstractExpectedPatterns.java#L10
@@ -99,6 +108,9 @@ abstract class HtmlTag(val node: Node, val children: MutableList<Node>, val attr
 
     fun extractData(): String {
         check(attributes.isEmpty()) { attributes.removeAt(0) }
+        if (this.children.isEmpty()) {
+            throw IllegalStateException("${node} actual no children, expected at least one")
+        }
         val next = this.children.removeAt(0)
         check(next is DataNode) { next }
         return next.getWholeData()

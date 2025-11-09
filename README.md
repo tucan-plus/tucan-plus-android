@@ -1,5 +1,5 @@
 # tucan-plus-android
 
 ```
-./gradlew test --rerun
+ TUCAN_USERNAME= TUCAN_PASSWORD= ./gradlew test --rerun
  ```
