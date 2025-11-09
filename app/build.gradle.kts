@@ -89,7 +89,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.datastore)
     implementation(libs.room)
-    implementation(project(":lib"))
+    implementation(project(":connector"))
     implementation(libs.androidx.profileinstaller)
 
     testImplementation(libs.junit)

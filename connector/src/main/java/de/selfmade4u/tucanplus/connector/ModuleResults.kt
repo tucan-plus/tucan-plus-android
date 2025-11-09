@@ -47,8 +47,8 @@ import io.ktor.http.HttpStatusCode
 object ModuleResults {
 
     suspend fun getModuleResultsStoreCache(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
-                                           database: MyDatabase): AuthenticatedResponse<ModuleResultsResponse> {
-        return when (val response = getModuleResultsUncached(credentialSettingsDataStore)) {
+                                           database: MyDatabase, semester: String?): AuthenticatedResponse<ModuleResultsResponse> {
+        return when (val response = getModuleResultsUncached(credentialSettingsDataStore, semester)) {
             is AuthenticatedResponse.Success<ModuleResultsResponse> -> {
                 AuthenticatedResponse.Success(persist(database, response.response))
             }
@@ -58,10 +58,11 @@ object ModuleResults {
 
     suspend fun getModuleResultsUncached(
         credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
+        semester: String?
     ): AuthenticatedResponse<ModuleResultsResponse> {
         return fetchAuthenticatedWithReauthentication(
             credentialSettingsDataStore,
-            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324," },
+            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,${if (semester != null) { "-N$semester" } else { "" }}" },
             parser = { sessionId, menuLocalizer, response -> parseModuleResponse("000324", sessionId, menuLocalizer, response) }
         )
     }
@@ -141,8 +142,6 @@ object ModuleResults {
 
     // TODO FIXME immutable?
     data class ModuleResultsResponse(var moduleResult: ModuleResult, var semesters: List<Semesterauswahl>, var modules: List<Module>)
-
-    // https://stackoverflow.com/questions/60928706/android-room-how-to-save-an-entity-with-one-of-the-variables-being-a-sealed-cla/72535888#72535888
 
     @Dao
     interface ModuleResultsDao {
@@ -485,13 +484,13 @@ object ModuleResults {
         return response
     }
 
-
-    suspend fun persist(database: MyDatabase, result: ModuleResultsResponse): ModuleResultsResponse {
+    // only store all once
+    suspend fun persist(database: MyDatabase, result: List<ModuleResultsResponse>): ModuleResultsResponse {
         // TODO check whether there were changes?
 
         val moduleResult = database.useWriterConnection {
             it.immediateTransaction {
-                database.semestersDao().insertAll(*result.semesters.toTypedArray())
+                database.semestersDao().insertAll(*result.first().semesters.toTypedArray())
                 val moduleResult = result.moduleResult
                 val moduleResultId = database.moduleResultsDao().insert(moduleResult)
                 moduleResult.id = moduleResultId
@@ -506,7 +505,7 @@ object ModuleResults {
         return ModuleResultsResponse(moduleResult, result.semesters, result.modules)
     }
 
-    suspend fun getCached(database: MyDatabase): ModuleResultsResponse? {
+    suspend fun getCached(database: MyDatabase, semester: String?): ModuleResultsResponse? {
         val semesters = database.semestersDao().getAll()
         val lastModuleResult = database.moduleResultsDao().getLast()
         return lastModuleResult?.let {  ModuleResultsResponse(lastModuleResult.moduleResult, semesters, lastModuleResult.modules) }
