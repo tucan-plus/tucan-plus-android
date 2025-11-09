@@ -3,8 +3,6 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
     id("java-library")
     alias(libs.plugins.jetbrains.kotlin.serialization)
-    id("com.google.devtools.ksp")
-    id("androidx.room")
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -21,18 +19,12 @@ tasks.withType<Test>().configureEach {
 tasks.withType<Test>().configureEach {
     forkEvery = 100
 }
-room {
-    schemaDirectory("$projectDir/schemas")
-}
 dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ksoup)
-    implementation(libs.androidx.room.common.jvm)
     implementation(libs.androidx.datastore)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.room)
     testImplementation(libs.junit)
     testImplementation(libs.ktor.client.java)
-    ksp(libs.room.compiler)
 }
