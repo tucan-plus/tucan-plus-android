@@ -21,7 +21,7 @@ object LoginSingleton {
                 )
                 val result = when (response) {
                     TucanLogin.LoginResponse.InvalidCredentials -> TODO()
-                    is TucanLogin.LoginResponse.Success -> CredentialSettings(System.getenv("TUCAN_USERNAME")!!, System.getenv("TUCAN_PASSWORD")!!, response.sessionId, response.sessionCookie, lastRequestTime = System.currentTimeMillis())
+                    is TucanLogin.LoginResponse.Success -> CredentialSettings(System.getenv("TUCAN_USERNAME")!!, System.getenv("TUCAN_PASSWORD")!!, response.sessionId, response.sessionCookie, response.menuLocalizer, lastRequestTime = System.currentTimeMillis())
                     TucanLogin.LoginResponse.TooManyAttempts -> TODO()
                 }
                 Instance = result

@@ -10,6 +10,7 @@ import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginSuccess
 import de.selfmade4u.tucanplus.root
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.runBlocking
+import org.junit.Assume
 import org.junit.Test
 import org.junit.experimental.categories.Category
 
@@ -71,6 +72,7 @@ class LoginTest {
     @Category(AccessesTucan::class)
     @Test
     fun testLoginCorrectUsernameAndPassword() {
+        Assume.assumeTrue("Credentials provided", System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null)
         runBlocking {
             LoginSingleton.getCredentials()
         }

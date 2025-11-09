@@ -12,6 +12,7 @@ import de.selfmade4u.tucanplus.root
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
+import org.junit.Assume
 import org.junit.Test
 import org.junit.experimental.categories.Category
 
@@ -28,7 +29,7 @@ class ModuleResultsTest {
 
         runBlocking {
             val result = root(doc) {
-                parseModuleResults("000324", "183985067121045")
+                parseModuleResults("000324", "183985067121045", GermanLocalizer)
             }
             print(result)
         }
@@ -45,7 +46,7 @@ class ModuleResultsTest {
 
         runBlocking {
             val result = root(doc) {
-                parseModuleResults("000363", "059144925859855")
+                parseModuleResults("000363", "059144925859855", EnglishLocalizer)
             }
             print(result)
         }
@@ -54,6 +55,7 @@ class ModuleResultsTest {
     @Category(AccessesTucan::class)
     @Test
     fun testModuleResults() {
+        Assume.assumeTrue("Credentials provided", System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null)
         runBlocking {
             val credentials = LoginSingleton.getCredentials()
             ModuleResults.getModuleResultsUncached(
