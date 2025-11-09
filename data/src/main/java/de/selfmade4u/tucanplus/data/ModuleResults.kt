@@ -1,17 +1,14 @@
 package de.selfmade4u.tucanplus.data
 
 import androidx.datastore.core.DataStore
-import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Insert
-import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Transaction
 import androidx.room.TypeConverter
-import androidx.room.Upsert
 import androidx.room.immediateTransaction
 import androidx.room.useWriterConnection
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
@@ -20,25 +17,23 @@ import de.selfmade4u.tucanplus.connector.ModuleGrade
 import de.selfmade4u.tucanplus.connector.ModuleResults
 import de.selfmade4u.tucanplus.connector.ModuleResults.Semesterauswahl
 import de.selfmade4u.tucanplus.connector.ModuleResults.getModuleResultsUncached
-import kotlin.text.insert
 
 object ModuleResults {
 
     // fetch for all semesters and store all at once.
     suspend fun refreshModuleResults(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
                                            database: MyDatabase): AuthenticatedResponse<Unit> {
-        val modules = mutableListOf<ModuleResults.Module>()
+        val modules = mutableListOf<ModuleResultModule>()
         return when (val response = getModuleResultsUncached(credentialSettingsDataStore, null)) {
             is AuthenticatedResponse.Success<ModuleResults.ModuleResultsResponse> -> {
                 response.response.semesters.forEach { semester ->
                     when (val response = getModuleResultsUncached(credentialSettingsDataStore, semester.id.toString().padStart(15, '0'))) {
                         is AuthenticatedResponse.Success<ModuleResults.ModuleResultsResponse> -> {
-                            modules += response.response.modules
+                            modules += response.response.modules.map { m -> ModuleResultModule(0, semester, m) }
                         }
                         else -> return response.map()
                     }
                 }
-                // TODO convert here?
                 persist(database, modules.toList())
                 AuthenticatedResponse.Success(Unit)
             }
@@ -61,13 +56,9 @@ object ModuleResults {
     @Entity
     data class ModuleResultModule(
         var moduleResultId: Long,
-        var id: String,
         var semester: Semesterauswahl,
-        val name: String,
-        val grade: ModuleGrade,
-        val credits: Int,
-        val resultdetailsUrl: String,
-        val gradeoverviewUrl: String
+        @Embedded
+        var inner: ModuleResults.Module
     )
 
     @Entity
