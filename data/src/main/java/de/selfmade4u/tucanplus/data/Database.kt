@@ -10,8 +10,6 @@ import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import de.selfmade4u.tucanplus.connector.ModuleResults
-import de.selfmade4u.tucanplus.connector.ModuleResults.ModuleResult
 import java.time.LocalDateTime
 
 class Converters {
@@ -50,11 +48,9 @@ interface CacheDao {
 
 // https://developer.android.com/studio/inspect/database
 
-@Database(entities = [CacheEntry::class, ModuleResult::class, ModuleResults.Module::class, ModuleResults.Semesterauswahl::class], version = 2)
-@TypeConverters(Converters::class, ModuleResults.ModuleResultsConverters::class)
+@Database(entities = [ModuleResults.ModuleResult::class, ModuleResults.ModuleResultModule::class], version = 2)
+@TypeConverters(Converters::class)
 abstract class MyDatabase : RoomDatabase() {
-    abstract fun cacheDao(): CacheDao
     abstract fun moduleResultsDao(): ModuleResults.ModuleResultsDao
     abstract fun modulesDao(): ModuleResults.ModulesDao
-    abstract fun semestersDao(): ModuleResults.SemestersDao
 }
