@@ -16,8 +16,8 @@ import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
 import de.selfmade4u.tucanplus.connector.ModuleGrade
 import de.selfmade4u.tucanplus.connector.ModuleResults
-import de.selfmade4u.tucanplus.connector.ModuleResults.Semesterauswahl
 import de.selfmade4u.tucanplus.connector.ModuleResults.getModuleResultsUncached
+import de.selfmade4u.tucanplus.connector.Semesterauswahl
 
 object ModuleResults {
 
@@ -57,7 +57,7 @@ object ModuleResults {
     @Entity(primaryKeys = ["moduleResultId", "id"])
     data class ModuleResultModule(
         var moduleResultId: Long,
-        @Embedded
+        @Embedded(prefix = "semester_")
         var semester: Semesterauswahl,
         // embedded module
         var id: String,

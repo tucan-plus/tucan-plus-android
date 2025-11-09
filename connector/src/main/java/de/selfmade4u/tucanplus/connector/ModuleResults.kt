@@ -50,13 +50,14 @@ enum class Semester {
     Wintersemester
 }
 
+data class Semesterauswahl(
+    val id: Long,
+    val year: Int,
+    val semester: Semester
+)
+
 
 object ModuleResults {
-    data class Semesterauswahl(
-        val id: Long,
-        val year: Int,
-        val semester: Semester
-    )
 
     data class Module(
         var id: String,

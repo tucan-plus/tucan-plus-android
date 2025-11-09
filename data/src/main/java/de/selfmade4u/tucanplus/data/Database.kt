@@ -49,7 +49,7 @@ interface CacheDao {
 // https://developer.android.com/studio/inspect/database
 
 @Database(entities = [ModuleResults.ModuleResult::class, ModuleResults.ModuleResultModule::class], version = 2)
-@TypeConverters(Converters::class)
+@TypeConverters(Converters::class, ModuleResults.ModuleResultsConverters::class)
 abstract class MyDatabase : RoomDatabase() {
     abstract fun moduleResultsDao(): ModuleResults.ModuleResultsDao
     abstract fun modulesDao(): ModuleResults.ModulesDao
