@@ -1,5 +1,5 @@
 [versions]
-agp = "9.0.0-alpha13"
+agp = "9.0.0-alpha14"
 coreKtx = "1.17.0"
 datastore = "1.1.7"
 junit = "4.13.2"

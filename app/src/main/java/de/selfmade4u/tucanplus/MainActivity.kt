@@ -42,6 +42,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import de.selfmade4u.tucanplus.destination.ModuleResultsComposable
 import de.selfmade4u.tucanplus.ui.theme.TUCaNPlusTheme
+import io.ktor.client.engine.android.AndroidClientEngine
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import kotlinx.coroutines.ExperimentalCoroutinesApi

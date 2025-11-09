@@ -2,27 +2,20 @@ package de.selfmade4u.tucanplus.destination
 
 import android.content.res.Configuration
 import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.input.TextFieldLineLimits
-import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -45,18 +38,21 @@ import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.DetailedDrawerExample
 import de.selfmade4u.tucanplus.MyDatabaseProvider
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
-import de.selfmade4u.tucanplus.connector.ModuleResults
+import de.selfmade4u.tucanplus.connector.ModuleGrade
+import de.selfmade4u.tucanplus.connector.Semester
+import de.selfmade4u.tucanplus.connector.Semesterauswahl
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
+import de.selfmade4u.tucanplus.data.ModuleResults
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
     val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
-    val modules by produceState<AuthenticatedResponse<ModuleResults.ModuleResultsResponse>?>(initialValue = null, isRefreshing) {
+    val modules by produceState<AuthenticatedResponse<ModuleResults.ModuleResultWithModules>?>(initialValue = null, isRefreshing) {
         ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
         isLoading.value = false
-        value = ModuleResults.getModuleResultsStoreCache(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
+        value = ModuleResults.refreshModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
         isRefreshing = false
         Log.e("LOADED", value.toString())
     }
@@ -72,7 +68,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
             )
         }, modifier = Modifier.padding(innerPadding)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                LongBasicDropdownMenu()
+                //LongBasicDropdownMenu()
                 when (val value = modules) {
                     null -> {
                         Column(
@@ -104,32 +100,31 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, widthDp = 200)
 @Composable
 fun ModuleComposable(
-    module: ModuleResults.Module = ModuleResults.Module(
+    module: ModuleResults.ModuleResultModule = ModuleResults.ModuleResultModule(
         42,
+        Semesterauswahl(1, 2025, Semester.Wintersemester),
         "id",
-        "name",
-        ModuleResults.ModuleGrade.G1_0,
+        "Tin one ewfwf wefwe ewfw efw efwe wfwe fewfwe fweline",
+        ModuleGrade.NOCH_NICHT_GESETZT,
         1,
         "url",
         "url"
     )
 ) {
     // https://developer.android.com/develop/ui/compose/layouts/basics
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column {
-            Text("${module.name}")
-            Text("${module.id}", fontSize = 10.sp, color = Color.Gray)
+    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(module.name)
+            Text(module.id, fontSize = 10.sp, color = Color.Gray)
         }
-        Column(horizontalAlignment = Alignment.End) {
+        Column(modifier = Modifier.fillMaxHeight(), horizontalAlignment = Alignment.End) {
             Text("${module.credits} CP")
-            Text("Note ${module.grade.representation}")
+            Text("Note ${module.grade?.representation}")
         }
     }
 }
 
+/*
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
@@ -171,4 +166,4 @@ fun LongBasicDropdownMenu() {
             }
         }
     }
-}
+}*/
