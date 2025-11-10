@@ -49,7 +49,8 @@ import de.selfmade4u.tucanplus.data.ModuleResults
 fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
     val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
-    val modules by produceState<AuthenticatedResponse<ModuleResults.ModuleResultWithModules>?>(initialValue = null, isRefreshing) {
+    var updateCounter by remember { mutableStateOf(false) }
+    val modules by produceState<AuthenticatedResponse<ModuleResults.ModuleResultWithModules>?>(initialValue = null, updateCounter) {
         ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
         isLoading.value = false
         value = ModuleResults.refreshModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
@@ -60,6 +61,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
     DetailedDrawerExample(backStack) { innerPadding ->
         PullToRefreshBox(isRefreshing, onRefresh = {
             isRefreshing = true
+            updateCounter = !updateCounter;
         }, state = state, indicator = {
             PullToRefreshDefaults.LoadingIndicator(
                 state = state,
