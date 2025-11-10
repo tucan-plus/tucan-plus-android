@@ -37,6 +37,7 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.DetailedDrawerExample
 import de.selfmade4u.tucanplus.MyDatabaseProvider
+import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
 import de.selfmade4u.tucanplus.connector.ModuleGrade
 import de.selfmade4u.tucanplus.connector.Semester
@@ -51,11 +52,12 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
     var isRefreshing by remember { mutableStateOf(false) }
     var updateCounter by remember { mutableStateOf(false) }
     val modules by produceState<AuthenticatedResponse<ModuleResults.ModuleResultWithModules>?>(initialValue = null, updateCounter) {
+        Log.i(TAG, "Loading")
         ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
         isLoading.value = false
         value = ModuleResults.refreshModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
         isRefreshing = false
-        Log.e("LOADED", value.toString())
+        Log.e(TAG, "Loaded ${value.toString()}")
     }
     val state = rememberPullToRefreshState()
     DetailedDrawerExample(backStack) { innerPadding ->

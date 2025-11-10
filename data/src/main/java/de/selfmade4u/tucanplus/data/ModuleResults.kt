@@ -148,7 +148,7 @@ object ModuleResults {
         return database.useWriterConnection {
             it.immediateTransaction {
                 val moduleResultId = database.moduleResultsDao().insert(ModuleResult(0))
-                val modules = result.map { m -> m.copy(moduleResultId = moduleResultId) }
+                val modules = result.map { m -> m.copy(moduleResultId = moduleResultId) }.sortedWith(compareByDescending<ModuleResultModule>{it.semester.id}.thenBy { it.id})
                 database.modulesDao().insertAll(*modules.toTypedArray())
                 ModuleResultWithModules(ModuleResult(moduleResultId), modules)
             }
@@ -156,6 +156,9 @@ object ModuleResults {
     }
 
     suspend fun getCached(database: MyDatabase): ModuleResultWithModules? {
-        return database.moduleResultsDao().getLast()
+        val value = database.moduleResultsDao().getLast()
+        return value?.let { value ->
+            value.copy(modules = value.modules.sortedWith(compareByDescending<ModuleResultModule>{it.semester.id}.thenBy { it.id}))
+        }
     }
 }
