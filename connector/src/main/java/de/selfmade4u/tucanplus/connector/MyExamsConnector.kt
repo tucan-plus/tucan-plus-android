@@ -300,11 +300,20 @@ object MyExamsConnector {
                                         moduleName = extractText()
                                     }
                                     if (peek() != null) {
-                                        br {
-
+                                        br { }
+                                        if (peek() is TextNode) {
+                                            // list of courses
+                                            extractText()
+                                        } else {
+                                            // thesis
+                                            b {
+                                                text("Subject:")
+                                            }
+                                            val title = extractText()
+                                            br {}
+                                            val handedIn = extractText()
+                                            br {}
                                         }
-                                        // list of courses
-                                        extractText()
                                     }
                                 }
                                 td {
