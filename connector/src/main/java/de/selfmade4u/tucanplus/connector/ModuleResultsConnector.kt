@@ -46,7 +46,9 @@ enum class ModuleGrade(val representation: String) {
     G5_0("5,0"),
     B("b"),
     NB("nb"),
-    NOCH_NICHT_GESETZT("noch nicht gesetzt")
+    // TODO FIXME localize
+    NOCH_NICHT_GESETZT("noch nicht gesetzt"),
+    NOCH_NICHT_GESETZT_EN("not set yet")
 }
 
 enum class Semester {

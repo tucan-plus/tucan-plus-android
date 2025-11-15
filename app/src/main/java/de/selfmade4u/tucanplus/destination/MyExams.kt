@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -101,22 +100,20 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
 @Composable
 fun ExamComposable(
     exam: MyExamsConnector.Exam = MyExamsConnector.Exam(
-        "",
-        "",
-        "",
-        "",
-        ""
+        "some-id",
+        "The name",
+        "random url",
+        "Fachprüfung",
+        "Heute"
     )
 ) {
     // https://developer.android.com/develop/ui/compose/layouts/basics
     Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
         Column(modifier = Modifier.weight(1f)) {
             Text(exam.name)
+            Text(exam.examType)
+            Text(exam.date)
             Text(exam.id, fontSize = 10.sp, color = Color.Gray)
-        }
-        Column(modifier = Modifier.fillMaxHeight(), horizontalAlignment = Alignment.End) {
-            Text("${exam.date} CP")
-            Text("Note ${exam.examType}")
         }
     }
 }
