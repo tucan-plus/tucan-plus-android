@@ -28,6 +28,8 @@ import de.selfmade4u.tucanplus.script
 import de.selfmade4u.tucanplus.span
 import de.selfmade4u.tucanplus.title
 import de.selfmade4u.tucanplus.ul
+import java.time.LocalDateTime
+import java.time.Month
 
 
 object Common {
@@ -1055,5 +1057,20 @@ object Common {
                 init()
             }
         }
+    }
+
+    fun currentSemester(): Int {
+        val dateTime = LocalDateTime.now()
+        val year = dateTime.year
+        val month = dateTime.month
+        val offset = if (Month.APRIL <= month && month <= Month.OCTOBER) {
+            // wise
+            1
+        } else {
+            0
+        }
+        // 15186000
+        // wise 2025
+        return 15176000 + ((year - 2025)*2 + offset) * 10000
     }
 }

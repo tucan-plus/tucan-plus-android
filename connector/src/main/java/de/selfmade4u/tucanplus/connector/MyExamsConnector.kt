@@ -7,6 +7,7 @@ import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
+import de.selfmade4u.tucanplus.connector.Common.currentSemester
 import de.selfmade4u.tucanplus.connector.Common.parseBase
 import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.Module
 import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.ModuleResultsResponse
@@ -250,6 +251,16 @@ object MyExamsConnector {
                     attribute("class", "nb list")
 
                     thead {
+                        tr {
+                            attribute("class", "tbcontrol");
+                            td {
+                                a {
+                                    attribute("href", "/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=EXAMREGISTRATION&amp;ARGUMENTS=-N$sessionId,-N000318,${currentSemester()}")
+                                    attribute("class", "arrow")
+                                    text("Anmeldung zu Prüfungen")
+                                }
+                            }
+                        }
                         tr {
                             td { attribute("class", "tbsubhead"); text(localizer.module_results_no) }
                             td { attribute("class", "tbsubhead"); text(localizer.module_results_course_name)}
