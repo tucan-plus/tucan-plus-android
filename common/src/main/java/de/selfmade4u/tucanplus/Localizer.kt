@@ -8,6 +8,10 @@ data class TextAndId(val text: String, val id: Int) {
 
 @Serializable
 sealed interface Localizer {
+    val unregister: String
+    val my_exams_course_or_module: String
+    val my_exams_name: String
+    val my_exams_date: String
     val refresh: String
     val choose_semester: String
     val at: String
@@ -77,6 +81,14 @@ sealed interface Localizer {
 
 @Serializable
 object GermanLocalizer : Localizer {
+    override val unregister: String
+        get() = "Abmelden"
+    override val my_exams_course_or_module: String
+        get() = "Veranstaltung/Modul"
+    override val my_exams_name: String
+        get() = "Name"
+    override val my_exams_date: String
+        get() = "Datum"
     override val refresh: String get() = "Aktualisieren"
     override val choose_semester: String get() = "Wählen Sie ein Semester"
     override val at: String get() = "um"
@@ -154,6 +166,14 @@ object GermanLocalizer : Localizer {
 
 @Serializable
 object EnglishLocalizer : Localizer {
+    override val unregister: String
+        get() = "Unregister"
+    override val my_exams_course_or_module: String
+        get() = "Course/module"
+    override val my_exams_name: String
+        get() = "Name"
+    override val my_exams_date: String
+        get() = "Date"
     override val refresh: String get() = "Refresh"
     override val choose_semester: String get() = "Choose a semester"
     override val at: String get() = "on"

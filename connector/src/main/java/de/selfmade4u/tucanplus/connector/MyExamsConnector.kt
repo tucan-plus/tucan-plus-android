@@ -9,7 +9,6 @@ import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.currentSemester
 import de.selfmade4u.tucanplus.connector.Common.parseBase
-import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.Module
 import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.ModuleResultsResponse
 import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.form
@@ -254,6 +253,7 @@ object MyExamsConnector {
                         tr {
                             attribute("class", "tbcontrol");
                             td {
+                                attribute("colspan", "5")
                                 a {
                                     attribute("href", "/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=EXAMREGISTRATION&amp;ARGUMENTS=-N$sessionId,-N000318,-N${currentSemester().toString().padStart(15, '0')}")
                                     attribute("class", "arrow")
@@ -262,14 +262,11 @@ object MyExamsConnector {
                             }
                         }
                         tr {
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_no) }
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_course_name)}
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_final_grade) }
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_credits) }
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_status) }
-                            td {
-                                attribute("class", "tbsubhead")
-                                attribute("colspan", "2")
+                            th { attribute("scope", "col"); attribute("id", "Nr."); text(localizer.module_results_no) }
+                            th { attribute("scope", "col"); attribute("id", "Course_event_module"); text(localizer.my_exams_course_or_module)}
+                            th { attribute("scope", "col"); attribute("id", "Name"); text(localizer.my_exams_name) }
+                            th { attribute("scope", "col"); attribute("id", "Date"); text(localizer.my_exams_date) }
+                            th {
                             }
                         }
                     }
@@ -285,100 +282,58 @@ object MyExamsConnector {
                             val resultdetailsUrl: String?
                             val gradeoverviewUrl: String?
                             tr {
-                                td { attribute("class", "tbdata"); moduleId = extractText() }
-                                moduleName = td { attribute("class", "tbdata"); extractText() }
                                 td {
-                                    attribute("class", "tbdata_numeric")
-                                    attribute("style", "vertical-align:top;")
-                                    if (peek() != null) {
-                                        val moduleGradeText = extractText()
-                                        moduleGrade =
-                                            ModuleGrade.entries.find { it.representation == moduleGradeText }
-                                                ?: run {
-                                                    throw IllegalStateException("Unknown grade `$moduleGradeText`")
-                                                }
-                                    } else {
-                                        moduleGrade = null;
-                                    }
+                                    attribute("class", "tbdata");
+                                    // id
+                                    moduleId = extractText()
                                 }
                                 td {
-                                    attribute("class", "tbdata_numeric"); moduleCredits =
-                                    extractText().replace(",0", "").toInt()
+                                    attribute("class", "tbdata");
+                                    a {
+                                        attribute("class", "link");
+                                        attribute("name", "eventLink");
+                                        // link coursedetails
+                                        attributeValue("href");
+                                        // module title
+                                        moduleName = extractText()
+                                    }
+                                    br {
+
+                                    }
+                                    // list of courses
+                                    extractText()
                                 }
                                 td {
                                     attribute("class", "tbdata")
-                                    if (peek() != null) {
+                                    a {
+                                        attribute("class", "link");
+                                        // examdetails
+                                        attributeValue("href");
+                                        /// type of exam
                                         extractText()
                                     }
                                 }
                                 td {
                                     attribute("class", "tbdata")
-                                    attribute("style", "vertical-align:top;")
-                                    if (peek() != null) {
-                                        a {
-                                            attributeValue("id")
-                                            resultdetailsUrl = attributeValue(
-                                                "href",
-                                            )
-                                            text(localizer.module_results_exams)
-                                        }
-                                        script {
-                                            attribute("type", "text/javascript")
-                                            extractData()
-                                        }
-                                    } else {
-                                        resultdetailsUrl = null
+                                    a {
+                                        attribute("class", "link");
+                                        // courseprep date link
+                                        attributeValue("href");
+                                        // date text
+                                        extractText()
                                     }
                                 }
                                 td {
                                     attribute("class", "tbdata")
-                                    if (peek() != null) {
-                                        a {
-                                            attributeValue("id")
-                                            gradeoverviewUrl = attributeValue(
-                                                "href",
-                                            )
-                                            attribute("class", "link")
-                                            attribute(
-                                                "title",
-                                                localizer.module_results_grade_statistics
-                                            )
-                                            b { text("Ø") }
-                                        }
-                                        script {
-                                            attribute("type", "text/javascript")
-                                            extractData()
-                                        }
-                                    } else {
-                                        gradeoverviewUrl = null
+                                    a {
+                                        // EXAMUNREG link
+                                        attributeValue("href");
+                                        attribute("class", "img img_arrowLeftRed");
+                                        text(localizer.unregister)
                                     }
                                 }
                             }
-                            val module = Module(
-                                moduleId,
-                                moduleName,
-                                moduleGrade,
-                                moduleCredits,
-                                resultdetailsUrl,
-                                gradeoverviewUrl
-                            )
-                            modules.add(module)
-                        }
 
-                        tr {
-                            th {
-                                attribute("colspan", "2")
-                                text(localizer.module_results_semester_gpa)
-                            }
-                            th {
-                                attribute("class", "tbdata")
-                                extractText()
-                            }
-                            th { extractText() }
-                            th {
-                                attribute("class", "tbdata")
-                                attribute("colspan", "4")
-                            }
                         }
                     }
                 }

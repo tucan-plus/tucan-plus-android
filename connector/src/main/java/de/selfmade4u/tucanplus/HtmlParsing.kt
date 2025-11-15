@@ -76,7 +76,7 @@ abstract class HtmlTag(val node: Node, val children: MutableList<Node>, val attr
             throw IllegalStateException("${node} actual no children, expected at least one")
         }
         val next = this.children.removeAt(0)
-        check(next is TextNode) { next }
+        check(next is TextNode) { "expected text node but got $next" }
         return next.text().trim()
     }
 
