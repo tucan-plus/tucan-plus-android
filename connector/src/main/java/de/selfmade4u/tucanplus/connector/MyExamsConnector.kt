@@ -9,7 +9,6 @@ import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
 import de.selfmade4u.tucanplus.connector.Common.parseBase
-import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.ModuleResultsResponse
 import de.selfmade4u.tucanplus.div
 import de.selfmade4u.tucanplus.form
 import de.selfmade4u.tucanplus.h1
@@ -36,10 +35,13 @@ import io.ktor.http.HttpStatusCode
 // loop semester by semester because otherwise we can't really associate entries with their semester. maybe just not support the "all"?
 object MyExamsConnector {
 
+    data class MyExamsResponse(var selectedSemester: Semesterauswahl, var semesters: List<Semesterauswahl>, var exams: List<Exam>)
+
+
     suspend fun getUncached(
         credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
         semester: String?
-    ): AuthenticatedResponse<ModuleResultsResponse> {
+    ): AuthenticatedResponse<MyExamsResponse> {
         return fetchAuthenticatedWithReauthentication(
             credentialSettingsDataStore,
             { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N$sessionId,-N000318,${if (semester != null) { "-N$semester" } else { "" }}" },
@@ -47,7 +49,7 @@ object MyExamsConnector {
         )
     }
 
-    suspend fun parse(menuId: String, sessionId: String, menuLocalizer: Localizer, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+    suspend fun parse(menuId: String, sessionId: String, menuLocalizer: Localizer, response: HttpResponse): ParserResponse<MyExamsResponse> {
         return response(response) {
             status(HttpStatusCode.OK)
             header(
@@ -81,8 +83,8 @@ object MyExamsConnector {
         }
     }
 
-    fun Root.parseResults(menuId: String, sessionId: String, menuLocalizer: Localizer): ParserResponse<ModuleResultsResponse> {
-        val modules = mutableListOf<ModuleResultsConnector.Module>()
+    fun Root.parseResults(menuId: String, sessionId: String, menuLocalizer: Localizer): ParserResponse<MyExamsResponse> {
+        val exams = mutableListOf<Exam>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null
         // menu id changes depending on language
@@ -113,7 +115,7 @@ object MyExamsConnector {
                         text("Bitte melden Sie sich erneut an.")
                     }
                 }
-                return@parseBase ParserResponse.SessionTimeout<ModuleResultsResponse>()
+                return@parseBase ParserResponse.SessionTimeout()
             }
             check(pageType == "myexams") { pageType }
             script {
@@ -275,17 +277,16 @@ object MyExamsConnector {
                         while (peek()?.childNodes()?.filterNot(::shouldIgnore)?.first()
                                 ?.normalName() == "td"
                         ) {
-                            val moduleId: String
-                            val moduleName: String
-                            val moduleGrade: ModuleGrade?
-                            val moduleCredits: Int
-                            val resultdetailsUrl: String?
-                            val gradeoverviewUrl: String?
+                            val id: String
+                            val name: String
+                            val coursedetailsUrl: String
+                            val examType: String
+                            val date: String
                             tr {
                                 td {
                                     attribute("class", "tbdata");
                                     // id
-                                    moduleId = extractText()
+                                    id = extractText()
                                 }
                                 td {
                                     attribute("class", "tbdata");
@@ -295,9 +296,9 @@ object MyExamsConnector {
                                             attribute("name", "eventLink");
                                         }
                                         // link coursedetails
-                                        attributeValue("href");
+                                        coursedetailsUrl = attributeValue("href");
                                         // module title
-                                        moduleName = extractText()
+                                        name = extractText()
                                     }
                                     if (peek() != null) {
                                         br { }
@@ -323,20 +324,20 @@ object MyExamsConnector {
                                         // examdetails
                                         attributeValue("href");
                                         /// type of exam
-                                        extractText()
+                                        examType = extractText()
                                     }
                                 }
                                 td {
                                     attribute("class", "tbdata")
                                     if (peek() is TextNode) {
-                                        extractText()
+                                        date = extractText()
                                     } else {
                                         a {
                                             attribute("class", "link");
                                             // courseprep date link
                                             attributeValue("href");
                                             // date text
-                                            extractText()
+                                            date = extractText()
                                         }
                                     }
                                 }
@@ -354,13 +355,28 @@ object MyExamsConnector {
                                     }
                                 }
                             }
-
+                            val exam = Exam(
+                                id,
+                                name,
+                                coursedetailsUrl,
+                                examType,
+                                date,
+                            )
+                            exams.add(exam)
                         }
                     }
                 }
             }
-            return@parseBase ParserResponse.Success(ModuleResultsResponse(selectedSemester!!, semesters, modules))
+            return@parseBase ParserResponse.Success(MyExamsResponse(selectedSemester!!, semesters, exams))
         }
         return response
     }
+
+    data class Exam(
+        var id: String,
+        val name: String,
+        val coursedetailsUrl: String,
+        val examType: String,
+        val date: String
+    )
 }
