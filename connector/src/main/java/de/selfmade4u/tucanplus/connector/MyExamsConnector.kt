@@ -255,7 +255,7 @@ object MyExamsConnector {
                             attribute("class", "tbcontrol");
                             td {
                                 a {
-                                    attribute("href", "/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=EXAMREGISTRATION&amp;ARGUMENTS=-N$sessionId,-N000318,${currentSemester()}")
+                                    attribute("href", "/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=EXAMREGISTRATION&amp;ARGUMENTS=-N$sessionId,-N000318,-N${currentSemester().toString().padStart(15, '0')}")
                                     attribute("class", "arrow")
                                     text("Anmeldung zu Prüfungen")
                                 }
