@@ -41,8 +41,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import de.selfmade4u.tucanplus.destination.ModuleResultsComposable
+import de.selfmade4u.tucanplus.destination.MyExamsComposable
 import de.selfmade4u.tucanplus.ui.theme.TUCaNPlusTheme
-import io.ktor.client.engine.android.AndroidClientEngine
 import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -64,6 +64,9 @@ data object LoginNavKey : NavKey
 
 @Serializable
 data object ModuleResultsNavKey : NavKey
+
+@Serializable
+data object MyExamsNavKey : NavKey
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -145,6 +148,7 @@ fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings, isLoading: Mu
             LoginForm(backStack)
         }
         entry<ModuleResultsNavKey> { ModuleResultsComposable(backStack, isLoading) }
+        entry<MyExamsNavKey> { MyExamsComposable(backStack, isLoading) }
     }
     NavDisplay(
         backStack = backStack,
@@ -180,6 +184,16 @@ fun DetailedDrawerExample(
                             scope.launch {
                                 drawerState.close()
                                 backStack.add(ModuleResultsNavKey)
+                            }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("Meine Prüfungen") },
+                        selected = false,
+                        onClick = {
+                            scope.launch {
+                                drawerState.close()
+                                backStack.add(MyExamsNavKey)
                             }
                         }
                     )

@@ -18,24 +18,58 @@ import de.selfmade4u.tucanplus.connector.ModuleGrade
 import de.selfmade4u.tucanplus.connector.ModuleResultsConnector
 import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.getModuleResultsUncached
 import de.selfmade4u.tucanplus.connector.Semesterauswahl
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 object ModuleResults {
 
     // fetch for all semesters and store all at once.
-    suspend fun refreshModuleResults(credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
-                                           database: MyDatabase): AuthenticatedResponse<ModuleResultWithModules> {
-        val modules = mutableListOf<ModuleResultModule>()
+    suspend fun refreshModuleResults(
+        credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
+        database: MyDatabase
+    ): AuthenticatedResponse<ModuleResultWithModules> {
         when (val response = getModuleResultsUncached(credentialSettingsDataStore, null)) {
             is AuthenticatedResponse.Success<ModuleResultsConnector.ModuleResultsResponse> -> {
-                response.response.semesters.forEach { semester ->
-                    when (val response = getModuleResultsUncached(credentialSettingsDataStore, semester.id.toString().padStart(15, '0'))) {
-                        is AuthenticatedResponse.Success<ModuleResultsConnector.ModuleResultsResponse> -> {
-                            modules += response.response.modules.map { m -> ModuleResultModule(0, semester, m.id, m.name, m.grade, m.credits, m.resultdetailsUrl, m.gradeoverviewUrl) }
+                val result = coroutineScope {
+                    response.response.semesters.map { semester ->
+                        async {
+                            when (val response = getModuleResultsUncached(
+                                credentialSettingsDataStore,
+                                semester.id.toString().padStart(15, '0')
+                            )) {
+                                is AuthenticatedResponse.Success<ModuleResultsConnector.ModuleResultsResponse> -> {
+                                    AuthenticatedResponse.Success(response.response.modules.map { m ->
+                                        ModuleResultModule(
+                                            0,
+                                            semester,
+                                            m.id,
+                                            m.name,
+                                            m.grade,
+                                            m.credits,
+                                            m.resultdetailsUrl,
+                                            m.gradeoverviewUrl
+                                        )
+                                    })
+                                }
+                                else -> response.map<List<ModuleResultModule>>()
+                            }
                         }
-                        else -> return response.map()
+                    }
+                }.awaitAll()
+                val agwef: AuthenticatedResponse<List<ModuleResultModule>> = result.reduce { acc, response ->
+                    when (acc) {
+                        is AuthenticatedResponse.Success<List<ModuleResultModule>> -> when (response) {
+                            is AuthenticatedResponse.Success<List<ModuleResultModule>> -> AuthenticatedResponse.Success(acc.response + response.response)
+                            else -> response
+                        }
+                        else -> acc
                     }
                 }
-                return AuthenticatedResponse.Success(persist(database, modules.toList()))
+                return when (agwef) {
+                    is AuthenticatedResponse.Success<List<ModuleResultModule>> -> AuthenticatedResponse.Success(persist(database, agwef.response))
+                    else -> agwef.map()
+                }
             }
             else -> return response.map()
         }
@@ -106,12 +140,15 @@ object ModuleResults {
     }
 
     // only store all once
-    suspend fun persist(database: MyDatabase, result: List<ModuleResultModule>): ModuleResultWithModules {
+    suspend fun persist(
+        database: MyDatabase,
+        result: List<ModuleResultModule>
+    ): ModuleResultWithModules {
         // TODO check whether there were changes?
         return database.useWriterConnection {
             it.immediateTransaction {
                 val moduleResultId = database.moduleResultsDao().insert(ModuleResult(0))
-                val modules = result.map { m -> m.copy(moduleResultId = moduleResultId) }
+                val modules = result.map { m -> m.copy(moduleResultId = moduleResultId) }.sortedWith(compareByDescending<ModuleResultModule>{it.semester.id}.thenBy { it.id})
                 database.modulesDao().insertAll(*modules.toTypedArray())
                 ModuleResultWithModules(ModuleResult(moduleResultId), modules)
             }
@@ -119,6 +156,9 @@ object ModuleResults {
     }
 
     suspend fun getCached(database: MyDatabase): ModuleResultWithModules? {
-       return database.moduleResultsDao().getLast()
+        val value = database.moduleResultsDao().getLast()
+        return value?.let { value ->
+            value.copy(modules = value.modules.sortedWith(compareByDescending<ModuleResultModule>{it.semester.id}.thenBy { it.id}))
+        }
     }
 }

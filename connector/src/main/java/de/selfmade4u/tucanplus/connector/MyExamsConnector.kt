@@ -1,6 +1,7 @@
 package de.selfmade4u.tucanplus.connector
 
 import androidx.datastore.core.DataStore
+import com.fleeksoft.ksoup.nodes.TextNode
 import de.selfmade4u.tucanplus.Localizer
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.Root
@@ -31,63 +32,24 @@ import de.selfmade4u.tucanplus.tr
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 
-// https://github.com/tucan-plus/tucan-plus/blob/640bb9cbb9e3f8d22e8b9d6ddaabb5256b2eb0e6/crates/tucan-types/src/lib.rs#L366
-enum class ModuleGrade(val representation: String) {
-    G1_0("1,0"),
-    G1_3("1,3"),
-    G1_7("1,7"),
-    G2_0("2,0"),
-    G2_3("2,3"),
-    G2_7("2,7"),
-    G3_0("3,0"),
-    G3_3("3,3"),
-    G3_7("3,7"),
-    G4_0("4,0"),
-    G5_0("5,0"),
-    B("b"),
-    NB("nb"),
-    // TODO FIXME localize
-    NOCH_NICHT_GESETZT("noch nicht gesetzt"),
-    NOCH_NICHT_GESETZT_EN("not set yet")
-}
+// loop semester by semester because otherwise we can't really associate entries with their semester. maybe just not support the "all"?
+object MyExamsConnector {
 
-enum class Semester {
-    Sommersemester,
-    Wintersemester
-}
-
-data class Semesterauswahl(
-    val id: Long,
-    val year: Int,
-    val semester: Semester
-)
+    data class MyExamsResponse(var selectedSemester: Semesterauswahl, var semesters: List<Semesterauswahl>, var exams: List<Exam>)
 
 
-object ModuleResultsConnector {
-
-    data class Module(
-        var id: String,
-        val name: String,
-        val grade: ModuleGrade?,
-        val credits: Int,
-        val resultdetailsUrl: String?,
-        val gradeoverviewUrl: String?
-    )
-
-    data class ModuleResultsResponse(var selectedSemester: Semesterauswahl, var semesters: List<Semesterauswahl>, var modules: List<Module>)
-
-    suspend fun getModuleResultsUncached(
+    suspend fun getUncached(
         credentialSettingsDataStore: DataStore<OptionalCredentialSettings>,
         semester: String?
-    ): AuthenticatedResponse<ModuleResultsResponse> {
+    ): AuthenticatedResponse<MyExamsResponse> {
         return fetchAuthenticatedWithReauthentication(
             credentialSettingsDataStore,
-            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N$sessionId,-N000324,${if (semester != null) { "-N$semester" } else { "" }}" },
-            parser = { sessionId, menuLocalizer, response -> parseModuleResponse("000324", sessionId, menuLocalizer, response) }
+            { sessionId -> "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N$sessionId,-N000318,${if (semester != null) { "-N$semester" } else { "" }}" },
+            parser = { sessionId, menuLocalizer, response -> parse("000318", sessionId, menuLocalizer, response) }
         )
     }
 
-    suspend fun parseModuleResponse(menuId: String, sessionId: String, menuLocalizer: Localizer, response: HttpResponse): ParserResponse<ModuleResultsResponse> {
+    suspend fun parse(menuId: String, sessionId: String, menuLocalizer: Localizer, response: HttpResponse): ParserResponse<MyExamsResponse> {
         return response(response) {
             status(HttpStatusCode.OK)
             header(
@@ -116,13 +78,13 @@ object ModuleResultsConnector {
             maybeIgnoreHeader("x-android-sent-millis")
             maybeIgnoreHeader("content-length")
             root {
-                parseModuleResults(menuId, sessionId, menuLocalizer)
+                parseResults(menuId, sessionId, menuLocalizer)
             }
         }
     }
 
-    fun Root.parseModuleResults(menuId: String, sessionId: String, menuLocalizer: Localizer): ParserResponse<ModuleResultsResponse> {
-        val modules = mutableListOf<Module>()
+    fun Root.parseResults(menuId: String, sessionId: String, menuLocalizer: Localizer): ParserResponse<MyExamsResponse> {
+        val exams = mutableListOf<Exam>()
         val semesters = mutableListOf<Semesterauswahl>()
         var selectedSemester: Semesterauswahl? = null
         // menu id changes depending on language
@@ -136,14 +98,10 @@ object ModuleResultsConnector {
                     attribute("type", "text/css")
                     extractData()
                 }
-                style {
-                    attribute("type", "text/css")
-                    extractData()
-                }
             } else {
                 print("not the normal page")
             }
-        }) { localizer, pageType ->
+        }) { localizer: Localizer, pageType ->
             if (pageType == "timeout") {
                 script {
                     attribute("type", "text/javascript")
@@ -157,9 +115,9 @@ object ModuleResultsConnector {
                         text("Bitte melden Sie sich erneut an.")
                     }
                 }
-                return@parseBase ParserResponse.SessionTimeout<ModuleResultsResponse>()
+                return@parseBase ParserResponse.SessionTimeout()
             }
-            check(pageType == "course_results")
+            check(pageType == "myexams") { pageType }
             script {
                 attribute("type", "text/javascript")
                 // empty
@@ -177,6 +135,7 @@ object ModuleResultsConnector {
                     div {
                         div {
                             attribute("class", "tbhead")
+                            text(localizer.exams)
                         }
 
                         div {
@@ -190,14 +149,14 @@ object ModuleResultsConnector {
                                 attribute("class", "inputFieldLabel long")
                                 label {
                                     attribute("for", "semester")
-                                    text("Semester:")
+                                    text(localizer.course_module_semester)
                                 }
                                 select {
                                     attribute("id", "semester")
                                     attribute("name", "semester")
                                     attribute(
                                         "onchange",
-                                        "reloadpage.createUrlAndReload('/scripts/mgrqispi.dll','CampusNet','COURSERESULTS','$sessionId','$menuId','-N'+this.value);"
+                                        "reloadpage.createUrlAndReload('/scripts/mgrqispi.dll','CampusNet','MYEXAMS','$sessionId','$menuId','-N'+this.value);"
                                     )
                                     attribute("class", "tabledata")
 
@@ -218,6 +177,9 @@ object ModuleResultsConnector {
                                             }
                                             val semesterName =
                                                 extractText() // SoSe 2025; WiSe 2024/25
+                                            if (semesterName == localizer.all) {
+                                                return@option;
+                                            }
                                             if (semesterName.startsWith(("SoSe "))) {
                                                 year = semesterName.removePrefix("SoSe ").toInt()
                                                 semester = Semester.Sommersemester
@@ -226,21 +188,21 @@ object ModuleResultsConnector {
                                                     .substringBefore("/").toInt()
                                                 semester = Semester.Wintersemester
                                             }
-                                        }
-                                        if (selected) {
-                                            selectedSemester = Semesterauswahl(
-                                                value,
-                                                year,
-                                                semester
+                                            if (selected) {
+                                                selectedSemester = Semesterauswahl(
+                                                    value,
+                                                    year,
+                                                    semester
+                                                )
+                                            }
+                                            semesters.add(
+                                                Semesterauswahl(
+                                                    value,
+                                                    year,
+                                                    semester
+                                                )
                                             )
                                         }
-                                        semesters.add(
-                                            Semesterauswahl(
-                                                value,
-                                                year,
-                                                semester
-                                            )
-                                        )
                                     }
                                 }
 
@@ -263,7 +225,7 @@ object ModuleResultsConnector {
                             attribute("name", "PRGNAME"); attribute(
                             "type",
                             "hidden"
-                        ); attribute("value", "COURSERESULTS")
+                        ); attribute("value", "MYEXAMS")
                         }
                         input {
                             attribute("name", "ARGUMENTS"); attribute(
@@ -291,14 +253,22 @@ object ModuleResultsConnector {
 
                     thead {
                         tr {
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_no) }
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_course_name)}
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_final_grade) }
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_credits) }
-                            td { attribute("class", "tbsubhead"); text(localizer.module_results_status) }
+                            attribute("class", "tbcontrol");
                             td {
-                                attribute("class", "tbsubhead")
-                                attribute("colspan", "2")
+                                attribute("colspan", "5")
+                                a {
+                                    attribute("href", "/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=EXAMREGISTRATION&amp;ARGUMENTS=-N$sessionId,-N000318,-N${selectedSemester!!.id.toString().padStart(15, '0')}")
+                                    attribute("class", "arrow")
+                                    text(localizer.exam_registration)
+                                }
+                            }
+                        }
+                        tr {
+                            th { attribute("scope", "col"); attribute("id", localizer.module_results_no); text(localizer.module_results_no) }
+                            th { attribute("scope", "col"); attribute("id", "Course_event_module"); text(localizer.my_exams_course_or_module)}
+                            th { attribute("scope", "col"); attribute("id", "Name"); text(localizer.my_exams_name) }
+                            th { attribute("scope", "col"); attribute("id", "Date"); text(localizer.my_exams_date) }
+                            th {
                             }
                         }
                     }
@@ -307,114 +277,106 @@ object ModuleResultsConnector {
                         while (peek()?.childNodes()?.filterNot(::shouldIgnore)?.first()
                                 ?.normalName() == "td"
                         ) {
-                            val moduleId: String
-                            val moduleName: String
-                            val moduleGrade: ModuleGrade?
-                            val moduleCredits: Int
-                            val resultdetailsUrl: String?
-                            val gradeoverviewUrl: String?
+                            val id: String
+                            val name: String
+                            val coursedetailsUrl: String
+                            val examType: String
+                            val date: String
                             tr {
-                                td { attribute("class", "tbdata"); moduleId = extractText() }
-                                moduleName = td { attribute("class", "tbdata"); extractText() }
                                 td {
-                                    attribute("class", "tbdata_numeric")
-                                    attribute("style", "vertical-align:top;")
+                                    attribute("class", "tbdata");
+                                    // id
+                                    id = extractText()
+                                }
+                                td {
+                                    attribute("class", "tbdata");
+                                    a {
+                                        attribute("class", "link");
+                                        if (peekAttribute()?.key == "name") {
+                                            attribute("name", "eventLink");
+                                        }
+                                        // link coursedetails
+                                        coursedetailsUrl = attributeValue("href");
+                                        // module title
+                                        name = extractText()
+                                    }
                                     if (peek() != null) {
-                                        val moduleGradeText = extractText()
-                                        moduleGrade =
-                                            ModuleGrade.entries.find { it.representation == moduleGradeText }
-                                                ?: run {
-                                                    throw IllegalStateException("Unknown grade `$moduleGradeText`")
-                                                }
-                                    } else {
-                                        moduleGrade = null;
+                                        br { }
+                                        if (peek() is TextNode) {
+                                            // list of courses
+                                            extractText()
+                                        } else {
+                                            // thesis
+                                            b {
+                                                text("Subject:")
+                                            }
+                                            val title = extractText()
+                                            br {}
+                                            val handedIn = extractText()
+                                            br {}
+                                        }
                                     }
                                 }
                                 td {
-                                    attribute("class", "tbdata_numeric"); moduleCredits =
-                                    extractText().replace(",0", "").toInt()
+                                    attribute("class", "tbdata")
+                                    a {
+                                        attribute("class", "link");
+                                        // examdetails
+                                        attributeValue("href");
+                                        /// type of exam
+                                        examType = extractText()
+                                    }
                                 }
                                 td {
                                     attribute("class", "tbdata")
-                                    if (peek() != null) {
+                                    if (peek() is TextNode) {
+                                        date = extractText()
+                                    } else {
+                                        a {
+                                            attribute("class", "link");
+                                            // courseprep date link
+                                            attributeValue("href");
+                                            // date text
+                                            date = extractText()
+                                        }
+                                    }
+                                }
+                                td {
+                                    attribute("class", "tbdata")
+                                    if (peek() is TextNode) {
                                         extractText()
-                                    }
-                                }
-                                td {
-                                    attribute("class", "tbdata")
-                                    attribute("style", "vertical-align:top;")
-                                    if (peek() != null) {
-                                        a {
-                                            attributeValue("id")
-                                            resultdetailsUrl = attributeValue(
-                                                "href",
-                                            )
-                                            text(localizer.module_results_exams)
-                                        }
-                                        script {
-                                            attribute("type", "text/javascript")
-                                            extractData()
-                                        }
                                     } else {
-                                        resultdetailsUrl = null
-                                    }
-                                }
-                                td {
-                                    attribute("class", "tbdata")
-                                    if (peek() != null) {
                                         a {
-                                            attributeValue("id")
-                                            gradeoverviewUrl = attributeValue(
-                                                "href",
-                                            )
-                                            attribute("class", "link")
-                                            attribute(
-                                                "title",
-                                                localizer.module_results_grade_statistics
-                                            )
-                                            b { text("Ø") }
+                                            // EXAMUNREG link
+                                            attributeValue("href");
+                                            attribute("class", "img img_arrowLeftRed");
+                                            text(localizer.unregister)
                                         }
-                                        script {
-                                            attribute("type", "text/javascript")
-                                            extractData()
-                                        }
-                                    } else {
-                                        gradeoverviewUrl = null
                                     }
                                 }
                             }
-                            val module = Module(
-                                moduleId,
-                                moduleName,
-                                moduleGrade,
-                                moduleCredits,
-                                resultdetailsUrl,
-                                gradeoverviewUrl
+                            val exam = Exam(
+                                id,
+                                name,
+                                coursedetailsUrl,
+                                examType,
+                                date,
                             )
-                            modules.add(module)
-                        }
-
-                        tr {
-                            th {
-                                attribute("colspan", "2")
-                                text(localizer.module_results_semester_gpa)
-                            }
-                            th {
-                                attribute("class", "tbdata")
-                                extractText()
-                            }
-                            th { extractText() }
-                            th {
-                                attribute("class", "tbdata")
-                                attribute("colspan", "4")
-                            }
+                            exams.add(exam)
                         }
                     }
                 }
             }
-            return@parseBase ParserResponse.Success(ModuleResultsResponse(selectedSemester!!, semesters, modules))
+            return@parseBase ParserResponse.Success(MyExamsResponse(selectedSemester!!, semesters, exams))
         }
         return response
     }
-}
 
+    data class Exam(
+        var id: String,
+        val name: String,
+        val coursedetailsUrl: String,
+        val examType: String,
+        val date: String
+    )
+}

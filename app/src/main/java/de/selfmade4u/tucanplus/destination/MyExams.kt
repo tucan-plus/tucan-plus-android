@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,26 +35,22 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.DetailedDrawerExample
-import de.selfmade4u.tucanplus.MyDatabaseProvider
 import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
-import de.selfmade4u.tucanplus.connector.ModuleGrade
-import de.selfmade4u.tucanplus.connector.Semester
-import de.selfmade4u.tucanplus.connector.Semesterauswahl
+import de.selfmade4u.tucanplus.connector.MyExamsConnector
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
-import de.selfmade4u.tucanplus.data.ModuleResults
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
+fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
     val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
     var updateCounter by remember { mutableStateOf(false) }
-    val modules by produceState<AuthenticatedResponse<ModuleResults.ModuleResultWithModules>?>(initialValue = null, updateCounter) {
+    val modules by produceState<AuthenticatedResponse<MyExamsConnector.MyExamsResponse>?>(initialValue = null, updateCounter) {
         Log.i(TAG, "Loading")
-        ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
+        //ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
         isLoading.value = false
-        value = ModuleResults.refreshModuleResults(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
+        value = MyExamsConnector.getUncached(context.credentialSettingsDataStore, null)
         isRefreshing = false
         Log.e(TAG, "Loaded ${value.toString()}")
     }
@@ -86,9 +81,9 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
                     }
 
                     is AuthenticatedResponse.Success -> {
-                        value.response.modules.forEach { module ->
-                            key(module.id) {
-                                ModuleComposable(module)
+                        value.response.exams.forEach { exam ->
+                            key(exam.id) {
+                                ExamComposable(exam)
                             }
                         }
                     }
@@ -103,71 +98,22 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, widthDp = 200)
 @Composable
-fun ModuleComposable(
-    module: ModuleResults.ModuleResultModule = ModuleResults.ModuleResultModule(
-        42,
-        Semesterauswahl(1, 2025, Semester.Wintersemester),
-        "id",
-        "Tin one ewfwf wefwe ewfw efw efwe wfwe fewfwe fweline",
-        ModuleGrade.NOCH_NICHT_GESETZT,
-        1,
-        "url",
-        "url"
+fun ExamComposable(
+    exam: MyExamsConnector.Exam = MyExamsConnector.Exam(
+        "some-id",
+        "The name",
+        "random url",
+        "Fachprüfung",
+        "Heute"
     )
 ) {
     // https://developer.android.com/develop/ui/compose/layouts/basics
     Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(module.name)
-            Text(module.id, fontSize = 10.sp, color = Color.Gray)
-        }
-        Column(modifier = Modifier.fillMaxHeight(), horizontalAlignment = Alignment.End) {
-            Text("${module.credits} CP")
-            Text("Note ${module.grade?.representation}")
+            Text(exam.name)
+            Text(exam.examType)
+            Text(exam.date)
+            Text(exam.id, fontSize = 10.sp, color = Color.Gray)
         }
     }
 }
-
-/*
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview
-@Composable
-fun LongBasicDropdownMenu() {
-    val context = LocalContext.current
-    val semesters by produceState(listOf(), "key") {
-        val db = MyDatabaseProvider.getDatabase(context)
-        value = db.semestersDao().getAll()
-    }
-    var expanded by remember { mutableStateOf(false) }
-    val textFieldState = rememberTextFieldState("")
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        TextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-            state = textFieldState,
-            readOnly = true,
-            lineLimits = TextFieldLineLimits.SingleLine,
-            label = { Text("Semester") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            semesters.forEach { option ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            "${option.semester.name} ${option.year}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    },
-                    onClick = {
-                        textFieldState.setTextAndPlaceCursorAtEnd("${option.semester.name} ${option.year}")
-                        expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
-            }
-        }
-    }
-}*/

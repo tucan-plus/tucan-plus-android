@@ -28,6 +28,8 @@ import de.selfmade4u.tucanplus.script
 import de.selfmade4u.tucanplus.span
 import de.selfmade4u.tucanplus.title
 import de.selfmade4u.tucanplus.ul
+import java.time.LocalDateTime
+import java.time.Month
 
 
 object Common {
@@ -49,22 +51,17 @@ object Common {
         }
         return html {
             attribute("xmlns", "http://www.w3.org/1999/xhtml")
-            val language = attributeValue("xml:lang") // de or en
-
-            // TODO FIXME we need two localizers. If I understand correctly this is the language of the body but the language of the menu around it is depend on the language at session startup. (try storing that language with the session to confirm)
+            val language = attributeValue("xml:lang")
             val localizer = when (language) {
                 "de" -> GermanLocalizer
                 "en" -> EnglishLocalizer
                 else -> throw IllegalStateException()
             }
-            println("chose $localizer")
-            // well this is a problem. maybe use a completely different library or the compose multiplatform one? but compose is not nice because it doesn't allow java.* access
             attribute("lang", localizer.language)
             head {
                 title {
                     text("Technische Universität Darmstadt")
                 }
-                // https://github.com/tucan-plus/tucan-plus/blob/640bb9cbb9e3f8d22e8b9d6ddaabb5256b2eb0e6/crates/tucan-connector/src/head.rs#L53
                 meta {
                     attribute("http-equiv", "X-UA-Compatible")
                     attribute("content", "IE=edge")
@@ -1060,5 +1057,20 @@ object Common {
                 init()
             }
         }
+    }
+
+    fun currentSemester(): Int {
+        val dateTime = LocalDateTime.now()
+        val year = dateTime.year
+        val month = dateTime.month
+        val offset = if (Month.APRIL <= month && month <= Month.OCTOBER) {
+            // sose
+            0
+        } else {
+            1
+        }
+        // 15186000
+        // wise 2025
+        return 15176000 + ((year - 2025)*2 + offset) * 10000
     }
 }
