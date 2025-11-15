@@ -1,13 +1,13 @@
 package de.selfmade4u.tucanplus.connector
 
 import androidx.datastore.core.DataStore
+import com.fleeksoft.ksoup.nodes.TextNode
 import de.selfmade4u.tucanplus.Localizer
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
 import de.selfmade4u.tucanplus.Root
 import de.selfmade4u.tucanplus.a
 import de.selfmade4u.tucanplus.b
 import de.selfmade4u.tucanplus.br
-import de.selfmade4u.tucanplus.connector.Common.currentSemester
 import de.selfmade4u.tucanplus.connector.Common.parseBase
 import de.selfmade4u.tucanplus.connector.ModuleResultsConnector.ModuleResultsResponse
 import de.selfmade4u.tucanplus.div
@@ -99,7 +99,7 @@ object MyExamsConnector {
             } else {
                 print("not the normal page")
             }
-        }) { localizer, pageType ->
+        }) { localizer: Localizer, pageType ->
             if (pageType == "timeout") {
                 script {
                     attribute("type", "text/javascript")
@@ -133,7 +133,7 @@ object MyExamsConnector {
                     div {
                         div {
                             attribute("class", "tbhead")
-                            text("Prüfungen")
+                            text(localizer.exams)
                         }
 
                         div {
@@ -147,7 +147,7 @@ object MyExamsConnector {
                                 attribute("class", "inputFieldLabel long")
                                 label {
                                     attribute("for", "semester")
-                                    text("Veranstaltungs-/Modulsemester:")
+                                    text(localizer.course_module_semester)
                                 }
                                 select {
                                     attribute("id", "semester")
@@ -175,7 +175,7 @@ object MyExamsConnector {
                                             }
                                             val semesterName =
                                                 extractText() // SoSe 2025; WiSe 2024/25
-                                            if (semesterName == "<Alle>") {
+                                            if (semesterName == localizer.all) {
                                                 return@option;
                                             }
                                             if (semesterName.startsWith(("SoSe "))) {
@@ -255,14 +255,14 @@ object MyExamsConnector {
                             td {
                                 attribute("colspan", "5")
                                 a {
-                                    attribute("href", "/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=EXAMREGISTRATION&amp;ARGUMENTS=-N$sessionId,-N000318,-N${currentSemester().toString().padStart(15, '0')}")
+                                    attribute("href", "/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=EXAMREGISTRATION&amp;ARGUMENTS=-N$sessionId,-N000318,-N${selectedSemester!!.id.toString().padStart(15, '0')}")
                                     attribute("class", "arrow")
-                                    text("Anmeldung zu Prüfungen")
+                                    text(localizer.exam_registration)
                                 }
                             }
                         }
                         tr {
-                            th { attribute("scope", "col"); attribute("id", "Nr."); text(localizer.module_results_no) }
+                            th { attribute("scope", "col"); attribute("id", localizer.module_results_no); text(localizer.module_results_no) }
                             th { attribute("scope", "col"); attribute("id", "Course_event_module"); text(localizer.my_exams_course_or_module)}
                             th { attribute("scope", "col"); attribute("id", "Name"); text(localizer.my_exams_name) }
                             th { attribute("scope", "col"); attribute("id", "Date"); text(localizer.my_exams_date) }
@@ -291,17 +291,21 @@ object MyExamsConnector {
                                     attribute("class", "tbdata");
                                     a {
                                         attribute("class", "link");
-                                        attribute("name", "eventLink");
+                                        if (peekAttribute()?.key == "name") {
+                                            attribute("name", "eventLink");
+                                        }
                                         // link coursedetails
                                         attributeValue("href");
                                         // module title
                                         moduleName = extractText()
                                     }
-                                    br {
+                                    if (peek() != null) {
+                                        br {
 
+                                        }
+                                        // list of courses
+                                        extractText()
                                     }
-                                    // list of courses
-                                    extractText()
                                 }
                                 td {
                                     attribute("class", "tbdata")
@@ -315,21 +319,29 @@ object MyExamsConnector {
                                 }
                                 td {
                                     attribute("class", "tbdata")
-                                    a {
-                                        attribute("class", "link");
-                                        // courseprep date link
-                                        attributeValue("href");
-                                        // date text
+                                    if (peek() is TextNode) {
                                         extractText()
+                                    } else {
+                                        a {
+                                            attribute("class", "link");
+                                            // courseprep date link
+                                            attributeValue("href");
+                                            // date text
+                                            extractText()
+                                        }
                                     }
                                 }
                                 td {
                                     attribute("class", "tbdata")
-                                    a {
-                                        // EXAMUNREG link
-                                        attributeValue("href");
-                                        attribute("class", "img img_arrowLeftRed");
-                                        text(localizer.unregister)
+                                    if (peek() is TextNode) {
+                                        extractText()
+                                    } else {
+                                        a {
+                                            // EXAMUNREG link
+                                            attributeValue("href");
+                                            attribute("class", "img img_arrowLeftRed");
+                                            text(localizer.unregister)
+                                        }
                                     }
                                 }
                             }
