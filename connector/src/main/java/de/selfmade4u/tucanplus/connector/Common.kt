@@ -1064,10 +1064,10 @@ object Common {
         val year = dateTime.year
         val month = dateTime.month
         val offset = if (Month.APRIL <= month && month <= Month.OCTOBER) {
-            // wise
-            1
-        } else {
+            // sose
             0
+        } else {
+            1
         }
         // 15186000
         // wise 2025
