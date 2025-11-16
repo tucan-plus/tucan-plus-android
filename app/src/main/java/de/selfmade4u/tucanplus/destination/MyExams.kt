@@ -35,10 +35,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.DetailedDrawerExample
+import de.selfmade4u.tucanplus.MyDatabaseProvider
 import de.selfmade4u.tucanplus.TAG
 import de.selfmade4u.tucanplus.connector.AuthenticatedResponse
-import de.selfmade4u.tucanplus.connector.MyExamsConnector
+import de.selfmade4u.tucanplus.connector.Semester
+import de.selfmade4u.tucanplus.connector.Semesterauswahl
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
+import de.selfmade4u.tucanplus.data.MyExams
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -46,11 +49,11 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
     val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
     var updateCounter by remember { mutableStateOf(false) }
-    val modules by produceState<AuthenticatedResponse<MyExamsConnector.MyExamsResponse>?>(initialValue = null, updateCounter) {
+    val modules by produceState<AuthenticatedResponse<MyExams.MyExamsWithExams>?>(initialValue = null, updateCounter) {
         Log.i(TAG, "Loading")
-        //ModuleResults.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
+        MyExams.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
         isLoading.value = false
-        value = MyExamsConnector.getUncached(context.credentialSettingsDataStore, null)
+        value = MyExams.refresh(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
         isRefreshing = false
         Log.e(TAG, "Loaded ${value.toString()}")
     }
@@ -99,7 +102,9 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, widthDp = 200)
 @Composable
 fun ExamComposable(
-    exam: MyExamsConnector.Exam = MyExamsConnector.Exam(
+    exam: MyExams.MyExamsExam = MyExams.MyExamsExam(
+        1,
+        Semesterauswahl(1, 2025, Semester.Sommersemester),
         "some-id",
         "The name",
         "random url",

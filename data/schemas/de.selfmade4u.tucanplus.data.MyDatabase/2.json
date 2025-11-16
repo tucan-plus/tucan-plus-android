@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "68384fe78c9765bd18cf9491f9d3a0ae",
+    "identityHash": "765713dbe0b2e17148848bb509d12afb",
     "entities": [
       {
         "tableName": "ModuleResult",
@@ -92,11 +92,98 @@
             "semester_id"
           ]
         }
+      },
+      {
+        "tableName": "MyExams",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "MyExamsExam",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`myExamsId` INTEGER NOT NULL, `id` TEXT NOT NULL, `name` TEXT NOT NULL, `coursedetailsUrl` TEXT NOT NULL, `examType` TEXT NOT NULL, `date` TEXT NOT NULL, `semester_id` INTEGER NOT NULL, `semester_year` INTEGER NOT NULL, `semester_semester` TEXT NOT NULL, PRIMARY KEY(`myExamsId`, `id`, `semester_id`, `examType`))",
+        "fields": [
+          {
+            "fieldPath": "myExamsId",
+            "columnName": "myExamsId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "coursedetailsUrl",
+            "columnName": "coursedetailsUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "examType",
+            "columnName": "examType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "semester.id",
+            "columnName": "semester_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "semester.year",
+            "columnName": "semester_year",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "semester.semester",
+            "columnName": "semester_semester",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "myExamsId",
+            "id",
+            "semester_id",
+            "examType"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '68384fe78c9765bd18cf9491f9d3a0ae')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '765713dbe0b2e17148848bb509d12afb')"
     ]
   }
 }

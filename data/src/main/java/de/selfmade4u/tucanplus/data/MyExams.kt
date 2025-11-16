@@ -71,7 +71,8 @@ object MyExams {
         }
     }
 
-    @Entity(primaryKeys = ["myExamsId", "id", "semester_id"])
+    // there can be multiple exams with different types for one course
+    @Entity(primaryKeys = ["myExamsId", "id", "semester_id", "examType"])
     data class MyExamsExam(
         var myExamsId: Long,
         @Embedded(prefix = "semester_")
@@ -103,10 +104,10 @@ object MyExams {
 
         @Transaction
         @Query("SELECT * FROM myexams")
-        suspend fun getModuleResultsWithModules(): List<MyExamsWithExams>
+        suspend fun getWith(): List<MyExamsWithExams>
 
         @Insert
-        suspend fun insert(moduleResults: MyExams): Long
+        suspend fun insert(myExams: MyExams): Long
 
         @Transaction
         @Query("SELECT * FROM myexams ORDER BY id DESC LIMIT 1")
@@ -131,9 +132,9 @@ object MyExams {
         return database.useWriterConnection {
             it.immediateTransaction {
                 val myExamsId = database.myExamsDao().insert(MyExams(0))
-                val modules = result.map { m -> m.copy(myExamsId = myExamsId) }.sortedWith(compareByDescending<MyExamsExam>{it.semester.id}.thenBy { it.id})
-                database.myExamsExamDao().insertAll(*modules.toTypedArray())
-                MyExamsWithExams(MyExams(myExamsId), modules)
+                val exams = result.map { m -> m.copy(myExamsId = myExamsId) }.sortedWith(compareByDescending<MyExamsExam>{it.semester.id}.thenBy { it.id})
+                database.myExamsExamDao().insertAll(*exams.toTypedArray())
+                MyExamsWithExams(MyExams(myExamsId), exams)
             }
         }
     }
