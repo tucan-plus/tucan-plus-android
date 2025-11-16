@@ -1,6 +1,6 @@
 package de.selfmade4u.tucanplus.destination
 
-import android.content.Intent
+import android.content.ContentValues
 import android.content.res.Configuration
 import android.database.Cursor
 import android.net.Uri
@@ -54,7 +54,39 @@ import java.util.Calendar
 @Composable
 fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
     val context = LocalContext.current
-    val uri: Uri = CalendarContract.Events.CONTENT_URI
+
+    val calID: Long = 3
+    val startMillis: Long = Calendar.getInstance().run {
+        set(2025, 9, 14, 7, 30)
+        timeInMillis
+    }
+    val endMillis: Long = Calendar.getInstance().run {
+        set(2025, 9, 14, 8, 45)
+        timeInMillis
+    }
+    val values = ContentValues().apply {
+        put(CalendarContract.Events.DTSTART, startMillis)
+        put(CalendarContract.Events.DTEND, endMillis)
+        put(CalendarContract.Events.TITLE, "Jazzercise")
+        put(CalendarContract.Events.DESCRIPTION, "Group workout")
+        put(CalendarContract.Events.CALENDAR_ID, calID) // FIXME
+        put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles")
+        put(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
+        put(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
+    }
+    val uri: Uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)!!
+
+    // get the event ID that is the last element in the Uri
+    val eventID: Long = uri.lastPathSegment!!.toLong()
+    //
+    // ... do something with event ID
+    //
+    //
+    Log.w(
+        TAG,
+        "inserted $eventID"
+    )
+
     val EVENT_PROJECTION: Array<String> = arrayOf(
         CalendarContract.Events._ID,                     // 0
         CalendarContract.Events.TITLE,            // 1
@@ -74,7 +106,7 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
         val eventId: Long = cur.getLong(PROJECTION_ID_INDEX)
         val title: String = cur.getString(PROJECTION_TITLE_INDEX)
         val description: String = cur.getString(PROJECTION_DESCRIPTION_INDEX)
-        val location: String = cur.getString(PROJECTION_EVENT_LOCATION_INDEX)
+        val location: String? = cur.getStringOrNull(PROJECTION_EVENT_LOCATION_INDEX)
         val customAppPackage: String? = cur.getStringOrNull(PROJECTION_CUSTOM_APP_PACKAGE_INDEX)
         val customAppUri: String? = cur.getStringOrNull(PROJECTION_CUSTOM_APP_URI_INDEX)
         if (customAppPackage != null) {
@@ -85,7 +117,7 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
         }
     }
     cur.close()
-
+/*
     val beginTime: Calendar = Calendar.getInstance()
     beginTime.set(2012, 0, 19, 7, 30)
     val endTime: Calendar = Calendar.getInstance()
@@ -101,6 +133,8 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
         .putExtra(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
         .putExtra(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
     context.startActivity(intent)
+
+ */
     var isRefreshing by remember { mutableStateOf(false) }
     var updateCounter by remember { mutableStateOf(false) }
     val modules by produceState<AuthenticatedResponse<MyExams.MyExamsWithExams>?>(initialValue = null, updateCounter) {
