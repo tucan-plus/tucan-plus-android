@@ -55,6 +55,23 @@ import java.util.Calendar
 fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
     val context = LocalContext.current
 
+    val CALENDAR_PROJECTION: Array<String> = arrayOf(
+        CalendarContract.Calendars._ID,                     // 0
+        CalendarContract.Calendars.NAME,            // 1
+    )
+    val PROJECTION_CALENDAR_ID_INDEX: Int = 0
+    val PROJECTION_CALENDAR_NAME_INDEX: Int = 1
+    var cur: Cursor = context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, CALENDAR_PROJECTION, null, null, null)!!
+    while (cur.moveToNext()) {
+        val calendarId: Long = cur.getLong(PROJECTION_CALENDAR_ID_INDEX)
+        val name: String = cur.getString(PROJECTION_CALENDAR_NAME_INDEX)
+        Log.w(
+            TAG,
+            "GOT calendar $calendarId $name"
+        )
+    }
+    cur.close()
+
     val calID: Long = 3
     val startMillis: Long = Calendar.getInstance().run {
         set(2025, 9, 14, 7, 30)
@@ -101,7 +118,7 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
     val PROJECTION_EVENT_LOCATION_INDEX: Int = 3
     val PROJECTION_CUSTOM_APP_PACKAGE_INDEX: Int = 4
     val PROJECTION_CUSTOM_APP_URI_INDEX: Int = 5
-    val cur: Cursor = context.contentResolver.query(uri, EVENT_PROJECTION, null, null, null)!!
+    cur = context.contentResolver.query(CalendarContract.Events.CONTENT_URI, EVENT_PROJECTION, null, null, null)!!
     while (cur.moveToNext()) {
         val eventId: Long = cur.getLong(PROJECTION_ID_INDEX)
         val title: String = cur.getString(PROJECTION_TITLE_INDEX)
