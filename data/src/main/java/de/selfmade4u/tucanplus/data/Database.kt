@@ -53,4 +53,6 @@ interface CacheDao {
 abstract class MyDatabase : RoomDatabase() {
     abstract fun moduleResultsDao(): ModuleResults.ModuleResultsDao
     abstract fun modulesDao(): ModuleResults.ModulesDao
+    abstract fun myExamsDao(): MyExams.MyExamsDao
+    abstract fun myExamsExamDao(): MyExams.MyExamsExamDao
 }
