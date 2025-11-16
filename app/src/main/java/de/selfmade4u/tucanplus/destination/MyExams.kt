@@ -2,6 +2,8 @@ package de.selfmade4u.tucanplus.destination
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.database.Cursor
+import android.net.Uri
 import android.provider.CalendarContract
 import android.util.Log
 import androidx.compose.foundation.layout.Column
@@ -34,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.core.database.getStringOrNull
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import de.selfmade4u.tucanplus.DetailedDrawerExample
@@ -51,6 +54,38 @@ import java.util.Calendar
 @Composable
 fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
     val context = LocalContext.current
+    val uri: Uri = CalendarContract.Events.CONTENT_URI
+    val EVENT_PROJECTION: Array<String> = arrayOf(
+        CalendarContract.Events._ID,                     // 0
+        CalendarContract.Events.TITLE,            // 1
+        CalendarContract.Events.DESCRIPTION,   // 2
+        CalendarContract.Events.EVENT_LOCATION,            // 3
+        CalendarContract.Events.CUSTOM_APP_PACKAGE,            // 4
+        CalendarContract.Events.CUSTOM_APP_URI,            // 5
+    )
+    val PROJECTION_ID_INDEX: Int = 0
+    val PROJECTION_TITLE_INDEX: Int = 1
+    val PROJECTION_DESCRIPTION_INDEX: Int = 2
+    val PROJECTION_EVENT_LOCATION_INDEX: Int = 3
+    val PROJECTION_CUSTOM_APP_PACKAGE_INDEX: Int = 4
+    val PROJECTION_CUSTOM_APP_URI_INDEX: Int = 5
+    val cur: Cursor = context.contentResolver.query(uri, EVENT_PROJECTION, null, null, null)!!
+    while (cur.moveToNext()) {
+        val eventId: Long = cur.getLong(PROJECTION_ID_INDEX)
+        val title: String = cur.getString(PROJECTION_TITLE_INDEX)
+        val description: String = cur.getString(PROJECTION_DESCRIPTION_INDEX)
+        val location: String = cur.getString(PROJECTION_EVENT_LOCATION_INDEX)
+        val customAppPackage: String? = cur.getStringOrNull(PROJECTION_CUSTOM_APP_PACKAGE_INDEX)
+        val customAppUri: String? = cur.getStringOrNull(PROJECTION_CUSTOM_APP_URI_INDEX)
+        if (customAppPackage != null) {
+            Log.w(
+                TAG,
+                "GOT AN EVENT $eventId $title $description $location $customAppPackage $customAppUri"
+            )
+        }
+    }
+    cur.close()
+
     val beginTime: Calendar = Calendar.getInstance()
     beginTime.set(2012, 0, 19, 7, 30)
     val endTime: Calendar = Calendar.getInstance()
