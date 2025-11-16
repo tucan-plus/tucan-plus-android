@@ -128,7 +128,7 @@ fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings, isLoading: Mu
     val backStack = rememberNavBackStack(
         *(if (credentialSettingsFlow.inner == null) arrayOf(LoginNavKey) else arrayOf(
             MainNavKey,
-            ModuleResultsNavKey
+            MyExamsNavKey
         ))
     )
     val context = LocalContext.current

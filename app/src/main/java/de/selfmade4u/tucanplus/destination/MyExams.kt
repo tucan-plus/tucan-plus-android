@@ -1,6 +1,8 @@
 package de.selfmade4u.tucanplus.destination
 
+import android.content.Intent
 import android.content.res.Configuration
+import android.provider.CalendarContract
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -42,11 +44,28 @@ import de.selfmade4u.tucanplus.connector.Semester
 import de.selfmade4u.tucanplus.connector.Semesterauswahl
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
 import de.selfmade4u.tucanplus.data.MyExams
+import java.util.Calendar
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
     val context = LocalContext.current
+    val beginTime: Calendar = Calendar.getInstance()
+    beginTime.set(2012, 0, 19, 7, 30)
+    val endTime: Calendar = Calendar.getInstance()
+    endTime.set(2012, 0, 19, 8, 30)
+    val intent: Intent = Intent(Intent.ACTION_INSERT)
+        .setData(CalendarContract.Events.CONTENT_URI)
+        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis())
+        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis())
+        .putExtra(CalendarContract.Events.TITLE, "Yoga")
+        .putExtra(CalendarContract.Events.DESCRIPTION, "Group class")
+        .putExtra(CalendarContract.Events.EVENT_LOCATION, "The gym")
+        // maybe this doesn't work over the intent?
+        .putExtra(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
+        .putExtra(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
+    context.startActivity(intent)
     var isRefreshing by remember { mutableStateOf(false) }
     var updateCounter by remember { mutableStateOf(false) }
     val modules by produceState<AuthenticatedResponse<MyExams.MyExamsWithExams>?>(initialValue = null, updateCounter) {
@@ -69,7 +88,9 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
                 modifier = Modifier.align(Alignment.TopCenter),
             )
         }, modifier = Modifier.padding(innerPadding)) {
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            Column(Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())) {
                 //LongBasicDropdownMenu()
                 when (val value = modules) {
                     null -> {
@@ -113,7 +134,9 @@ fun ExamComposable(
     )
 ) {
     // https://developer.android.com/develop/ui/compose/layouts/basics
-    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .height(IntrinsicSize.Min)) {
         Column(modifier = Modifier.weight(1f)) {
             Text(exam.name)
             Text(exam.examType)
