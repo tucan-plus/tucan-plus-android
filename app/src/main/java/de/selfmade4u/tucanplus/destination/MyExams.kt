@@ -1,6 +1,7 @@
 package de.selfmade4u.tucanplus.destination
 
 import android.content.ContentValues
+import android.content.Intent
 import android.content.res.Configuration
 import android.database.Cursor
 import android.net.Uri
@@ -84,14 +85,14 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
     val values = ContentValues().apply {
         put(CalendarContract.Events.DTSTART, startMillis)
         put(CalendarContract.Events.DTEND, endMillis)
-        put(CalendarContract.Events.TITLE, "Jazzercise")
+        put(CalendarContract.Events.TITLE, "abcdef")
         put(CalendarContract.Events.DESCRIPTION, "Group workout")
         put(CalendarContract.Events.CALENDAR_ID, calID) // FIXME
         put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles")
         put(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
         put(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
     }
-    val uri: Uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)!!
+    var uri: Uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)!!
 
     // get the event ID that is the last element in the Uri
     val eventID: Long = uri.lastPathSegment!!.toLong()
@@ -101,7 +102,7 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
     //
     Log.w(
         TAG,
-        "inserted $eventID"
+        "inserted $eventID $uri"
     )
 
     val EVENT_PROJECTION: Array<String> = arrayOf(
@@ -134,6 +135,12 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
         }
     }
     cur.close()
+
+    // TODO I think this needs a delay for some reason
+    // maybe the insertion could also use a callback or so? but the query lists it so idk
+    //uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, 232)
+    val intent = Intent(Intent.ACTION_VIEW).setData(uri)
+    context.startActivity(intent)
 /*
     val beginTime: Calendar = Calendar.getInstance()
     beginTime.set(2012, 0, 19, 7, 30)
