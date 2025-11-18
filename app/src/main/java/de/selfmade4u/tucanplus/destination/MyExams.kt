@@ -1,9 +1,7 @@
 package de.selfmade4u.tucanplus.destination
 
 import android.Manifest
-import android.accounts.Account
 import android.content.ContentResolver
-import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
 import android.content.SyncRequest
@@ -84,7 +82,7 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
             })
 
             Log.e(TAG, "DELETING ALL OUR OLD EVENTS")
-            context.contentResolver.delete(CalendarContract.Events.CONTENT_URI, "${CalendarContract.Events.CUSTOM_APP_PACKAGE} = ?", arrayOf(context.packageName))
+            Log.e(TAG, "deleted ${context.contentResolver.delete(CalendarContract.Events.CONTENT_URI, "${CalendarContract.Events.CUSTOM_APP_PACKAGE} = ?", arrayOf(context.packageName))}")
 
             val CALENDAR_PROJECTION: Array<String> = arrayOf(
                 CalendarContract.Calendars._ID,                     // 0
@@ -133,7 +131,8 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
 
             // https://stackoverflow.com/questions/61012807/android-calendar-provider-does-not-return-latest-data
             // https://stackoverflow.com/questions/79314548/how-to-get-updated-information-from-a-contentprovider-android-development
-            ContentResolver.requestSync(SyncRequest.Builder().setSyncAdapter(Account("mrtzndrdmltr@gmail.com", "com.google"), uri.authority).setExpedited(true).setManual(true).syncOnce().build());
+            Log.e(TAG, "authority ${uri.authority}")
+            ContentResolver.requestSync(SyncRequest.Builder().setSyncAdapter(null, uri.authority).setIgnoreBackoff(true).setExpedited(true).setManual(true).syncOnce().build());
 
             // get the event ID that is the last element in the Uri
             val eventID: Long = uri.lastPathSegment!!.toLong()
@@ -182,7 +181,7 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
 
                 // TODO I think this needs a delay for some reason
                 // maybe the insertion could also use a callback or so? but the query lists it so idk
-                uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, 174)
+                //uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, 174)
                 val intent = Intent(Intent.ACTION_VIEW).setData(uri)
                 context.startActivity(intent)
             }
