@@ -90,7 +90,7 @@ class MainActivity : ComponentActivity() {
             Thread.UncaughtExceptionHandler { thread, ex ->
                 Log.e(
                     TAG,
-                    "Uncaught exception in thread ${thread.name} ${ex.suppressedExceptions}",
+                    "Uncaught exception in thread ${thread.name} ${ex.suppressedExceptions} ${ex.stackTraceToString()}",
                     ex
                 )
                 systemExceptionHandler?.uncaughtException(thread, ex)
