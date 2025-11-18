@@ -72,15 +72,6 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
         rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { value ->
             Toast.makeText(context, "Permission response $value", Toast.LENGTH_SHORT).show()
 
-            context.contentResolver.registerContentObserver(CalendarContract.Events.CONTENT_URI, true, object : ContentObserver(
-                Handler()) {
-                override fun onChange(selfChange: Boolean, uri: Uri?) {
-                    Log.e(TAG, "ONCHANGE $uri")
-                }
-
-
-            })
-
             Log.e(TAG, "DELETING ALL OUR OLD EVENTS")
             Log.e(TAG, "deleted ${context.contentResolver.delete(CalendarContract.Events.CONTENT_URI, "${CalendarContract.Events.CUSTOM_APP_PACKAGE} = ?", arrayOf(context.packageName))}")
 
@@ -120,7 +111,7 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
             val values = ContentValues().apply {
                 put(CalendarContract.Events.DTSTART, startMillis)
                 put(CalendarContract.Events.DTEND, endMillis)
-                put(CalendarContract.Events.TITLE, "abcdef")
+                put(CalendarContract.Events.TITLE, "abcdef ${System.currentTimeMillis()}")
                 put(CalendarContract.Events.DESCRIPTION, "Group workout")
                 put(CalendarContract.Events.CALENDAR_ID, calID) // FIXME
                 put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles")
@@ -128,6 +119,14 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
                 put(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
             }
             var uri: Uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)!!
+
+            context.contentResolver.registerContentObserver(uri, false, object : ContentObserver(
+                Handler()) {
+                override fun onChange(selfChange: Boolean, changeUrl: Uri?) {
+                    Log.e(TAG, "ONCHANGE $changeUrl")
+
+                }
+            })
 
             // get the event ID that is the last element in the Uri
             val eventID: Long = uri.lastPathSegment!!.toLong()
@@ -177,7 +176,7 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
             cur.close()
 
             scope.launch {
-                delay(10000)
+                delay(5000)
 
                 // TODO I think this needs a delay for some reason
                 // maybe the insertion could also use a callback or so? but the query lists it so idk
