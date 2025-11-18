@@ -129,11 +129,6 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
             }
             var uri: Uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)!!
 
-            // https://stackoverflow.com/questions/61012807/android-calendar-provider-does-not-return-latest-data
-            // https://stackoverflow.com/questions/79314548/how-to-get-updated-information-from-a-contentprovider-android-development
-            Log.e(TAG, "authority ${uri.authority}")
-            ContentResolver.requestSync(SyncRequest.Builder().setSyncAdapter(null, uri.authority).setIgnoreBackoff(true).setExpedited(true).setManual(true).syncOnce().build());
-
             // get the event ID that is the last element in the Uri
             val eventID: Long = uri.lastPathSegment!!.toLong()
             //
@@ -144,6 +139,11 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
                 TAG,
                 "inserted $eventID $uri"
             )
+
+            // https://stackoverflow.com/questions/61012807/android-calendar-provider-does-not-return-latest-data
+            // https://stackoverflow.com/questions/79314548/how-to-get-updated-information-from-a-contentprovider-android-development
+            Log.e(TAG, "authority ${uri.authority}")
+            ContentResolver.requestSync(SyncRequest.Builder().setSyncAdapter(null, uri.authority).setIgnoreBackoff(true).setExpedited(true).setManual(true).syncOnce().build());
 
             val EVENT_PROJECTION: Array<String> = arrayOf(
                 CalendarContract.Events._ID,                     // 0
