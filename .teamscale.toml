@@ -1,0 +1,15 @@
+# Configuration for project tucan-plus-android, connector repository1
+
+# Learn more about the Teamscale IDE Configuration File Format at
+# <https://docs.teamscale.com/reference/teamscale-toml/>.
+
+version = "1.0"
+
+root = true
+
+[server]
+url = "http://localhost:8080/"
+
+[project]
+id = "tucan-plus-android"
+

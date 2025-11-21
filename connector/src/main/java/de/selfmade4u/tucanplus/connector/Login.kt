@@ -60,6 +60,9 @@ object TucanLogin {
                 if (i == 5) {
                     throw e
                 }
+            } catch (e: Throwable) {
+                java.util.logging.Logger.getLogger(TAG).log(Level.WARNING, "Request failed", e)
+                throw e
             }
             i += 1
         }

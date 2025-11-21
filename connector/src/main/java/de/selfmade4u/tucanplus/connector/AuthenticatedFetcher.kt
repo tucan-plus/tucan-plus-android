@@ -80,6 +80,9 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
     } catch (e: SocketException) {
         java.util.logging.Logger.getLogger(TAG).log(Level.WARNING, "Request failed", e)
         return AuthenticatedHttpResponse.NetworkLikelyTooSlow()
+    } catch (e: Throwable) {
+        java.util.logging.Logger.getLogger(TAG).log(Level.WARNING, "Request failed", e)
+        return AuthenticatedHttpResponse.NetworkLikelyTooSlow()
     }
     return AuthenticatedHttpResponse.Success(r)
 }
@@ -109,11 +112,16 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(credentialSettingsDataSto
         }
     } else {
     }
-    val loginResponse = TucanLogin.doLogin(
-        client,
-        settings.username,
-        settings.password,
-    )
+    val loginResponse: TucanLogin.LoginResponse
+    try {
+        loginResponse = TucanLogin.doLogin(
+            client,
+            settings.username,
+            settings.password,
+        )
+    } catch (e: Throwable) {
+        return AuthenticatedResponse.NetworkLikelyTooSlow<T>()
+    }
     when (loginResponse) {
         is TucanLogin.LoginResponse.InvalidCredentials -> {
             // backStack[backStack.size - 1] = MainNavKey

@@ -90,7 +90,7 @@ class MainActivity : ComponentActivity() {
             Thread.UncaughtExceptionHandler { thread, ex ->
                 Log.e(
                     TAG,
-                    "Uncaught exception in thread ${thread.name} ${ex.suppressedExceptions}",
+                    "Uncaught exception in thread ${thread.name} ${ex.suppressedExceptions} ${ex.stackTraceToString()}",
                     ex
                 )
                 systemExceptionHandler?.uncaughtException(thread, ex)
@@ -128,7 +128,7 @@ fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings, isLoading: Mu
     val backStack = rememberNavBackStack(
         *(if (credentialSettingsFlow.inner == null) arrayOf(LoginNavKey) else arrayOf(
             MainNavKey,
-            ModuleResultsNavKey
+            MyExamsNavKey
         ))
     )
     val context = LocalContext.current

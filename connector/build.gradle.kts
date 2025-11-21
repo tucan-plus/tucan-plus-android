@@ -1,10 +1,12 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+import com.teamscale.extension.TeamscaleTaskExtension
 
 // Put everything in here that does not depend on Android
 plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
     id("java-library")
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    jacoco
+    id("com.teamscale") version "36.1.0"
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -24,4 +26,13 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
+}
+tasks.register<Test>("unitTest") {
+    configure<TeamscaleTaskExtension> {
+        collectTestwiseCoverage = true
+        runImpacted = true
+        includeAddedTests = true
+        includeFailedAndSkipped = true
+        partition = "Unit Tests"
+    }
 }
