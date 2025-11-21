@@ -59,6 +59,8 @@ import de.selfmade4u.tucanplus.connector.Semester
 import de.selfmade4u.tucanplus.connector.Semesterauswahl
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
 import de.selfmade4u.tucanplus.data.MyExams
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 fun showEvents(context: Context): Boolean {
@@ -150,10 +152,12 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
                 set(2025, 9, 14, 8, 45)
                 timeInMillis
             }
+            val eventName = "abcdef ${System.currentTimeMillis()}"
+            Log.e(TAG, "EVENT NAME $eventName")
             val values = ContentValues().apply {
                 put(CalendarContract.Events.DTSTART, startMillis)
                 put(CalendarContract.Events.DTEND, endMillis)
-                put(CalendarContract.Events.TITLE, "abcdef ${System.currentTimeMillis()}")
+                put(CalendarContract.Events.TITLE, eventName)
                 put(CalendarContract.Events.DESCRIPTION, "Group workout")
                 put(CalendarContract.Events.CALENDAR_ID, calID) // FIXME
                 put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles")
@@ -191,7 +195,16 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
             // https://stackoverflow.com/questions/79314548/how-to-get-updated-information-from-a-contentprovider-android-development
             //Log.e(TAG, "authority ${uri.authority}")
             // this is required
-            ContentResolver.requestSync(SyncRequest.Builder().setSyncAdapter(null, uri.authority).setIgnoreBackoff(true).setExpedited(true).setManual(true).syncOnce().build());
+            context.contentResolver.notifyChange(uri, null)
+            // does not work when offline...
+            // we're fucked, even opening google calendar only seems to work when having network access
+            ContentResolver.requestSync(SyncRequest.Builder().setSyncAdapter(null, uri.authority).setIgnoreSettings(true).setIgnoreBackoff(true).setExpedited(true).setManual(true).syncOnce().build());
+
+            scope.launch {
+                delay(5000)
+                val intent = Intent(Intent.ACTION_VIEW).setData(uri)
+                context.startActivity(intent)
+            }
         }
     LaunchedEffect(true) {
         launcher.launch(arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
