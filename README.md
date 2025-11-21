@@ -3,7 +3,7 @@
 ```
  TUCAN_USERNAME= TUCAN_PASSWORD= ./gradlew test --rerun
  
-  ./gradlew :connector:test connector:jacocoTestReport teamscaleTestUpload
+  ./gradlew -Dteamscale.access-token= :connector:unitTest teamscaleTestUpload
  ```
 
 ## Setup
