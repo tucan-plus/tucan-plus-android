@@ -34,6 +34,11 @@ tasks.jacocoTestReport {
         xml.required = true
     }
 }
+tasks.test {
+    reports {
+        junitXml.required = true
+    }
+}
 tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
     partition = "Unit Tests"
     from(tasks.test) // Test task
