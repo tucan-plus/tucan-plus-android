@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.baselineprofile) apply false
     id("com.teamscale") version "36.1.0"
+    id("com.teamscale.aggregation") version "36.1.0"
 }
 allprojects {
     tasks.withType<Test>().configureEach {
@@ -41,6 +42,9 @@ tasks.test {
 }
 tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
     partition = "Unit Tests"
-    from(tasks.test) // Test task
-    from(tasks.jacocoTestReport) // JacocoReport task
+    from(tasks.testAggregateJUnitReport)
+    from(tasks.testAggregateCompactCoverageReport)
+}
+dependencies {
+    reportAggregation(project(":connector"))
 }

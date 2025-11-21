@@ -1,10 +1,9 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 // Put everything in here that does not depend on Android
 plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
     id("java-library")
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    jacoco
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_11
