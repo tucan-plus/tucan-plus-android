@@ -1,17 +1,27 @@
 import com.teamscale.extension.TeamscaleTaskExtension
+import com.teamscale.reporting.testwise.TestwiseCoverageReport
 
 // Put everything in here that does not depend on Android
 plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
     id("java-library")
     alias(libs.plugins.jetbrains.kotlin.serialization)
-    jacoco
     id("com.teamscale") version "36.1.0"
 }
 
-tasks.named<Test>("test") {
+val testwiseCoverageReport by tasks.registering(TestwiseCoverageReport::class) {
+    executionData(tasks.test)
+}
+
+tasks.test {
+    maxParallelForks = 1
     inputs.property("TUCAN_USERNAME", System.getenv("TUCAN_USERNAME"))
     inputs.property("TUCAN_PASSWORD", System.getenv("TUCAN_PASSWORD"))
+    useJUnitPlatform()
+    finalizedBy(testwiseCoverageReport)
+    configure<JacocoTaskExtension> {
+        includes = listOf("tia.*")
+    }
     configure<TeamscaleTaskExtension> {
         collectTestwiseCoverage = true
         runImpacted = true
