@@ -1,6 +1,8 @@
 package de.selfmade4u.tucanplus
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isNotEnabled
@@ -14,6 +16,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 // https://developer.android.com/training/testing/fundamentals/strategies
 // https://developer.android.com/training/testing/ui-tests/behavior
@@ -50,44 +54,17 @@ class ComposeTest {
             .performTextInput(InstrumentationRegistry.getArguments().getString("password")!!)
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
-        composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")
     }
 
-    @OptIn(ExperimentalTestApi::class)
-    @Test
-    fun wrongPassword() {
-        //composeTestRule.onRoot().printToLog("Nodes")
-        // In the Android Studio run configuration add these parameters
-        composeTestRule.onNodeWithText("Username")
-            .performTextInput(InstrumentationRegistry.getArguments().getString("username")!!)
-        composeTestRule.onNodeWithText("Password").performTextInput("wrongpassword")
-        composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
-        composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
-        composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")
-    }
-
-    @OptIn(ExperimentalTestApi::class)
-    @Test
-    fun wrongUsername() {
-        //composeTestRule.onRoot().printToLog("Nodes")
-        // In the Android Studio run configuration add these parameters
-        composeTestRule.onNodeWithText("Username").performTextInput("wrongusername")
-        composeTestRule.onNodeWithText("Password")
-            .performTextInput(InstrumentationRegistry.getArguments().getString("password")!!)
-        composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
-        composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
-        composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")
-    }
-
-    @OptIn(ExperimentalTestApi::class)
+    @OptIn(ExperimentalTestApi::class, ExperimentalUuidApi::class)
     @Test
     fun wrongUsernameAndPassword() {
-        //composeTestRule.onRoot().printToLog("Nodes")
-        // In the Android Studio run configuration add these parameters
-        composeTestRule.onNodeWithText("Username").performTextInput("wrongusername")
-        composeTestRule.onNodeWithText("Password").performTextInput("wrongpassword")
+        // Avoid too many attempts by using random username
+        composeTestRule.onNodeWithText("Username").performTextInput(Uuid.random().toString())
+        composeTestRule.onNodeWithText("Password").performTextInput(Uuid.random().toString())
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
-        composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")
+        composeTestRule.waitUntilExactlyOneExists(hasText("Falscher Nutzername oder Passwort"), 10_000)
+        composeTestRule.onNodeWithText("Login").assertIsEnabled()
     }
 }

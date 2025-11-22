@@ -1,12 +1,30 @@
 import com.teamscale.extension.TeamscaleTaskExtension
+import com.teamscale.reporting.testwise.TestwiseCoverageReport
 
 // Put everything in here that does not depend on Android
 plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
     id("java-library")
     alias(libs.plugins.jetbrains.kotlin.serialization)
-    jacoco
     id("com.teamscale") version "36.1.0"
+}
+
+val testwiseCoverageReport by tasks.registering(TestwiseCoverageReport::class) {
+    executionData(tasks.test)
+}
+// https://docs.teamscale.com/tutorial/tia-java/
+tasks.test {
+    maxParallelForks = 1
+    inputs.property("TUCAN_USERNAME", System.getenv("TUCAN_USERNAME"))
+    inputs.property("TUCAN_PASSWORD", System.getenv("TUCAN_PASSWORD"))
+    finalizedBy(testwiseCoverageReport)
+    configure<TeamscaleTaskExtension> {
+        //collectTestwiseCoverage = true
+        //runImpacted = true
+        includeAddedTests = true
+        includeFailedAndSkipped = true
+        partition = "Unit Tests"
+    }
 }
 java {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -26,13 +44,4 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
-}
-tasks.register<Test>("unitTest") {
-    configure<TeamscaleTaskExtension> {
-        collectTestwiseCoverage = true
-        runImpacted = true
-        includeAddedTests = true
-        includeFailedAndSkipped = true
-        partition = "Unit Tests"
-    }
 }
