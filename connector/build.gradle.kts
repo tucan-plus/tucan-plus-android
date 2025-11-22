@@ -27,6 +27,10 @@ dependencies {
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
 }
+tasks.named<Test>("test") {
+    inputs.property("TUCAN_USERNAME", System.getenv("TUCAN_USERNAME"))
+    inputs.property("TUCAN_PASSWORD", System.getenv("TUCAN_PASSWORD"))
+}
 tasks.register<Test>("unitTest") {
     configure<TeamscaleTaskExtension> {
         collectTestwiseCoverage = true

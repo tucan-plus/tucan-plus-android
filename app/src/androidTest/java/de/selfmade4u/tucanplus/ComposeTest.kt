@@ -1,6 +1,8 @@
 package de.selfmade4u.tucanplus
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isNotEnabled
@@ -50,7 +52,6 @@ class ComposeTest {
             .performTextInput(InstrumentationRegistry.getArguments().getString("password")!!)
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
-        composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")
     }
 
     @OptIn(ExperimentalTestApi::class)
@@ -63,7 +64,8 @@ class ComposeTest {
         composeTestRule.onNodeWithText("Password").performTextInput("wrongpassword")
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
-        composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")
+        composeTestRule.onNodeWithText("Falscher Nutzername oder Passwort").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Login").assertIsEnabled()
     }
 
     @OptIn(ExperimentalTestApi::class)
@@ -76,7 +78,8 @@ class ComposeTest {
             .performTextInput(InstrumentationRegistry.getArguments().getString("password")!!)
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
-        composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")
+        composeTestRule.onNodeWithText("Falscher Nutzername oder Passwort").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Login").assertIsEnabled()
     }
 
     @OptIn(ExperimentalTestApi::class)
@@ -88,6 +91,7 @@ class ComposeTest {
         composeTestRule.onNodeWithText("Password").performTextInput("wrongpassword")
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
-        composeTestRule.onNodeWithText("Logout").assertExists("Failed to login")
+        composeTestRule.onNodeWithText("Falscher Nutzername oder Passwort").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Login").assertIsEnabled()
     }
 }

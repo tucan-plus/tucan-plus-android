@@ -72,6 +72,21 @@ android {
     baselineProfile {
         dexLayoutOptimization = true
     }
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("mediumPhone") {
+                    // Use device profiles you typically see in Android Studio.
+                    device = "Medium Phone"
+                    // Use only API levels 27 and higher.
+                    apiLevel = 36
+                    // To include Google services, use "google".
+                    systemImageSource = "google_apis"
+                    testedAbi = "x86_64"
+                }
+            }
+        }
+    }
 }
 
 dependencies {
