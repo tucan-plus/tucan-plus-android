@@ -14,12 +14,13 @@ val testwiseCoverageReport by tasks.registering(TestwiseCoverageReport::class) {
 }
 // https://docs.teamscale.com/tutorial/tia-java/
 tasks.test {
+    useJUnitPlatform()
     maxParallelForks = 1
     inputs.property("TUCAN_USERNAME", System.getenv("TUCAN_USERNAME"))
     inputs.property("TUCAN_PASSWORD", System.getenv("TUCAN_PASSWORD"))
     finalizedBy(testwiseCoverageReport)
     configure<TeamscaleTaskExtension> {
-        //collectTestwiseCoverage = true
+        collectTestwiseCoverage = true
         //runImpacted = true
         includeAddedTests = true
         includeFailedAndSkipped = true
@@ -35,6 +36,7 @@ kotlin {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     }
 }
+val junit5Version = "5.7.0"
 dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ksoup)
@@ -42,6 +44,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
+    testImplementation("org.junit.jupiter:junit-jupiter:${junit5Version}")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:${junit5Version}")
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
 }
