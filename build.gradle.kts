@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.baselineprofile) apply false
     id("com.teamscale") version "36.1.0"
-    id("com.teamscale.aggregation") version "36.1.0"
 }
 allprojects {
     tasks.withType<Test>().configureEach {
@@ -20,14 +19,6 @@ allprojects {
             events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR,
                 TestLogEvent.STARTED, TestLogEvent.FAILED)
         }
-    }
-}
-teamscale {
-    server {
-        url = "http://localhost:8080"
-        project = "tucan-plus-android"
-        userName = "admin"
-        userAccessToken = System.getProperty("teamscale.access-token")
     }
 }
 tasks.jacocoTestReport {
@@ -40,11 +31,11 @@ tasks.test {
         junitXml.required = true
     }
 }
-tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
-    partition = "Unit Tests"
-    from(tasks.testAggregateJUnitReport)
-    from(tasks.testAggregateCompactCoverageReport)
-}
-dependencies {
-    reportAggregation(project(":connector"))
+teamscale {
+    server {
+        url = "http://localhost:8080"
+        project = "tucan-plus-android"
+        userName = "admin"
+        userAccessToken = System.getProperty("teamscale.access-token")
+    }
 }

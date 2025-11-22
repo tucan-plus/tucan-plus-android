@@ -1,3 +1,4 @@
+import com.teamscale.TeamscaleUpload
 import com.teamscale.extension.TeamscaleTaskExtension
 
 // Put everything in here that does not depend on Android
@@ -30,13 +31,24 @@ dependencies {
 tasks.named<Test>("test") {
     inputs.property("TUCAN_USERNAME", System.getenv("TUCAN_USERNAME"))
     inputs.property("TUCAN_PASSWORD", System.getenv("TUCAN_PASSWORD"))
-}
-tasks.register<Test>("unitTest") {
     configure<TeamscaleTaskExtension> {
         collectTestwiseCoverage = true
         runImpacted = true
         includeAddedTests = true
         includeFailedAndSkipped = true
         partition = "Unit Tests"
+    }
+}
+tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
+    partition = "Unit Tests"
+    from(tasks.named("test"))
+    //from(tasks.named("jacocoTestReport"))
+}
+teamscale {
+    server {
+        url = "http://localhost:8080"
+        project = "tucan-plus-android"
+        userName = "admin"
+        userAccessToken = System.getProperty("teamscale.access-token")
     }
 }
