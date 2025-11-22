@@ -36,7 +36,6 @@ kotlin {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     }
 }
-val junit5Version = "5.7.0"
 dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ksoup)
@@ -44,9 +43,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
-    testImplementation("org.junit.jupiter:junit-jupiter:${junit5Version}")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:${junit5Version}")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.1")
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
 }
