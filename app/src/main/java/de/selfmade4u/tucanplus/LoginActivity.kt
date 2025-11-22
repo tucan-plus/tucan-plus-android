@@ -1,5 +1,6 @@
 package de.selfmade4u.tucanplus
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -86,6 +87,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                         usernameState.text.toString(),
                         passwordState.text.toString(),
                     )
+                    Log.e(TAG, "Login response $response")
                     when (response) {
                         is TucanLogin.LoginResponse.InvalidCredentials -> launch {
                             snackbarHostState.showSnackbar(
