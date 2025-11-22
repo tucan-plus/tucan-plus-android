@@ -20,7 +20,7 @@ tasks.test {
     inputs.property("TUCAN_PASSWORD", System.getenv("TUCAN_PASSWORD"))
     finalizedBy(testwiseCoverageReport)
     configure<TeamscaleTaskExtension> {
-        //collectTestwiseCoverage = true
+        collectTestwiseCoverage = true
         //runImpacted = true
         includeAddedTests = true
         includeFailedAndSkipped = true
@@ -42,8 +42,8 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
-    testImplementation("org.junit.jupiter:junit-jupiter:5.14.1")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.9.3")
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
 }

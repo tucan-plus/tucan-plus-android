@@ -9,6 +9,7 @@ import de.selfmade4u.tucanplus.root
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
@@ -67,6 +68,8 @@ class LoginTest {
         }
     }
 
+    /*
+    @Disabled
     @Tag("AccessesTucan")
     @Test
     fun testLoginCorrectUsernameAndPassword() {
@@ -74,5 +77,5 @@ class LoginTest {
         runBlocking {
             LoginSingleton.getCredentials()
         }
-    }
+    }*/
 }

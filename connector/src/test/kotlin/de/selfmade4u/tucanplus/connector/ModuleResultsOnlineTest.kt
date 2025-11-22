@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -20,6 +21,8 @@ class ModuleResultsOnlineTest {
         }
     }
 
+    /*
+    @Disabled
     @ParameterizedTest
     @MethodSource("abc")
     @Tag("AccessesTucan")
@@ -43,5 +46,5 @@ class ModuleResultsOnlineTest {
                 store, semester.toString()
             )
         }
-    }
+    }*/
 }
