@@ -31,6 +31,12 @@ tasks.test {
         junitXml.required = true
     }
 }
+evaluationDependsOn(":connector")
+tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
+    partition = "Unit Tests"
+    from(project(":connector").tasks.test)
+    //from(tasks.named("jacocoTestReport"))
+}
 teamscale {
     server {
         url = "http://localhost:8080"
