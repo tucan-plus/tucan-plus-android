@@ -18,8 +18,8 @@ dependencies {
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
     testImplementation(platform(libs.junit.bom))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
     implementation(kotlin("stdlib-jdk8"))
 }
 tasks.register<TestwiseCoverageReport>("testwiseCoverageReport") {
