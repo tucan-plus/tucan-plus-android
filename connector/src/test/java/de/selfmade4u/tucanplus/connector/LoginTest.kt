@@ -2,11 +2,14 @@ package de.selfmade4u.tucanplus.connector
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
+import de.selfmade4u.tucanplus.LoginSingleton
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginFailure
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginSuccess
 import de.selfmade4u.tucanplus.root
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
@@ -65,8 +68,6 @@ class LoginTest {
         }
     }
 
-    /*
-    @Disabled
     @Tag("AccessesTucan")
     @Test
     fun testLoginCorrectUsernameAndPassword() {
@@ -74,5 +75,5 @@ class LoginTest {
         runBlocking {
             LoginSingleton.getCredentials()
         }
-    }*/
+    }
 }

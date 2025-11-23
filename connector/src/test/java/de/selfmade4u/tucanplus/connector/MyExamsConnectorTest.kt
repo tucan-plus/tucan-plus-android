@@ -6,7 +6,6 @@ import de.selfmade4u.tucanplus.GermanLocalizer
 import de.selfmade4u.tucanplus.connector.MyExamsConnector.parseResults
 import de.selfmade4u.tucanplus.root
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
