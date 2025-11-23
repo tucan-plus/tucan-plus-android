@@ -1,5 +1,10 @@
 import com.teamscale.TeamscaleUpload
+import com.teamscale.reporting.testwise.TestwiseCoverageReport
+import org.gradle.kotlin.dsl.assign
+import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.plugin.sources.android.findKotlinSourceSet
 
 plugins {
     alias(libs.plugins.android.application)
@@ -141,15 +146,13 @@ execFiles.forEach { execFile ->
 
         reports {
             xml.required.set(true)
-            xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/$namePart.xml"))
+            xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/$namePart/JACOCO/coverage.xml"))
 
-            html.required.set(true)
-            csv.required.set(true)
+            html.required.set(false)
+            csv.required.set(false)
         }
     }
 }
-
-
 
 // 3. Optional: aggregate task
 tasks.register("jacocoReportAll") {

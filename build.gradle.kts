@@ -1,4 +1,5 @@
 import com.teamscale.TeamscaleUpload
+import com.teamscale.reporting.testwise.TestwiseCoverageReport
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
