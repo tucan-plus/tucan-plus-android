@@ -11,26 +11,6 @@ plugins {
     alias(libs.plugins.baselineprofile) apply false
     id("com.teamscale") version "36.1.0"
 }
-/*allprojects {
-    tasks.withType<Test>().configureEach {
-        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
-        forkEvery = 1
-        testLogging {
-            events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR,
-                TestLogEvent.STARTED, TestLogEvent.FAILED)
-        }
-    }
-}
-tasks.jacocoTestReport {
-    reports {
-        xml.required = true
-    }
-}
-tasks.test {
-    reports {
-        junitXml.required = true
-    }
-}*/
 evaluationDependsOn(":connector")
 tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
     partition = "Unit Tests"
