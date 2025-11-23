@@ -35,6 +35,7 @@ tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
 }
 tasks.register<TeamscaleUpload>("teamscaleIntegrationTestsReportUpload") {
     partition = "Integration Tests"
+    addReport("JUNIT", project(":app").layout.buildDirectory.file("outputs/androidTest-results/managedDevice/debug/mediumPhone/TEST-mediumPhone-_app-.xml"))
     project(":app").tasks.withType(JacocoReport::class).forEach { from(it) }
 }
 teamscale {
