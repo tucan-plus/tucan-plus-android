@@ -20,9 +20,9 @@ class MyExamsConnectorOnlineTest {
         }
     }
 
-    @ParameterizedTest
     @MethodSource("abc")
     @Tag("AccessesTucan")
+    @ParameterizedTest
     fun testMyExams(offset: Int) {
         assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         runBlocking {

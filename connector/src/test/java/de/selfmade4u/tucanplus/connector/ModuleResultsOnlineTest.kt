@@ -20,9 +20,9 @@ class ModuleResultsOnlineTest {
         }
     }
 
-    @ParameterizedTest
     @MethodSource("abc")
     @Tag("AccessesTucan")
+    @ParameterizedTest
     fun testModuleResults(offset: Int) {
         assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         runBlocking {
