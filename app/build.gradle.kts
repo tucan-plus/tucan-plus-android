@@ -28,6 +28,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        //testInstrumentationRunnerArguments["useTestStorageService"] = "true"
     }
 
     dependenciesInfo {
@@ -73,6 +74,7 @@ android {
         dexLayoutOptimization = true
     }
     testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
         managedDevices {
             localDevices {
                 create("mediumPhone") {
@@ -118,5 +120,7 @@ dependencies {
     "baselineProfile"(project(":baselineprofile"))
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestUtil(libs.androidx.orchestrator)
 }
 
