@@ -1,34 +1,30 @@
 package de.selfmade4u.tucanplus.connector
 
 import androidx.datastore.core.DataStore
-import de.selfmade4u.tucanplus.AccessesTucan
 import de.selfmade4u.tucanplus.LoginSingleton
 import de.selfmade4u.tucanplus.OptionalCredentialSettings
-import de.selfmade4u.tucanplus.ParallelizedParameterized
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
-import org.junit.Assume
-import org.junit.Test
-import org.junit.experimental.categories.Category
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 
-@RunWith(ParallelizedParameterized::class)
-class MyExamsConnectorOnlineTest(var offset: Int) {
+class ModuleResultsOnlineTest {
 
     companion object {
         @JvmStatic
-        @Parameterized.Parameters(name = "semester {0}")
-        fun data(): List<Int> {
+        fun abc(): List<Int> {
             return (-10..10).toList()
         }
     }
 
-    @Category(AccessesTucan::class)
-    @Test
-    fun testMyExams() {
-        Assume.assumeTrue("Credentials provided", System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null)
+    @MethodSource("abc")
+    @Tag("AccessesTucan")
+    @ParameterizedTest
+    fun testModuleResults(offset: Int) {
+        assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         runBlocking {
             val semester = 15086000 + offset * 10000
             val credentials = LoginSingleton.getCredentials()
@@ -43,7 +39,7 @@ class MyExamsConnectorOnlineTest(var offset: Int) {
                     return value.value
                 }
             }
-            MyExamsConnector.getUncached(
+            ModuleResultsConnector.getModuleResultsUncached(
                 store, semester.toString()
             )
         }

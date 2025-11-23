@@ -2,17 +2,16 @@ package de.selfmade4u.tucanplus.connector
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
-import de.selfmade4u.tucanplus.DoesNotAccessTucan
 import de.selfmade4u.tucanplus.GermanLocalizer
 import de.selfmade4u.tucanplus.connector.MyExamsConnector.parseResults
 import de.selfmade4u.tucanplus.root
 import kotlinx.coroutines.runBlocking
-import org.junit.Test
-import org.junit.experimental.categories.Category
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Test
 
 class MyExamsConnectorTest {
 
-    @Category(DoesNotAccessTucan::class)
+    @Tag("DoesNotAccessTucan")
     @Test
     fun testParseExams() {
         val html =

@@ -10,17 +10,26 @@ plugins {
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.baselineprofile) apply false
     id("com.teamscale") version "36.1.0"
-    id("com.teamscale.aggregation") version "36.1.0"
 }
 allprojects {
     tasks.withType<Test>().configureEach {
-        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
-        forkEvery = 1
         testLogging {
-            events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR,
-                TestLogEvent.STARTED, TestLogEvent.FAILED)
+            events = setOf(
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_OUT,
+                TestLogEvent.STANDARD_ERROR,
+                TestLogEvent.STARTED,
+                TestLogEvent.FAILED
+            )
         }
     }
+}
+evaluationDependsOn(":connector")
+tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
+    partition = "Unit Tests"
+    //from(project(":connector").tasks.jacocoTestReport)
+    from(project(":connector").tasks.named("testwiseCoverageReport"))
 }
 teamscale {
     server {
@@ -29,22 +38,4 @@ teamscale {
         userName = "admin"
         userAccessToken = System.getProperty("teamscale.access-token")
     }
-}
-tasks.jacocoTestReport {
-    reports {
-        xml.required = true
-    }
-}
-tasks.test {
-    reports {
-        junitXml.required = true
-    }
-}
-tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
-    partition = "Unit Tests"
-    from(tasks.testAggregateJUnitReport)
-    from(tasks.testAggregateCompactCoverageReport)
-}
-dependencies {
-    reportAggregation(project(":connector"))
 }

@@ -72,6 +72,18 @@ android {
     baselineProfile {
         dexLayoutOptimization = true
     }
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("mediumPhone") {
+                    device = "Medium Phone"
+                    apiLevel = 36
+                    systemImageSource = "google_apis"
+                    testedAbi = "x86_64"
+                }
+            }
+        }
+    }
 }
 
 dependencies {

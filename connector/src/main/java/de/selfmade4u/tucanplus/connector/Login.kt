@@ -89,7 +89,6 @@ object TucanLogin {
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
             ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
             ignoreHeader("Date")
-            java.util.logging.Logger.getLogger(TAG).log(Level.INFO, client.engine::class.simpleName)
             maybeIgnoreHeader("vary")
             maybeIgnoreHeader("x-android-received-millis")
             maybeIgnoreHeader("x-android-response-source")

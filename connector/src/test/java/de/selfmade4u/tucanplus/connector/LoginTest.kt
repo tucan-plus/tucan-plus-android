@@ -2,20 +2,19 @@ package de.selfmade4u.tucanplus.connector
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
-import de.selfmade4u.tucanplus.AccessesTucan
-import de.selfmade4u.tucanplus.DoesNotAccessTucan
 import de.selfmade4u.tucanplus.LoginSingleton
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginFailure
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginSuccess
 import de.selfmade4u.tucanplus.root
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.runBlocking
-import org.junit.Assume
-import org.junit.Test
-import org.junit.experimental.categories.Category
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Test
 
 class LoginTest {
-    @Category(DoesNotAccessTucan::class)
+    @Tag("DoesNotAccessTucan")
     @Test
     fun testParsingWrongPasswordResponse() {
         val html = this::class.java.getResource("/login_wrong_password.html")!!.readText()
@@ -30,7 +29,7 @@ class LoginTest {
         }
     }
 
-    @Category(DoesNotAccessTucan::class)
+    @Tag("DoesNotAccessTucan")
     @Test
     fun testParsingTooManyFailedAttemptsResponse() {
         val html = this::class.java.getResource("/login_too_many_failed_attempts.html")!!.readText()
@@ -45,7 +44,7 @@ class LoginTest {
         }
     }
 
-    @Category(DoesNotAccessTucan::class)
+    @Tag("DoesNotAccessTucan")
     @Test
     fun testParsingCorrectPasswordResponse() {
         val html = this::class.java.getResource("/login_correct_password.html")!!.readText()
@@ -60,7 +59,7 @@ class LoginTest {
         }
     }
 
-    @Category(AccessesTucan::class)
+    @Tag("AccessesTucan")
     @Test
     fun testLoginWrongUsernameWrongPassword() {
         val client = HttpClient()
@@ -69,10 +68,10 @@ class LoginTest {
         }
     }
 
-    @Category(AccessesTucan::class)
+    @Tag("AccessesTucan")
     @Test
     fun testLoginCorrectUsernameAndPassword() {
-        Assume.assumeTrue("Credentials provided", System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null)
+        assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         runBlocking {
             LoginSingleton.getCredentials()
         }
