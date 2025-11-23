@@ -1,3 +1,4 @@
+import com.teamscale.TeamscaleUpload
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -28,7 +29,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        //testInstrumentationRunnerArguments["useTestStorageService"] = "true"
+        testInstrumentationRunnerArguments["useTestStorageService"] = "true"
     }
 
     dependenciesInfo {
@@ -124,3 +125,31 @@ dependencies {
     androidTestUtil(libs.androidx.orchestrator)
 }
 
+val execFiles = fileTree(layout.buildDirectory.dir("outputs/managed_device_code_coverage/debug/mediumPhone/")) {
+    include("*.ec")
+}
+
+execFiles.forEach { execFile ->
+    println(execFile)
+    val namePart = execFile.name.removeSuffix(".ec")
+
+    tasks.register("jacocoReport_$namePart", JacocoReport::class) {
+        executionData.setFrom(execFile)
+
+        sourceDirectories.setFrom(files("src/main/java"))
+        classDirectories.setFrom(files("${layout.buildDirectory}/classes/java/main"))
+
+        reports {
+            xml.required.set(true)
+            xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/$namePart.xml"))
+
+            html.required.set(false)
+            csv.required.set(false)
+        }
+    }
+}
+
+// 3. Optional: aggregate task
+tasks.register("jacocoReportAll") {
+    dependsOn(tasks.withType(JacocoReport::class))
+}

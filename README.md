@@ -9,8 +9,11 @@ https://developer.android.com/training/testing/instrumented-tests/androidx-test-
 Android Test Orchestrator
 https://medium.com/stepstone-tech/android-test-orchestrator-unmasked-83b8879928fa
 https://stackoverflow.com/questions/48053005/coverage-for-android-tests-using-orchestrator
+https://developer.android.com/reference/androidx/test/runner/AndroidJUnitRunner
+./gradlew -Pandroid.testInstrumentationRunnerArguments.username= -Pandroid.testInstrumentationRunnerArguments.password= clean mediumPhoneAndroidTest teamscaleIntegrationTestsReportUpload
+find | grep successfulLogin
 
-./app/build/outputs/managed_device_code_coverage/debug/mediumPhone/de.selfmade4u.tucanplus.ComposeTest#successfulLogin.ec
+./app/build/reports/jacoco/de.selfmade4u.tucanplus.ComposeTest#wrongUsernameAndPassword.xml
 ```
 
 ## Setup

@@ -26,10 +26,15 @@ allprojects {
     }
 }
 evaluationDependsOn(":connector")
+evaluationDependsOn(":app")
 tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
     partition = "Unit Tests"
     //from(project(":connector").tasks.jacocoTestReport)
     from(project(":connector").tasks.named("testwiseCoverageReport"))
+}
+tasks.register<TeamscaleUpload>("teamscaleIntegrationTestsReportUpload") {
+    partition = "Integration Tests"
+    project(":app").tasks.withType(JacocoReport::class).forEach { from(it) }
 }
 teamscale {
     server {
