@@ -35,7 +35,7 @@ evaluationDependsOn(":connector")
 tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
     partition = "Unit Tests"
     //from(project(":connector").tasks.jacocoTestReport)
-    from(project(":connector").tasks.test)
+    from(project(":connector").tasks.named("testwiseCoverageReport"))
 }
 teamscale {
     server {
