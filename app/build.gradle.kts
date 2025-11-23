@@ -137,17 +137,19 @@ execFiles.forEach { execFile ->
         executionData.setFrom(execFile)
 
         sourceDirectories.setFrom(files("src/main/java"))
-        classDirectories.setFrom(files("${layout.buildDirectory}/classes/java/main"))
+        classDirectories.setFrom(fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {  })
 
         reports {
             xml.required.set(true)
             xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/$namePart.xml"))
 
-            html.required.set(false)
-            csv.required.set(false)
+            html.required.set(true)
+            csv.required.set(true)
         }
     }
 }
+
+
 
 // 3. Optional: aggregate task
 tasks.register("jacocoReportAll") {
