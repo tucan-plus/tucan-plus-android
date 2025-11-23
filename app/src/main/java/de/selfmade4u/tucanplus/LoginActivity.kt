@@ -87,7 +87,6 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                         usernameState.text.toString(),
                         passwordState.text.toString(),
                     )
-                    Log.e(TAG, "Login response $response")
                     when (response) {
                         is TucanLogin.LoginResponse.InvalidCredentials -> launch {
                             snackbarHostState.showSnackbar(

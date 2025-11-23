@@ -11,6 +11,20 @@ plugins {
     alias(libs.plugins.baselineprofile) apply false
     id("com.teamscale") version "36.1.0"
 }
+allprojects {
+    tasks.withType<Test>().configureEach {
+        testLogging {
+            events = setOf(
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_OUT,
+                TestLogEvent.STANDARD_ERROR,
+                TestLogEvent.STARTED,
+                TestLogEvent.FAILED
+            )
+        }
+    }
+}
 evaluationDependsOn(":connector")
 tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
     partition = "Unit Tests"
