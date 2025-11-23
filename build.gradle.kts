@@ -43,6 +43,6 @@ teamscale {
         url = "http://localhost:8080"
         project = "tucan-plus-android"
         userName = "admin"
-        userAccessToken = System.getProperty("teamscale.access-token")
+        userAccessToken = System.getenv("THE_TEAMSCALE_ACCESS_TOKEN")
     }
 }

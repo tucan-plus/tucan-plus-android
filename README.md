@@ -1,13 +1,17 @@
 # tucan-plus-android
 
 ```
-TUCAN_USERNAME= TUCAN_PASSWORD= ./gradlew -Dteamscale.access-token= clean :connector:test teamscaleTestUpload
+TUCAN_USERNAME=
+TUCAN_PASSWORD=
+THE_TEAMSCALE_ACCESS_TOKEN=
 
-./gradlew -Pandroid.testInstrumentationRunnerArguments.username= -Pandroid.testInstrumentationRunnerArguments.password= clean mediumPhoneAndroidTest createManagedDeviceDebugAndroidTestCoverageReport
+export $(grep -v '^#' .env | xargs)
 
-app/build/outputs/androidTest-results/managedDevice/debug/mediumPhone/TEST-mediumPhone-_app-.xml
+./gradlew clean :connector:test teamscaleTestUpload
 
-./gradlew  -Pandroid.testInstrumentationRunnerArguments.username= -Pandroid.testInstrumentationRunnerArguments.password= -Dteamscale.access-token= --info jacocoReportAll teamscaleIntegrationTestsReportUpload
+./gradlew clean mediumPhoneAndroidTest 
+
+./gradlew --info teamscaleIntegrationTestsReportUpload
 ```
 
 ## Setup
