@@ -1,18 +1,6 @@
 package de.selfmade4u.tucanplus.connector
 
-import androidx.datastore.core.DataStore
-import de.selfmade4u.tucanplus.LoginSingleton
-import de.selfmade4u.tucanplus.OptionalCredentialSettings
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assumptions.assumeTrue
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Tag
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
-
-class ModuleResultsOnlineTest {
+class MyExamsConnectorOnlineTest {
 
     companion object {
         @JvmStatic
@@ -26,7 +14,7 @@ class ModuleResultsOnlineTest {
     @ParameterizedTest
     @MethodSource("abc")
     @Tag("AccessesTucan")
-    fun testModuleResults(offset: Int) {
+    fun testMyExams(offset: Int) {
         assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         runBlocking {
             val semester = 15086000 + offset * 10000
@@ -42,7 +30,7 @@ class ModuleResultsOnlineTest {
                     return value.value
                 }
             }
-            ModuleResultsConnector.getModuleResultsUncached(
+            MyExamsConnector.getUncached(
                 store, semester.toString()
             )
         }
