@@ -17,7 +17,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.ktor.client.java)
     implementation(project(":common"))
-    testImplementation(platform("org.junit:junit-bom:5.14.1"))
+    testImplementation(platform(libs.junit.bom))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(kotlin("stdlib-jdk8"))
