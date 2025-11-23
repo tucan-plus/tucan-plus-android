@@ -1,4 +1,10 @@
+import com.teamscale.TeamscaleUpload
+import com.teamscale.reporting.testwise.TestwiseCoverageReport
+import org.gradle.kotlin.dsl.assign
+import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.plugin.sources.android.findKotlinSourceSet
 
 plugins {
     alias(libs.plugins.android.application)
@@ -28,6 +34,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments["useTestStorageService"] = "true"
     }
 
     dependenciesInfo {
@@ -73,6 +80,7 @@ android {
         dexLayoutOptimization = true
     }
     testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
         managedDevices {
             localDevices {
                 create("mediumPhone") {
@@ -118,5 +126,35 @@ dependencies {
     "baselineProfile"(project(":baselineprofile"))
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestUtil(libs.androidx.orchestrator)
 }
 
+val execFiles = fileTree(layout.buildDirectory.dir("outputs/managed_device_code_coverage/debug/mediumPhone/")) {
+    include("*.ec")
+}
+
+execFiles.forEach { execFile ->
+    println(execFile)
+    val namePart = execFile.name.removeSuffix(".ec")
+
+    tasks.register("jacocoReport_$namePart", JacocoReport::class) {
+        executionData.setFrom(execFile)
+
+        sourceDirectories.setFrom(files("src/main/java"))
+        classDirectories.setFrom(fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {  })
+
+        reports {
+            xml.required.set(true)
+            xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/$namePart/JACOCO/coverage.xml"))
+
+            html.required.set(false)
+            csv.required.set(false)
+        }
+    }
+}
+
+// 3. Optional: aggregate task
+tasks.register("jacocoReportAll") {
+    dependsOn(tasks.withType(JacocoReport::class))
+}

@@ -3,9 +3,11 @@
 ```
 TUCAN_USERNAME= TUCAN_PASSWORD= ./gradlew -Dteamscale.access-token= clean :connector:test teamscaleTestUpload
 
-./gradlew -Pandroid.testInstrumentationRunnerArguments.username= -Pandroid.testInstrumentationRunnerArguments.password= createDebugCoverageReport
+./gradlew -Pandroid.testInstrumentationRunnerArguments.username= -Pandroid.testInstrumentationRunnerArguments.password= clean mediumPhoneAndroidTest createManagedDeviceDebugAndroidTestCoverageReport
 
-jacocoTestReport
+app/build/outputs/androidTest-results/managedDevice/debug/mediumPhone/TEST-mediumPhone-_app-.xml
+
+./gradlew  -Pandroid.testInstrumentationRunnerArguments.username= -Pandroid.testInstrumentationRunnerArguments.password= -Dteamscale.access-token= --info jacocoReportAll teamscaleIntegrationTestsReportUpload
 ```
 
 ## Setup
