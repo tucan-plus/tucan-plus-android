@@ -7,11 +7,11 @@ THE_TEAMSCALE_ACCESS_TOKEN=
 
 export $(grep -v '^#' .env | xargs)
 
+# Unit tests
 ./gradlew clean :connector:test teamscaleTestUpload
 
-./gradlew clean mediumPhoneAndroidTest 
-
-./gradlew --info teamscaleIntegrationTestsReportUpload
+# Integration tests
+./gradlew clean mediumPhoneAndroidTest teamscaleIntegrationTestsReportUpload
 ```
 
 ## Setup

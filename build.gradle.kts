@@ -40,7 +40,7 @@ tasks.register<TeamscaleUpload>("teamscaleIntegrationTestsReportUpload") {
 }
 teamscale {
     server {
-        url = "http://localhost:8080"
+        url = "https://teamscale.selfmade4u.de"
         project = "tucan-plus-android"
         userName = "admin"
         userAccessToken = System.getenv("THE_TEAMSCALE_ACCESS_TOKEN")
