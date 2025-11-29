@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
@@ -34,7 +35,7 @@ class ComposeTest {
 
     @After
     fun clearDatastore() {
-        runBlocking {
+        runBlocking(Dispatchers.Main) {
             composeTestRule.activity.credentialSettingsDataStore.updateData { _ ->
                 OptionalCredentialSettings(
                     null
@@ -49,9 +50,9 @@ class ComposeTest {
         //composeTestRule.onRoot().printToLog("Nodes")
         // In the Android Studio run configuration add these parameters
         composeTestRule.onNodeWithText("Username")
-            .performTextInput(InstrumentationRegistry.getArguments().getString("username")!!)
+            .performTextInput(InstrumentationRegistry.getArguments().getString("TUCAN_USERNAME")!!)
         composeTestRule.onNodeWithText("Password")
-            .performTextInput(InstrumentationRegistry.getArguments().getString("password")!!)
+            .performTextInput(InstrumentationRegistry.getArguments().getString("TUCAN_PASSWORD")!!)
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
     }

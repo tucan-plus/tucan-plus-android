@@ -8,7 +8,7 @@ version = "1.0"
 root = true
 
 [server]
-url = "http://localhost:8080/"
+url = "https://teamscale.selfmade4u.de"
 
 [project]
 id = "tucan-plus-android"
