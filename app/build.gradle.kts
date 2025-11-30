@@ -94,6 +94,10 @@ android {
             }
         }
     }
+    // https://stackoverflow.com/questions/31713525/what-are-list-of-tasks-that-connectedandroidtest-executes
+    testVariants.forEach { variant ->
+        println(variant.connectedInstrumentTestProvider.name)
+    }
 }
 
 dependencies {
@@ -159,4 +163,17 @@ execFiles.forEach { execFile ->
 // 3. Optional: aggregate task
 tasks.register("jacocoReportAll") {
     dependsOn(tasks.withType(JacocoReport::class))
+}
+
+
+project.afterEvaluate {
+    tasks.register<TeamscaleUpload>("teamscaleIntegrationTestsReportUpload") {
+        partition = "Integration Tests"
+        addReport(
+            "JUNIT",
+            project(":app").layout.buildDirectory.file("outputs/androidTest-results/managedDevice/debug/mediumPhone/TEST-mediumPhone-_app-.xml")
+        )
+        project(":app").tasks.withType(JacocoReport::class).forEach { from(it) }
+        tasks.named("mediumPhoneAndroidTest")
+    }
 }

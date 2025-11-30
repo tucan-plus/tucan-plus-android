@@ -11,7 +11,9 @@ export $(grep -v '^#' .env | xargs)
 ./gradlew clean :connector:test teamscaleTestUpload
 
 # Integration tests
-./gradlew clean mediumPhoneAndroidTest teamscaleIntegrationTestsReportUpload
+# mediumPhoneDebugAndroidTest
+./gradlew clean mediumPhoneAndroidTest
+./gradlew --info teamscaleIntegrationTestsReportUpload # I think this needs to be separate for now
 ```
 
 ## Setup
