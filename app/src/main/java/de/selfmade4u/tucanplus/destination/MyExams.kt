@@ -86,8 +86,8 @@ fun showEvents(context: Context): Boolean {
     val cur = context.contentResolver.query(CalendarContract.Events.CONTENT_URI, EVENT_PROJECTION, null, null, null)!!
     while (cur.moveToNext()) {
         val eventId: Long = cur.getLong(PROJECTION_ID_INDEX)
-        val title: String = cur.getString(PROJECTION_TITLE_INDEX)
-        val description: String = cur.getString(PROJECTION_DESCRIPTION_INDEX)
+        val title: String? = cur.getStringOrNull(PROJECTION_TITLE_INDEX)
+        val description: String? = cur.getStringOrNull(PROJECTION_DESCRIPTION_INDEX)
         val location: String? = cur.getStringOrNull(PROJECTION_EVENT_LOCATION_INDEX)
         val customAppPackage: String? = cur.getStringOrNull(PROJECTION_CUSTOM_APP_PACKAGE_INDEX)
         val customAppUri: String? = cur.getStringOrNull(PROJECTION_CUSTOM_APP_URI_INDEX)
