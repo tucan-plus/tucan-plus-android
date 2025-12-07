@@ -59,6 +59,7 @@ import de.selfmade4u.tucanplus.connector.Semester
 import de.selfmade4u.tucanplus.connector.Semesterauswahl
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
 import de.selfmade4u.tucanplus.data.MyExams
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -111,13 +112,76 @@ fun showEvents(context: Context): Boolean {
 @Composable
 fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    var isRefreshing by remember { mutableStateOf(false) }
+    var updateCounter by remember { mutableStateOf(false) }
+    val modules by produceState<AuthenticatedResponse<MyExams.MyExamsWithExams>?>(initialValue = null, updateCounter) {
+        Log.i(TAG, "Loading")
+        MyExams.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
+        isLoading.value = false
+        value = MyExams.refresh(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
+        isRefreshing = false
+        Log.e(TAG, "Loaded ${value.toString()}")
+    }
+    val state = rememberPullToRefreshState()
+    DetailedDrawerExample(backStack) { innerPadding ->
+        PullToRefreshBox(isRefreshing, onRefresh = {
+            isRefreshing = true
+            updateCounter = !updateCounter;
+        }, state = state, indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                state = state,
+                isRefreshing = isRefreshing,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
+        }, modifier = Modifier.padding(innerPadding)) {
+            Column(Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())) {
+                when (val value = modules) {
+                    null -> {
+                        Column(
+                            Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) { CircularWavyProgressIndicator() }
+                    }
+
+                    is AuthenticatedResponse.SessionTimeout -> {
+                        Text("Session timeout")
+                    }
+
+                    is AuthenticatedResponse.Success -> {
+                        value.response.exams.forEach { exam ->
+                            key(exam.id) {
+                                ExamComposable(exam)
+                            }
+                        }
+                    }
+                    is AuthenticatedResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
+                    is AuthenticatedResponse.InvalidCredentials<*> -> Text("Invalid credentials")
+                    is AuthenticatedResponse.TooManyAttempts<*> -> Text("Too many login attempts. Try again later")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CalendarExperiment(context: Context, scope: CoroutineScope) {
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { value ->
             Toast.makeText(context, "Permission response $value", Toast.LENGTH_SHORT).show()
 
             Log.e(TAG, "DELETING ALL OUR OLD EVENTS")
-            Log.e(TAG, "deleted ${context.contentResolver.delete(CalendarContract.Events.CONTENT_URI, "${CalendarContract.Events.CUSTOM_APP_PACKAGE} = ?", arrayOf(context.packageName))}")
+            Log.e(
+                TAG,
+                "deleted ${
+                    context.contentResolver.delete(
+                        CalendarContract.Events.CONTENT_URI,
+                        "${CalendarContract.Events.CUSTOM_APP_PACKAGE} = ?",
+                        arrayOf(context.packageName)
+                    )
+                }"
+            )
 
             val CALENDAR_PROJECTION: Array<String> = arrayOf(
                 CalendarContract.Calendars._ID,                     // 0
@@ -129,7 +193,13 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
             val PROJECTION_CALENDAR_NAME_INDEX: Int = 1
             val PROJECTION_CALENDAR_ACCOUNT_NAME_INDEX: Int = 2
             val PROJECTION_CALENDAR_ACCOUNT_TYPE_INDEX: Int = 3
-            var cur: Cursor = context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, CALENDAR_PROJECTION, null, null, null)!!
+            var cur: Cursor = context.contentResolver.query(
+                CalendarContract.Calendars.CONTENT_URI,
+                CALENDAR_PROJECTION,
+                null,
+                null,
+                null
+            )!!
             Log.w(TAG, "CALENDARS")
             while (cur.moveToNext()) {
                 val calendarId: Long = cur.getLong(PROJECTION_CALENDAR_ID_INDEX)
@@ -164,11 +234,13 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
                 put(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
                 put(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
             }
-            var uri: Uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)!!
+            var uri: Uri =
+                context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)!!
             showEvents(context)
 
             context.contentResolver.registerContentObserver(uri, false, object : ContentObserver(
-                Handler()) {
+                Handler()
+            ) {
                 override fun onChange(selfChange: Boolean, changeUrl: Uri?) {
                     Log.e(TAG, "ONCHANGE $changeUrl")
                     if (!showEvents(context)) {
@@ -198,7 +270,10 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
             context.contentResolver.notifyChange(uri, null)
             // does not work when offline...
             // we're fucked, even opening google calendar only seems to work when having network access
-            ContentResolver.requestSync(SyncRequest.Builder().setSyncAdapter(null, uri.authority).setIgnoreSettings(true).setIgnoreBackoff(true).setExpedited(true).setManual(true).syncOnce().build());
+            ContentResolver.requestSync(
+                SyncRequest.Builder().setSyncAdapter(null, uri.authority).setIgnoreSettings(true)
+                    .setIgnoreBackoff(true).setExpedited(true).setManual(true).syncOnce().build()
+            );
 
             scope.launch {
                 delay(5000)
@@ -207,78 +282,31 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
             }
         }
     LaunchedEffect(true) {
-        launcher.launch(arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
-    }
-/*
-    val beginTime: Calendar = Calendar.getInstance()
-    beginTime.set(2012, 0, 19, 7, 30)
-    val endTime: Calendar = Calendar.getInstance()
-    endTime.set(2012, 0, 19, 8, 30)
-    val intent: Intent = Intent(Intent.ACTION_INSERT)
-        .setData(CalendarContract.Events.CONTENT_URI)
-        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis())
-        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis())
-        .putExtra(CalendarContract.Events.TITLE, "Yoga")
-        .putExtra(CalendarContract.Events.DESCRIPTION, "Group class")
-        .putExtra(CalendarContract.Events.EVENT_LOCATION, "The gym")
-        // maybe this doesn't work over the intent?
-        .putExtra(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
-        .putExtra(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
-    context.startActivity(intent)
-
- */
-    var isRefreshing by remember { mutableStateOf(false) }
-    var updateCounter by remember { mutableStateOf(false) }
-    val modules by produceState<AuthenticatedResponse<MyExams.MyExamsWithExams>?>(initialValue = null, updateCounter) {
-        Log.i(TAG, "Loading")
-        MyExams.getCached(MyDatabaseProvider.getDatabase(context))?.let { value = AuthenticatedResponse.Success(it) }
-        isLoading.value = false
-        value = MyExams.refresh(context.credentialSettingsDataStore, MyDatabaseProvider.getDatabase(context))
-        isRefreshing = false
-        Log.e(TAG, "Loaded ${value.toString()}")
-    }
-    val state = rememberPullToRefreshState()
-    DetailedDrawerExample(backStack) { innerPadding ->
-        PullToRefreshBox(isRefreshing, onRefresh = {
-            isRefreshing = true
-            updateCounter = !updateCounter;
-        }, state = state, indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                state = state,
-                isRefreshing = isRefreshing,
-                modifier = Modifier.align(Alignment.TopCenter),
+        launcher.launch(
+            arrayOf(
+                Manifest.permission.READ_CALENDAR,
+                Manifest.permission.WRITE_CALENDAR
             )
-        }, modifier = Modifier.padding(innerPadding)) {
-            Column(Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())) {
-                //LongBasicDropdownMenu()
-                when (val value = modules) {
-                    null -> {
-                        Column(
-                            Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) { CircularWavyProgressIndicator() }
-                    }
-
-                    is AuthenticatedResponse.SessionTimeout -> {
-                        Text("Session timeout")
-                    }
-
-                    is AuthenticatedResponse.Success -> {
-                        value.response.exams.forEach { exam ->
-                            key(exam.id) {
-                                ExamComposable(exam)
-                            }
-                        }
-                    }
-                    is AuthenticatedResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
-                    is AuthenticatedResponse.InvalidCredentials<*> -> Text("Invalid credentials")
-                    is AuthenticatedResponse.TooManyAttempts<*> -> Text("Too many login attempts. Try again later")
-                }
-            }
-        }
+        )
     }
+    /*
+        val beginTime: Calendar = Calendar.getInstance()
+        beginTime.set(2012, 0, 19, 7, 30)
+        val endTime: Calendar = Calendar.getInstance()
+        endTime.set(2012, 0, 19, 8, 30)
+        val intent: Intent = Intent(Intent.ACTION_INSERT)
+            .setData(CalendarContract.Events.CONTENT_URI)
+            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis())
+            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis())
+            .putExtra(CalendarContract.Events.TITLE, "Yoga")
+            .putExtra(CalendarContract.Events.DESCRIPTION, "Group class")
+            .putExtra(CalendarContract.Events.EVENT_LOCATION, "The gym")
+            // maybe this doesn't work over the intent?
+            .putExtra(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
+            .putExtra(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
+        context.startActivity(intent)
+
+     */
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, widthDp = 200)
