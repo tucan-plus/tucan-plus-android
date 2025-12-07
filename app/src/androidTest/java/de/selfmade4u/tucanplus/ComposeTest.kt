@@ -33,17 +33,6 @@ class ComposeTest {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
-    @After
-    fun clearDatastore() {
-        runBlocking(Dispatchers.Main) {
-            composeTestRule.activity.credentialSettingsDataStore.updateData { _ ->
-                OptionalCredentialSettings(
-                    null
-                )
-            }
-        }
-    }
-
     @OptIn(ExperimentalTestApi::class)
     @Test
     fun successfulLogin() {
@@ -55,6 +44,7 @@ class ComposeTest {
             .performTextInput(InstrumentationRegistry.getArguments().getString("TUCAN_PASSWORD")!!)
         composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
         composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
+        println("hi")
     }
 
     @OptIn(ExperimentalTestApi::class, ExperimentalUuidApi::class)
