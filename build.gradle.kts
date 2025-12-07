@@ -34,8 +34,6 @@ tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
 
 tasks.register<TeamscaleUpload>("teamscaleIntegrationTestsReportUpload") {
     partition = "Integration Tests"
-    message = "Integration Test upload"
-    ignoreFailures = true
     addReport(
         "JUNIT",
         project(":app").layout.buildDirectory.file("outputs/androidTest-results/managedDevice/debug/mediumPhone/TEST-mediumPhone-_app-.xml")
