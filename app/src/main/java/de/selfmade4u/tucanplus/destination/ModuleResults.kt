@@ -71,7 +71,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey> = NavBackStack(), is
             PullToRefreshDefaults.LoadingIndicator(
                 state = state,
                 isRefreshing = isRefreshing,
-                modifier = Modifier.align(Alignment.TopCenter).semantics { contentDescription = "Loading" },
+                modifier = Modifier.align(Alignment.TopCenter).semantics { contentDescription = if (isRefreshing) { "Refreshing" } else { "Not Refreshing" } },
             )
         }, modifier = Modifier.padding(innerPadding)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -79,7 +79,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey> = NavBackStack(), is
                 when (val value = modules) {
                     null -> {
                         Column(
-                            Modifier.fillMaxSize(),
+                            Modifier.fillMaxSize().semantics { contentDescription = "Loading" },
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) { CircularWavyProgressIndicator() }
                     }

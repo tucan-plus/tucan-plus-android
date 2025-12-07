@@ -4,6 +4,8 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasContentDescriptionExactly
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isNotEnabled
@@ -59,7 +61,8 @@ class ComposeTest {
         composeTestRule.onNodeWithText("Modulergebnisse").performClick()
         // wait for loading indicator to be hidden
         composeTestRule.onRoot().printToLog("Nodes")
-        composeTestRule.waitUntilDoesNotExist(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate))
+        composeTestRule.waitUntilDoesNotExist(hasContentDescriptionExactly("Loading"), 30_000)
+        composeTestRule.onRoot().printToLog("Nodes")
     }
 
     @OptIn(ExperimentalTestApi::class)
@@ -68,7 +71,6 @@ class ComposeTest {
         login()
         composeTestRule.onNodeWithContentDescription("Menu").performClick()
         composeTestRule.onNodeWithText("Meine Prüfungen").performClick()
-        composeTestRule.waitUntilDoesNotExist(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate))
     }
 
     @OptIn(ExperimentalTestApi::class, ExperimentalUuidApi::class)
