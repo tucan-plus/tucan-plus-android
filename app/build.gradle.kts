@@ -1,11 +1,6 @@
 import com.teamscale.TeamscaleUpload
-import com.teamscale.extension.TeamscaleTaskExtension
-import com.teamscale.reporting.testwise.TestwiseCoverageReport
-import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.plugin.sources.android.findKotlinSourceSet
 
 plugins {
     alias(libs.plugins.android.application)
@@ -18,7 +13,6 @@ plugins {
 /*
 stacktraceDecoroutinator {
     embedDebugProbesForAndroid = true
-
 }*/
 
 android {
@@ -95,42 +89,7 @@ android {
             }
         }
     }
-    // https://stackoverflow.com/questions/31713525/what-are-list-of-tasks-that-connectedandroidtest-executes
-    testVariants.forEach { variant ->
-        println(variant.connectedInstrumentTestProvider.name)
-    }
 }
-/*
-androidComponents {
-     *      onVariants { variant ->
-     *          variant.unitTest?.configureTestTask { testTask ->
-     *              testTask.beforeTest { descriptor ->
-     *                  println("Running test: " + descriptor)
-     *              }
-     *          }
-     *      }
-     *  }
- */
-/*
- A base test class for UTP integration tests. Tests defined in this class will be
- * executed against both connected check and managed devices to ensure the feature
- * parity.
- */
-/*
-androidComponents {
-    beforeVariants { variant ->
-        println("variant ${variant.name}")
-        variant.hostTests.values.forEach { builder ->
-            println("host tests ${builder.type}")
-            builder.enableCodeCoverage = true
-        }
-        variant.deviceTests.values.forEach { builder ->
-            println("device tests")
-            builder.enableCodeCoverage = true
-
-        }
-    }
-}*/
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -192,18 +151,6 @@ execFiles.forEach { execFile ->
     }
 }
 
-// 3. Optional: aggregate task
 tasks.register("jacocoReportAll") {
     dependsOn(tasks.withType(JacocoReport::class))
 }
-
-tasks.register<TeamscaleUpload>("teamscaleIntegrationTestsReportUpload") {
-    partition = "Integration Tests"
-    addReport(
-        "JUNIT",
-        project(":app").layout.buildDirectory.file("outputs/androidTest-results/managedDevice/debug/mediumPhone/TEST-mediumPhone-_app-.xml")
-    )
-    project(":app").tasks.withType(JacocoReport::class).forEach { from(it) }
-}
-
-// https://android.googlesource.com/platform/tools/base/+/refs/heads/mirror-goog-studio-main/build-system/gradle-core/src/main/java/com/android/build/gradle/internal/AndroidTestTaskManager.kt

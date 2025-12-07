@@ -1,5 +1,4 @@
 import com.teamscale.TeamscaleUpload
-import com.teamscale.reporting.testwise.TestwiseCoverageReport
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
@@ -10,7 +9,7 @@ plugins {
     id("androidx.room") version "2.8.4" apply false
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.baselineprofile) apply false
-    id("com.teamscale") version "36.1.0"
+    id("com.teamscale") version "36.2.0"
 }
 allprojects {
     tasks.withType<Test>().configureEach {
@@ -30,9 +29,20 @@ evaluationDependsOn(":connector")
 evaluationDependsOn(":app")
 tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
     partition = "Unit Tests"
-    //from(project(":connector").tasks.jacocoTestReport)
     from(project(":connector").tasks.named("testwiseCoverageReport"))
 }
+
+tasks.register<TeamscaleUpload>("teamscaleIntegrationTestsReportUpload") {
+    partition = "Integration Tests"
+    message = "Integration Test upload"
+    ignoreFailures = true
+    addReport(
+        "JUNIT",
+        project(":app").layout.buildDirectory.file("outputs/androidTest-results/managedDevice/debug/mediumPhone/TEST-mediumPhone-_app-.xml")
+    )
+    project(":app").tasks.withType(JacocoReport::class).forEach { from(it) }
+}
+
 teamscale {
     server {
         url = "https://teamscale.selfmade4u.de"
