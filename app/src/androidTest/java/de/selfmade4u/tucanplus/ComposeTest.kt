@@ -63,6 +63,7 @@ class ComposeTest {
         composeTestRule.onRoot().printToLog("Nodes")
         composeTestRule.waitUntilDoesNotExist(hasContentDescriptionExactly("Loading"), 30_000)
         composeTestRule.onRoot().printToLog("Nodes")
+        // TODO verify loaded data
     }
 
     @OptIn(ExperimentalTestApi::class)
