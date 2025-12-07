@@ -31,6 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavBackStack
@@ -47,7 +49,8 @@ import de.selfmade4u.tucanplus.data.ModuleResults
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
+@Preview
+fun ModuleResultsComposable(backStack: NavBackStack<NavKey> = NavBackStack(), isLoading: MutableState<Boolean> = mutableStateOf(false)) {
     val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
     var updateCounter by remember { mutableStateOf(false) }
@@ -60,7 +63,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
         Log.e(TAG, "Loaded ${value.toString()}")
     }
     val state = rememberPullToRefreshState()
-    DetailedDrawerExample(backStack) { innerPadding ->
+    DetailedDrawerExample(backStack, "Modulergebnisse") { innerPadding ->
         PullToRefreshBox(isRefreshing, onRefresh = {
             isRefreshing = true
             updateCounter = !updateCounter;
@@ -68,7 +71,7 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
             PullToRefreshDefaults.LoadingIndicator(
                 state = state,
                 isRefreshing = isRefreshing,
-                modifier = Modifier.align(Alignment.TopCenter),
+                modifier = Modifier.align(Alignment.TopCenter).semantics { contentDescription = "Loading" },
             )
         }, modifier = Modifier.padding(innerPadding)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {

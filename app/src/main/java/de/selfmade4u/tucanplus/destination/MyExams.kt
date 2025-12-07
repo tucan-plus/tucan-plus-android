@@ -110,7 +110,8 @@ fun showEvents(context: Context): Boolean {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
+@Preview
+fun MyExamsComposable(backStack: NavBackStack<NavKey> = NavBackStack(), isLoading: MutableState<Boolean> = mutableStateOf(false)) {
     val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
     var updateCounter by remember { mutableStateOf(false) }
@@ -123,7 +124,7 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<B
         Log.e(TAG, "Loaded ${value.toString()}")
     }
     val state = rememberPullToRefreshState()
-    DetailedDrawerExample(backStack) { innerPadding ->
+    DetailedDrawerExample(backStack, "Meine Prüfungen") { innerPadding ->
         PullToRefreshBox(isRefreshing, onRefresh = {
             isRefreshing = true
             updateCounter = !updateCounter;
