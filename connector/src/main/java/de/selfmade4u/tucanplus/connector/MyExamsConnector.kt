@@ -308,7 +308,7 @@ object MyExamsConnector {
                                         } else {
                                             // thesis
                                             b {
-                                                text("Subject:")
+                                                text(localizer.thesis_subject)
                                             }
                                             val title = extractText()
                                             br {}

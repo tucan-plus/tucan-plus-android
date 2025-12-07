@@ -1,12 +1,11 @@
 import com.teamscale.extension.TeamscaleTaskExtension
 import com.teamscale.reporting.testwise.TestwiseCoverageReport
 
-// Put everything in here that does not depend on Android
 plugins {
     id("java-library")
     kotlin("jvm")
     alias(libs.plugins.jetbrains.kotlin.serialization)
-    id("com.teamscale") version "36.1.0"
+    id("com.teamscale") version "36.2.0"
 }
 
 dependencies {

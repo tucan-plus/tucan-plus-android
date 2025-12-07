@@ -1,10 +1,6 @@
 import com.teamscale.TeamscaleUpload
-import com.teamscale.reporting.testwise.TestwiseCoverageReport
-import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.plugin.sources.android.findKotlinSourceSet
 
 plugins {
     alias(libs.plugins.android.application)
@@ -17,7 +13,6 @@ plugins {
 /*
 stacktraceDecoroutinator {
     embedDebugProbesForAndroid = true
-
 }*/
 
 android {
@@ -35,6 +30,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["useTestStorageService"] = "true"
+        testInstrumentationRunnerArguments["TUCAN_USERNAME"] = System.getenv("TUCAN_USERNAME")
+        testInstrumentationRunnerArguments["TUCAN_PASSWORD"] = System.getenv("TUCAN_PASSWORD")
     }
 
     dependenciesInfo {
@@ -154,7 +151,6 @@ execFiles.forEach { execFile ->
     }
 }
 
-// 3. Optional: aggregate task
 tasks.register("jacocoReportAll") {
     dependsOn(tasks.withType(JacocoReport::class))
 }
