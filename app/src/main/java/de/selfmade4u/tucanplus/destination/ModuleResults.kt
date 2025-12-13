@@ -71,7 +71,13 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey> = NavBackStack(), is
             PullToRefreshDefaults.LoadingIndicator(
                 state = state,
                 isRefreshing = isRefreshing,
-                modifier = Modifier.align(Alignment.TopCenter).semantics { contentDescription = if (isRefreshing) { "Refreshing" } else { "Not Refreshing" } },
+                modifier = Modifier.align(Alignment.TopCenter).semantics {
+                    contentDescription = if (isRefreshing) {
+                        "Refreshing"
+                    } else {
+                        "Not Refreshing"
+                    }
+                },
             )
         }, modifier = Modifier.padding(innerPadding)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
