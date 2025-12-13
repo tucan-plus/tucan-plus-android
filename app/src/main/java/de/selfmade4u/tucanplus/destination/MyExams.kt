@@ -11,6 +11,7 @@ import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.Handler
+import android.os.Looper
 import android.provider.CalendarContract
 import android.util.Log
 import android.widget.Toast
@@ -60,6 +61,7 @@ import de.selfmade4u.tucanplus.connector.Semesterauswahl
 import de.selfmade4u.tucanplus.credentialSettingsDataStore
 import de.selfmade4u.tucanplus.data.MyExams
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -168,146 +170,184 @@ fun MyExamsComposable(backStack: NavBackStack<NavKey> = NavBackStack(), isLoadin
 
 @Composable
 private fun CalendarExperiment(context: Context, scope: CoroutineScope) {
-    val launcher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { value ->
-            Toast.makeText(context, "Permission response $value", Toast.LENGTH_SHORT).show()
-
-            Log.e(TAG, "DELETING ALL OUR OLD EVENTS")
-            Log.e(
-                TAG,
-                "deleted ${
-                    context.contentResolver.delete(
-                        CalendarContract.Events.CONTENT_URI,
-                        "${CalendarContract.Events.CUSTOM_APP_PACKAGE} = ?",
-                        arrayOf(context.packageName)
-                    )
-                }"
-            )
-
-            val CALENDAR_PROJECTION: Array<String> = arrayOf(
-                CalendarContract.Calendars._ID,                     // 0
-                CalendarContract.Calendars.NAME,            // 1
-                CalendarContract.Calendars.ACCOUNT_NAME, // 2
-                CalendarContract.Calendars.ACCOUNT_TYPE // 3
-            )
-            val PROJECTION_CALENDAR_ID_INDEX: Int = 0
-            val PROJECTION_CALENDAR_NAME_INDEX: Int = 1
-            val PROJECTION_CALENDAR_ACCOUNT_NAME_INDEX: Int = 2
-            val PROJECTION_CALENDAR_ACCOUNT_TYPE_INDEX: Int = 3
-            var cur: Cursor = context.contentResolver.query(
-                CalendarContract.Calendars.CONTENT_URI,
-                CALENDAR_PROJECTION,
-                null,
-                null,
-                null
-            )!!
-            Log.w(TAG, "CALENDARS")
-            while (cur.moveToNext()) {
-                val calendarId: Long = cur.getLong(PROJECTION_CALENDAR_ID_INDEX)
-                val name: String = cur.getString(PROJECTION_CALENDAR_NAME_INDEX)
-                val accountName: String = cur.getString(PROJECTION_CALENDAR_ACCOUNT_NAME_INDEX)
-                val accountType: String = cur.getString(PROJECTION_CALENDAR_ACCOUNT_TYPE_INDEX)
-                Log.w(
-                    TAG,
-                    "GOT calendar $calendarId $name $accountName $accountType"
-                )
-            }
-            cur.close()
-
-            val calID: Long = 3
-            val startMillis: Long = Calendar.getInstance().run {
-                set(2025, 9, 14, 7, 30)
-                timeInMillis
-            }
-            val endMillis: Long = Calendar.getInstance().run {
-                set(2025, 9, 14, 8, 45)
-                timeInMillis
-            }
-            val eventName = "abcdef ${System.currentTimeMillis()}"
-            Log.e(TAG, "EVENT NAME $eventName")
-            val values = ContentValues().apply {
-                put(CalendarContract.Events.DTSTART, startMillis)
-                put(CalendarContract.Events.DTEND, endMillis)
-                put(CalendarContract.Events.TITLE, eventName)
-                put(CalendarContract.Events.DESCRIPTION, "Group workout")
-                put(CalendarContract.Events.CALENDAR_ID, calID) // FIXME
-                put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles")
-                put(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
-                put(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
-            }
-            var uri: Uri =
-                context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)!!
-            showEvents(context)
-
-            context.contentResolver.registerContentObserver(uri, false, object : ContentObserver(
-                Handler()
-            ) {
-                override fun onChange(selfChange: Boolean, changeUrl: Uri?) {
-                    Log.e(TAG, "ONCHANGE $changeUrl")
-                    if (!showEvents(context)) {
-                        // maybe the insertion could also use a callback or so? but the query lists it so idk
-                        //uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, 174)
-                        val intent = Intent(Intent.ACTION_VIEW).setData(uri)
-                        context.startActivity(intent)
-                    }
+    val calendarPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            if (permissions.all { it.value }) {
+                Toast.makeText(context, "Calendar permissions granted", Toast.LENGTH_SHORT).show()
+                // Launch a background coroutine to handle all blocking calendar operations
+                scope.launch(Dispatchers.IO) {
+                    performCalendarOperations(context)
                 }
-            })
-
-            // get the event ID that is the last element in the Uri
-            val eventID: Long = uri.lastPathSegment!!.toLong()
-            //
-            // ... do something with event ID
-            //
-            //
-            Log.w(
-                TAG,
-                "inserted $eventID $uri"
-            )
-
-            // https://stackoverflow.com/questions/61012807/android-calendar-provider-does-not-return-latest-data
-            // https://stackoverflow.com/questions/79314548/how-to-get-updated-information-from-a-contentprovider-android-development
-            //Log.e(TAG, "authority ${uri.authority}")
-            // this is required
-            context.contentResolver.notifyChange(uri, null)
-            // does not work when offline...
-            // we're fucked, even opening google calendar only seems to work when having network access
-            ContentResolver.requestSync(
-                SyncRequest.Builder().setSyncAdapter(null, uri.authority).setIgnoreSettings(true)
-                    .setIgnoreBackoff(true).setExpedited(true).setManual(true).syncOnce().build()
-            );
-
-            scope.launch {
-                delay(5000)
-                val intent = Intent(Intent.ACTION_VIEW).setData(uri)
-                context.startActivity(intent)
+            } else {
+                Toast.makeText(context, "Calendar permissions are required", Toast.LENGTH_SHORT).show()
             }
         }
-    LaunchedEffect(true) {
-        launcher.launch(
+    )
+
+    // Trigger the permission request when the composable enters the composition
+    LaunchedEffect(Unit) {
+        calendarPermissionLauncher.launch(
             arrayOf(
                 Manifest.permission.READ_CALENDAR,
                 Manifest.permission.WRITE_CALENDAR
             )
         )
     }
-    /*
-        val beginTime: Calendar = Calendar.getInstance()
-        beginTime.set(2012, 0, 19, 7, 30)
-        val endTime: Calendar = Calendar.getInstance()
-        endTime.set(2012, 0, 19, 8, 30)
-        val intent: Intent = Intent(Intent.ACTION_INSERT)
-            .setData(CalendarContract.Events.CONTENT_URI)
-            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis())
-            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis())
-            .putExtra(CalendarContract.Events.TITLE, "Yoga")
-            .putExtra(CalendarContract.Events.DESCRIPTION, "Group class")
-            .putExtra(CalendarContract.Events.EVENT_LOCATION, "The gym")
-            // maybe this doesn't work over the intent?
-            .putExtra(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
-            .putExtra(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
-        context.startActivity(intent)
+}
 
-     */
+/**
+ * A container function to orchestrate all calendar-related background tasks.
+ */
+private suspend fun performCalendarOperations(context: Context) {
+    // 1. Delete old events created by this app
+    deleteOldAppEvents(context)
+
+    // 2. Log available calendars for debugging purposes
+    logAvailableCalendars(context)
+
+    // 3. Insert a new event and get its URI
+    val newEventUri = insertNewCalendarEvent(context)
+
+    // 4. Process the newly created event
+    newEventUri?.let { uri ->
+        Log.w(TAG, "Successfully inserted event: $uri")
+        val eventID = uri.lastPathSegment?.toLongOrNull()
+        if (eventID != null) {
+            // ... do something with event ID ...
+        }
+
+        // 5. Register an observer to watch for changes to the event
+        registerEventObserver(context, uri)
+
+        // 6. Notify content resolver and request a sync
+        requestCalendarSync(context, uri)
+
+        // 7. Open the event in the calendar app after a delay
+        delay(5000)
+        viewEventInCalendar(context, uri)
+    }
+}
+
+/**
+ * Deletes all calendar events previously created by this application.
+ */
+private fun deleteOldAppEvents(context: Context) {
+    Log.d(TAG, "Deleting old application events from calendar")
+    val deleteCount = context.contentResolver.delete(
+        CalendarContract.Events.CONTENT_URI,
+        "${CalendarContract.Events.CUSTOM_APP_PACKAGE} = ?",
+        arrayOf(context.packageName)
+    )
+    Log.d(TAG, "Deleted $deleteCount event(s)")
+}
+
+/**
+ * Queries and logs all available calendars on the device for debugging.
+ */
+private fun logAvailableCalendars(context: Context) {
+    val calendarProjection: Array<String> = arrayOf(
+        CalendarContract.Calendars._ID,
+        CalendarContract.Calendars.NAME,
+        CalendarContract.Calendars.ACCOUNT_NAME,
+        CalendarContract.Calendars.ACCOUNT_TYPE
+    )
+
+    context.contentResolver.query(
+        CalendarContract.Calendars.CONTENT_URI,
+        calendarProjection,
+        null, null, null
+    )?.use { cursor ->
+        Log.w(TAG, "Available Calendars:")
+        while (cursor.moveToNext()) {
+            val calendarId: Long = cursor.getLong(0)
+            val name: String = cursor.getString(1)
+            val accountName: String = cursor.getString(2)
+            val accountType: String = cursor.getString(3)
+            Log.w(TAG, "-> ID: $calendarId, Name: $name, Account: $accountName ($accountType)")
+        }
+    }
+}
+
+/**
+ * Inserts a new test event into the calendar.
+ *
+ * @return The [Uri] of the newly created event, or null if insertion fails.
+ */
+private fun insertNewCalendarEvent(context: Context): Uri? {
+    val calID: Long = 3
+    val eventName = "Test Event ${System.currentTimeMillis()}"
+    Log.d(TAG, "Creating new event: $eventName")
+
+    val startMillis = Calendar.getInstance().run {
+        set(2025, Calendar.OCTOBER, 14, 7, 30)
+        timeInMillis
+    }
+    val endMillis = Calendar.getInstance().run {
+        set(2025, Calendar.OCTOBER, 14, 8, 45)
+        timeInMillis
+    }
+
+    val values = ContentValues().apply {
+        put(CalendarContract.Events.DTSTART, startMillis)
+        put(CalendarContract.Events.DTEND, endMillis)
+        put(CalendarContract.Events.TITLE, eventName)
+        put(CalendarContract.Events.DESCRIPTION, "Group workout")
+        put(CalendarContract.Events.CALENDAR_ID, calID)
+        put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles") // Tip: Consider using TimeZone.getDefault().id
+        put(CalendarContract.Events.CUSTOM_APP_PACKAGE, context.packageName)
+        put(CalendarContract.Events.CUSTOM_APP_URI, "${context.packageName}://test")
+    }
+
+    return context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)
+}
+
+/**
+ * Registers a ContentObserver to react to changes on a specific event URI.
+ */
+private fun registerEventObserver(context: Context, eventUri: Uri) {
+    val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean, changeUri: Uri?) {
+            Log.d(TAG, "ContentObserver onChange triggered for: $changeUri")
+            if (!showEvents(context)) { // showEvents presumably checks the 'DIRTY' flag
+                Log.d(TAG, "Event is no longer dirty. Opening it.")
+                viewEventInCalendar(context, eventUri)
+            }
+        }
+    }
+    context.contentResolver.registerContentObserver(eventUri, false, observer)
+}
+
+/**
+ * Notifies the ContentResolver of a change and requests an immediate sync.
+ */
+private fun requestCalendarSync(context: Context, eventUri: Uri) {
+    // Notify that the URI has been changed to trigger observers
+    context.contentResolver.notifyChange(eventUri, null)
+
+    // Request an immediate sync for the calendar provider authority
+    eventUri.authority?.let { authority ->
+        Log.d(TAG, "Requesting immediate sync for authority: $authority")
+        ContentResolver.requestSync(
+            SyncRequest.Builder()
+                .setSyncAdapter(null, authority)
+                .setIgnoreSettings(true)
+                .setIgnoreBackoff(true)
+                .setExpedited(true)
+                .setManual(true)
+                .syncOnce()
+                .build()
+        )
+    }
+}
+
+/**
+ * Starts an activity to view a specific calendar event.
+ */
+private fun viewEventInCalendar(context: Context, eventUri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW).setData(eventUri)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Required when starting activity from non-activity context
+    context.startActivity(intent)
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, widthDp = 200)
