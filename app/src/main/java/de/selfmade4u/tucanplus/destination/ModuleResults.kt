@@ -2,6 +2,7 @@ package de.selfmade4u.tucanplus.destination
 
 import android.content.res.Configuration
 import android.util.Log
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -68,44 +70,66 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey> = NavBackStack(), is
             isRefreshing = true
             updateCounter = !updateCounter;
         }, state = state, indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                state = state,
-                isRefreshing = isRefreshing,
-                modifier = Modifier.align(Alignment.TopCenter).semantics {
-                    contentDescription = if (isRefreshing) {
-                        "Refreshing"
-                    } else {
-                        "Not Refreshing"
-                    }
-                },
-            )
+            LoadingIndicator(state, isRefreshing)
         }, modifier = Modifier.padding(innerPadding)) {
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                //LongBasicDropdownMenu()
-                when (val value = modules) {
-                    null -> {
-                        Column(
-                            Modifier.fillMaxSize().semantics { contentDescription = "Loading" },
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) { CircularWavyProgressIndicator() }
-                    }
+            RenderModuleResults(modules)
+        }
+    }
+}
 
-                    is AuthenticatedResponse.SessionTimeout -> {
-                        Text("Session timeout")
-                    }
+@Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun BoxScope.LoadingIndicator(
+    state: PullToRefreshState,
+    isRefreshing: Boolean
+) {
+    PullToRefreshDefaults.LoadingIndicator(
+        state = state,
+        isRefreshing = isRefreshing,
+        modifier = Modifier
+            .align(Alignment.TopCenter)
+            .semantics {
+                contentDescription = if (isRefreshing) {
+                    "Refreshing"
+                } else {
+                    "Not Refreshing"
+                }
+            },
+    )
+}
 
-                    is AuthenticatedResponse.Success -> {
-                        value.response.modules.forEach { module ->
-                            key(module.id) {
-                                ModuleComposable(module)
-                            }
-                        }
+@Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun RenderModuleResults(modules: AuthenticatedResponse<ModuleResults.ModuleResultWithModules>?) {
+    Column(Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())) {
+        //LongBasicDropdownMenu()
+        when (val value = modules) {
+            null -> {
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .semantics { contentDescription = "Loading" },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) { CircularWavyProgressIndicator() }
+            }
+
+            is AuthenticatedResponse.SessionTimeout -> {
+                Text("Session timeout")
+            }
+
+            is AuthenticatedResponse.Success -> {
+                value.response.modules.forEach { module ->
+                    key(module.id) {
+                        ModuleComposable(module)
                     }
-                    is AuthenticatedResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
-                    is AuthenticatedResponse.InvalidCredentials<*> -> Text("Invalid credentials")
-                    is AuthenticatedResponse.TooManyAttempts<*> -> Text("Too many login attempts. Try again later")
                 }
             }
+
+            is AuthenticatedResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
+            is AuthenticatedResponse.InvalidCredentials<*> -> Text("Invalid credentials")
+            is AuthenticatedResponse.TooManyAttempts<*> -> Text("Too many login attempts. Try again later")
         }
     }
 }
