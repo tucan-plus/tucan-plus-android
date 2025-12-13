@@ -164,6 +164,7 @@ fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings, isLoading: Mu
 @Composable
 fun DetailedDrawerExample(
     backStack: NavBackStack<NavKey>,
+    title: String,
     content: @Composable (PaddingValues) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -171,7 +172,7 @@ fun DetailedDrawerExample(
 
     ModalNavigationDrawer(
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(drawerState) {
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -205,7 +206,7 @@ fun DetailedDrawerExample(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("TUCaN Plus") },
+                    title = { Text(title) },
                     navigationIcon = {
                         IconButton(onClick = {
                             scope.launch {
@@ -236,7 +237,7 @@ fun Main(backStack: NavBackStack<NavKey>) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     // TODO https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary all material expressive?
-    DetailedDrawerExample(backStack) { innerPadding ->
+    DetailedDrawerExample(backStack, "TUCaN Plus") { innerPadding ->
         Button(
             shapes = ButtonDefaults.shapes(),
             modifier = Modifier.padding(innerPadding),

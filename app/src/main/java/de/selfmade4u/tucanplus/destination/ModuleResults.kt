@@ -2,6 +2,7 @@ package de.selfmade4u.tucanplus.destination
 
 import android.content.res.Configuration
 import android.util.Log
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -31,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavBackStack
@@ -47,7 +51,8 @@ import de.selfmade4u.tucanplus.data.ModuleResults
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableState<Boolean>) {
+@Preview
+fun ModuleResultsComposable(backStack: NavBackStack<NavKey> = NavBackStack(), isLoading: MutableState<Boolean> = mutableStateOf(false)) {
     val context = LocalContext.current
     var isRefreshing by remember { mutableStateOf(false) }
     var updateCounter by remember { mutableStateOf(false) }
@@ -60,43 +65,71 @@ fun ModuleResultsComposable(backStack: NavBackStack<NavKey>, isLoading: MutableS
         Log.e(TAG, "Loaded ${value.toString()}")
     }
     val state = rememberPullToRefreshState()
-    DetailedDrawerExample(backStack) { innerPadding ->
+    DetailedDrawerExample(backStack, "Modulergebnisse") { innerPadding ->
         PullToRefreshBox(isRefreshing, onRefresh = {
             isRefreshing = true
             updateCounter = !updateCounter;
         }, state = state, indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                state = state,
-                isRefreshing = isRefreshing,
-                modifier = Modifier.align(Alignment.TopCenter),
-            )
+            LoadingIndicator(state, isRefreshing)
         }, modifier = Modifier.padding(innerPadding)) {
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                //LongBasicDropdownMenu()
-                when (val value = modules) {
-                    null -> {
-                        Column(
-                            Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) { CircularWavyProgressIndicator() }
-                    }
+            RenderModuleResults(modules)
+        }
+    }
+}
 
-                    is AuthenticatedResponse.SessionTimeout -> {
-                        Text("Session timeout")
-                    }
+@Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun BoxScope.LoadingIndicator(
+    state: PullToRefreshState,
+    isRefreshing: Boolean
+) {
+    PullToRefreshDefaults.LoadingIndicator(
+        state = state,
+        isRefreshing = isRefreshing,
+        modifier = Modifier
+            .align(Alignment.TopCenter)
+            .semantics {
+                contentDescription = if (isRefreshing) {
+                    "Refreshing"
+                } else {
+                    "Not Refreshing"
+                }
+            },
+    )
+}
 
-                    is AuthenticatedResponse.Success -> {
-                        value.response.modules.forEach { module ->
-                            key(module.id) {
-                                ModuleComposable(module)
-                            }
-                        }
+@Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun RenderModuleResults(modules: AuthenticatedResponse<ModuleResults.ModuleResultWithModules>?) {
+    Column(Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())) {
+        //LongBasicDropdownMenu()
+        when (val value = modules) {
+            null -> {
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .semantics { contentDescription = "Loading" },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) { CircularWavyProgressIndicator() }
+            }
+
+            is AuthenticatedResponse.SessionTimeout -> {
+                Text("Session timeout")
+            }
+
+            is AuthenticatedResponse.Success -> {
+                value.response.modules.forEach { module ->
+                    key(module.id) {
+                        ModuleComposable(module)
                     }
-                    is AuthenticatedResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
-                    is AuthenticatedResponse.InvalidCredentials<*> -> Text("Invalid credentials")
-                    is AuthenticatedResponse.TooManyAttempts<*> -> Text("Too many login attempts. Try again later")
                 }
             }
+
+            is AuthenticatedResponse.NetworkLikelyTooSlow -> Text("Your network connection is likely too slow for TUCaN")
+            is AuthenticatedResponse.InvalidCredentials<*> -> Text("Invalid credentials")
+            is AuthenticatedResponse.TooManyAttempts<*> -> Text("Too many login attempts. Try again later")
         }
     }
 }

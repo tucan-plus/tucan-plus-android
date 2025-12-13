@@ -107,7 +107,9 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                                     )
                                 )
                             }
+                            setupBackgroundTasks(context)
                             backStack[backStack.size - 1] = MainNavKey
+                            backStack.add(MyExamsNavKey)
                         }
 
                         is TucanLogin.LoginResponse.TooManyAttempts -> launch {
