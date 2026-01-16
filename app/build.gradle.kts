@@ -121,10 +121,14 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
+
     androidTestImplementation(platform(libs.junit.bom))
     androidTestImplementation(libs.junit.jupiter.api)
+    androidTestImplementation(libs.junit.jupiter.params)
     androidTestRuntimeOnly(libs.junit.jupiter.engine)
-    //androidTestImplementation(libs.androidx.junit)
+    androidTestRuntimeOnly(libs.junit.platform.launcher)
+
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     //androidTestImplementation(libs.androidx.compose.ui.test.junit4)
