@@ -22,7 +22,7 @@ class MyExamsConnectorTest {
 
         runBlocking {
             val result = root(doc) {
-                parseResults("000318", "390052152696349", GermanLocalizer)
+                parseResults("000318", "874397018792209", GermanLocalizer)
             }
             print(result)
         }

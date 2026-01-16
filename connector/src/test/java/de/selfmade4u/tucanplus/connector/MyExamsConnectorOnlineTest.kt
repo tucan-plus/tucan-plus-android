@@ -27,7 +27,7 @@ class MyExamsConnectorOnlineTest {
         assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         runBlocking {
             val semester = 15086000 + offset * 10000
-            val credentials = LoginSingleton.getCredentials()
+            val credentials = LoginSingleton.getCredentials().getOrThrow()
             val store = object : DataStore<OptionalCredentialSettings> {
                 val value = MutableStateFlow(OptionalCredentialSettings(credentials))
 

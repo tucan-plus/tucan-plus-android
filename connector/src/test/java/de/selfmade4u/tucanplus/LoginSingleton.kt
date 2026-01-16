@@ -7,10 +7,10 @@ import kotlinx.coroutines.sync.withLock
 
 object LoginSingleton {
     @Volatile
-    private var Instance: CredentialSettings? = null
+    private var Instance: Result<CredentialSettings>? = null
     val mutex = Mutex()
 
-    suspend fun getCredentials(): CredentialSettings {
+    suspend fun getCredentials(): Result<CredentialSettings> {
         return Instance ?: mutex.withLock {
             return Instance ?: run {
                 val client = HttpClient()
@@ -19,13 +19,12 @@ object LoginSingleton {
                     System.getenv("TUCAN_USERNAME")!!,
                     System.getenv("TUCAN_PASSWORD")!!
                 )
-                val result = when (response) {
-                    TucanLogin.LoginResponse.InvalidCredentials -> TODO()
-                    is TucanLogin.LoginResponse.Success -> CredentialSettings(System.getenv("TUCAN_USERNAME")!!, System.getenv("TUCAN_PASSWORD")!!, response.sessionId, response.sessionCookie, response.menuLocalizer, lastRequestTime = System.currentTimeMillis())
-                    TucanLogin.LoginResponse.TooManyAttempts -> TODO()
+                Instance = when (response) {
+                    TucanLogin.LoginResponse.InvalidCredentials -> Result.failure(RuntimeException("the stored credentials were invalid"))
+                    is TucanLogin.LoginResponse.Success -> Result.success(CredentialSettings(System.getenv("TUCAN_USERNAME")!!, System.getenv("TUCAN_PASSWORD")!!, response.sessionId, response.sessionCookie, response.menuLocalizer, lastRequestTime = System.currentTimeMillis()))
+                    TucanLogin.LoginResponse.TooManyAttempts -> Result.failure(RuntimeException("the stored credentials had too many login attempts"))
                 }
-                Instance = result
-                result
+                Instance!!
             }
         }
     }
