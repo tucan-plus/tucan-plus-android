@@ -9,7 +9,7 @@ plugins {
     id("com.google.devtools.ksp")
     alias(libs.plugins.baselineprofile)
     //id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
-    id("de.mannodermaus.android-junit") version "2.0.1"
+    id("de.mannodermaus.android-junit5") version "1.13.4.0"
 }
 /*
 stacktraceDecoroutinator {
@@ -121,6 +121,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.jupiter.engine)
+    androidTestImplementation(platform(libs.junit.bom))
     androidTestImplementation(libs.junit.jupiter.api)
     androidTestRuntimeOnly(libs.junit.jupiter.engine)
     //androidTestImplementation(libs.androidx.junit)
