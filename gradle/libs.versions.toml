@@ -2,7 +2,6 @@
 agp = "9.0.0"
 coreKtx = "1.17.0"
 datastore = "1.2.0"
-junit4 = "4.13.2"
 #noinspection NewerVersionAvailable
 junit5 = "5.13.4"
 junitVersion = "1.3.0"
@@ -19,18 +18,22 @@ ktor = "3.3.3"
 orchestrator = "1.6.1"
 room = "2.8.4"
 runner = "1.7.0"
+uiTestAndroid = "1.10.1"
 workRuntimeKtx = "2.11.0"
 splashscreen = "1.2.0"
 uiautomator = "2.3.0"
 baselineprofile = "1.4.1"
+junit5Compose = "1.9.0"
 
 [libraries]
+android-test-compose = { module = "de.mannodermaus.junit5:android-test-compose", version.ref = "junit5Compose" }
+androidx-compose-ui-test-android = { module = "androidx.compose.ui:ui-test-android", version.ref = "uiTestAndroid" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 androidx-orchestrator = { module = "androidx.test:orchestrator", version.ref = "orchestrator" }
 androidx-runner = { module = "androidx.test:runner", version.ref = "runner" }
+androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestAndroid" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
-junit = { group = "junit", name = "junit", version.ref = "junit4" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
@@ -46,6 +49,9 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerializationCore" }

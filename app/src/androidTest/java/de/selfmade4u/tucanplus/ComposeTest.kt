@@ -20,7 +20,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.printToLog
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
-import org.junit.Rule
+import de.mannodermaus.junit5.compose.createAndroidComposeExtension
 import org.junit.Test
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -33,19 +33,21 @@ import kotlin.uuid.Uuid
 // https://developer.android.com/topic/performance/benchmarking/macrobenchmark-overview
 // https://developer.android.com/studio/preview/compose-screenshot-testing
 // https://developer.android.com/training/testing/instrumented-tests/androidx-test-libraries/runner
-@LargeTest
 class ComposeTest {
-    @get:Rule
-    val composeTestRule = createAndroidComposeRule<MainActivity>()
+    @OptIn(ExperimentalTestApi::class)
+    val composeTestRule = createAndroidComposeExtension<MainActivity>()
 
     @OptIn(ExperimentalTestApi::class)
     private fun login() {
-        composeTestRule.onNodeWithText("Username")
-            .performTextInput(InstrumentationRegistry.getArguments().getString("TUCAN_USERNAME")!!)
-        composeTestRule.onNodeWithText("Password")
-            .performTextInput(InstrumentationRegistry.getArguments().getString("TUCAN_PASSWORD")!!)
-        composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
-        composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
+        composeTestRule.use {
+            onNodeWithText("Username")
+                .performTextInput(InstrumentationRegistry.getArguments().getString("TUCAN_USERNAME")!!)
+            onNodeWithText("Password")
+                .performTextInput(InstrumentationRegistry.getArguments().getString("TUCAN_PASSWORD")!!)
+            onNodeWithText("Login").performClick().assertIsNotEnabled()
+            waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
+        }
+
     }
 
     @OptIn(ExperimentalTestApi::class)
@@ -59,35 +61,45 @@ class ComposeTest {
     @Test
     fun moduleResults() {
         login()
-        composeTestRule.onNodeWithContentDescription("Menu").performClick()
-        composeTestRule.onNodeWithText("Modulergebnisse").performClick()
-        // wait for loading indicator to be hidden
-        composeTestRule.onRoot().printToLog("Nodes")
-        composeTestRule.waitUntilDoesNotExist(hasContentDescriptionExactly("Loading"), 30_000)
-        composeTestRule.onRoot().printToLog("Nodes")
+        composeTestRule.use {
+            onNodeWithContentDescription("Menu").performClick()
+            onNodeWithText("Modulergebnisse").performClick()
+            // wait for loading indicator to be hidden
+            onRoot().printToLog("Nodes")
+            waitUntilDoesNotExist(hasContentDescriptionExactly("Loading"), 30_000)
+            onRoot().printToLog("Nodes")
+        }
     }
 
     @OptIn(ExperimentalTestApi::class)
     @Test
     fun myExams() {
         login()
-        composeTestRule.onNodeWithContentDescription("Menu").performClick()
-        composeTestRule.onNode(hasTextExactly("Meine Prüfungen").and(hasClickAction())).performClick()
-        // wait for loading indicator to be hidden
-        composeTestRule.onRoot().printToLog("Nodes")
-        composeTestRule.waitUntilDoesNotExist(hasContentDescriptionExactly("Loading"), 30_000)
-        composeTestRule.onRoot().printToLog("Nodes")
+        composeTestRule.use {
+            onNodeWithContentDescription("Menu").performClick()
+            onNode(hasTextExactly("Meine Prüfungen").and(hasClickAction())).performClick()
+            // wait for loading indicator to be hidden
+            onRoot().printToLog("Nodes")
+            waitUntilDoesNotExist(hasContentDescriptionExactly("Loading"), 30_000)
+            onRoot().printToLog("Nodes")
+        }
+
     }
 
     @OptIn(ExperimentalTestApi::class, ExperimentalUuidApi::class)
     @Test
     fun wrongUsernameAndPassword() {
         // Avoid too many attempts error by using random username
-        composeTestRule.onNodeWithText("Username").performTextInput(Uuid.random().toString())
-        composeTestRule.onNodeWithText("Password").performTextInput(Uuid.random().toString())
-        composeTestRule.onNodeWithText("Login").performClick().assertIsNotEnabled()
-        composeTestRule.waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
-        composeTestRule.waitUntilExactlyOneExists(hasText("Falscher Nutzername oder Passwort"), 10_000)
-        composeTestRule.onNodeWithText("Login").assertIsEnabled()
+        composeTestRule.use {
+            onNodeWithText("Username").performTextInput(Uuid.random().toString())
+            onNodeWithText("Password").performTextInput(Uuid.random().toString())
+            onNodeWithText("Login").performClick().assertIsNotEnabled()
+            waitUntilDoesNotExist(isNotEnabled().and(hasText("Login")), 10_000)
+            waitUntilExactlyOneExists(
+                hasText("Falscher Nutzername oder Passwort"),
+                10_000
+            )
+            onNodeWithText("Login").assertIsEnabled()
+        }
     }
 }

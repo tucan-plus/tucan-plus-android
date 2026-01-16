@@ -9,6 +9,7 @@ plugins {
     id("com.google.devtools.ksp")
     alias(libs.plugins.baselineprofile)
     //id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
+    id("de.mannodermaus.android-junit") version "2.0.1"
 }
 /*
 stacktraceDecoroutinator {
@@ -116,7 +117,10 @@ dependencies {
     implementation(project(":connector"))
     implementation(libs.androidx.profileinstaller)
 
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.params)
+    testRuntimeOnly(libs.junit.jupiter.engine)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -126,6 +130,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     androidTestImplementation(libs.androidx.runner)
     androidTestUtil(libs.androidx.orchestrator)
+    androidTestImplementation(libs.android.test.compose)
+    androidTestImplementation(libs.androidx.compose.ui.test.android)
+    debugImplementation(libs.androidx.ui.test.manifest)
 }
 
 val execFiles = fileTree(layout.buildDirectory.dir("outputs/managed_device_code_coverage/debug/mediumPhone/")) {
