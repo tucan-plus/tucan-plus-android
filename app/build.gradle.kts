@@ -9,7 +9,7 @@ plugins {
     id("com.google.devtools.ksp")
     alias(libs.plugins.baselineprofile)
     //id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
-    id("de.mannodermaus.android-junit5") version "1.13.4.0"
+    id("de.mannodermaus.android-junit5") version "1.14.0.0"
 }
 /*
 stacktraceDecoroutinator {
@@ -84,7 +84,7 @@ android {
             localDevices {
                 create("mediumPhone") {
                     device = "Medium Phone"
-                    apiLevel = 36
+                    apiLevel = 34
                     systemImageSource = "google_apis"
                     testedAbi = "x86_64"
                 }
@@ -122,6 +122,9 @@ dependencies {
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 
     androidTestImplementation(platform(libs.junit.bom))
     androidTestImplementation(libs.junit.jupiter.api)

@@ -14,6 +14,8 @@ export $(grep -v '^#' .env | xargs)
 # mediumPhoneDebugAndroidTest
 ./gradlew clean mediumPhoneAndroidTest
 ./gradlew --info teamscaleIntegrationTestsReportUpload # I think this needs to be separate for now
+
+cat /home/moritz/Documents/tucan-plus-android/app/build/outputs/androidTest-results/managedDevice/debug/mediumPhone/logcat-de.mannodermaus.junit5.ActivityScenarioExtension-initializationError.txt
 ```
 
 ## Setup
