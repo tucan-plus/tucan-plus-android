@@ -1,6 +1,7 @@
 package de.selfmade4u.tucanplus
 
-import android.util.Log
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,11 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,9 +27,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import de.selfmade4u.tucanplus.connector.TucanLogin
-import io.ktor.client.HttpClient
-import kotlinx.coroutines.launch
+import androidx.core.net.toUri
+
 
 // https://developer.android.com/jetpack/androidx/releases/compose-material3
 // https://developer.android.com/develop/ui/compose/designsystems/material3
@@ -68,58 +66,11 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
             //ShowLocalServices()
             //WifiDirect()
             //WifiDirectBonjour()
-            TextField(
-                state = usernameState,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Username") })
-            SecureTextField(
-                state = passwordState,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Password") })
             Button(onClick = {
-                loading = true
-                coroutineScope.launch {
-                    // https://ktor.io/docs/client-create-new-application.html
-                    // https://ktor.io/docs/client-requests.html#body
-                    val client = HttpClient()
-                    val response = TucanLogin.doLogin(
-                        client,
-                        usernameState.text.toString(),
-                        passwordState.text.toString(),
-                    )
-                    when (response) {
-                        is TucanLogin.LoginResponse.InvalidCredentials -> launch {
-                            snackbarHostState.showSnackbar(
-                                "Falscher Nutzername oder Passwort"
-                            )
-                        }
-
-                        is TucanLogin.LoginResponse.Success -> {
-                            context.credentialSettingsDataStore.updateData { currentSettings ->
-                                OptionalCredentialSettings(
-                                    CredentialSettings(
-                                        username = usernameState.text.toString(),
-                                        password = passwordState.text.toString(),
-                                        sessionId = response.sessionId,
-                                        sessionCookie = response.sessionCookie,
-                                        lastRequestTime = System.currentTimeMillis(),
-                                        menuLocalizer = response.menuLocalizer
-                                    )
-                                )
-                            }
-                            setupBackgroundTasks(context)
-                            backStack[backStack.size - 1] = MainNavKey
-                            backStack.add(MyExamsNavKey)
-                        }
-
-                        is TucanLogin.LoginResponse.TooManyAttempts -> launch {
-                            snackbarHostState.showSnackbar(
-                                "Zu viele Anmeldeversuche"
-                            )
-                        }
-                    }
-                    loading = false
-                }
+                val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/External/Challenge?provider=dfnshib&returnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001,ids_mode%2526ids_mode%253DY"
+                val intent = CustomTabsIntent.Builder()
+                    .build()
+                intent.launchUrl(context, url.toUri())
             }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
                 Text("Login")
             }

@@ -25,6 +25,7 @@ uiautomator = "2.3.0"
 baselineprofile = "1.5.0-alpha03"
 junit5Compose = "2.0.1"
 junit4 = "4.13.2"
+browser = "1.9.0"
 
 [libraries]
 android-test-compose = { module = "de.mannodermaus.junit5:android-test-compose", version.ref = "junit5Compose" }
@@ -72,6 +73,7 @@ androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomato
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "baselineprofile" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version = "1.4.1" }
 junit = { group = "junit", name = "junit", version.ref = "junit4" }
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
