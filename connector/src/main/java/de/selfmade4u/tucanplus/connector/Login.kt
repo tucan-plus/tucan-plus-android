@@ -77,7 +77,7 @@ object TucanLogin {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",
-                "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+                "frame-src https://dsf.tucan.tu-darmstadt.de; frame-ancestors 'self' https://dsf.tucan.tu-darmstadt.de;"
             )
             header("Content-Type", "text/html")
             header("X-Content-Type-Options", "nosniff")
@@ -87,8 +87,9 @@ object TucanLogin {
             maybeHeader("X-Powered-By", listOf("ASP.NET"))
             header("Server", "Microsoft-IIS/10.0")
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-            ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
+            ignoreHeader("mgxpamiddlewarewaittime") // 0 or 16
             ignoreHeader("Date")
+            maybeIgnoreHeader("dl-served-by") // Srv3
             maybeIgnoreHeader("vary")
             maybeIgnoreHeader("x-android-received-millis")
             maybeIgnoreHeader("x-android-response-source")

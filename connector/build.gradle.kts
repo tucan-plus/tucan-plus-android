@@ -33,7 +33,7 @@ tasks.test {
     configure<JacocoTaskExtension> {
         includes = listOf("de.selfmade4u.*")
     }
-    finalizedBy(tasks.named("testwiseCoverageReport"))
+    //finalizedBy(tasks.named("testwiseCoverageReport"))
     configure<TeamscaleTaskExtension> {
         collectTestwiseCoverage = true
     }

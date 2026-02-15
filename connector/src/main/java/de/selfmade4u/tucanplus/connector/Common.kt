@@ -103,7 +103,7 @@ object Common {
                     attribute("href", "/gfx/tuda/icons/favicon.ico")
                 }
                 script {
-                    attribute("src", "/js/jquery-3.6.0.min.js")
+                    attribute("src", "/js/jquery.js")
                     attribute("type", "text/javascript")
                 }
                 script {
@@ -121,6 +121,10 @@ object Common {
                 script {
                     attribute("src", "/js/x.js")
                     attribute("type", "text/javascript")
+                }
+                script {
+                    attribute("type", "text/javascript")
+                    extractData()
                 }
                 link {
                     attribute("id", "defLayout")
@@ -403,7 +407,10 @@ object Common {
                                     ); attribute(
                                     "class",
                                     "img ${localizer.other_language_css} pageElementLeft"
-                                ); attribute("title", localizer.other_language); text(localizer.other_language)
+                                ); attribute(
+                                    "title",
+                                    localizer.other_language
+                                ); text(localizer.other_language)
                                 }
 
                                 if (sessionId != "000000000000001") {
@@ -421,136 +428,15 @@ object Common {
                             }
 
                             if (sessionId == "000000000000001") {
-                                form {
-                                    attribute("name", "cn_loginForm")
+                                div {
                                     attribute("id", "cn_loginForm")
-                                    attribute("action", "/scripts/mgrqispi.dll")
-                                    attribute("method", "post")
-                                    attribute("class", "pageElementRight")
-
                                     div {
-                                        fieldset {
-                                            attribute("id", "fieldSet_login")
-                                            legend { text("Anmeldung") }
-                                            div {
-                                                attribute("class", "formRow nb")
-                                                div {
-                                                    attribute(
-                                                        "class",
-                                                        "inputFieldLabel"
-                                                    ); label {
-                                                    attribute(
-                                                        "for",
-                                                        "field_user"
-                                                    ); text("TU-ID:")
-                                                }; input {
-                                                    attribute(
-                                                        "type",
-                                                        "text"
-                                                    ); attribute("id", "field_user"); attribute(
-                                                    "name",
-                                                    "usrname"
-                                                ); attribute("size", "15"); attribute(
-                                                    "class",
-                                                    "login"
-                                                ); attribute(
-                                                    "maxlength",
-                                                    "255"
-                                                ); attribute(
-                                                    "accesskey",
-                                                    "n"
-                                                ); attribute("autofocus", null)
-                                                }
-                                                }
-                                                div {
-                                                    attribute(
-                                                        "class",
-                                                        "inputFieldLabel"
-                                                    ); label {
-                                                    attribute(
-                                                        "for",
-                                                        "field_pass"
-                                                    ); text("Passwort:")
-                                                }; input {
-                                                    attribute("type", "password"); attribute(
-                                                    "id",
-                                                    "field_pass"
-                                                ); attribute("name", "pass"); attribute(
-                                                    "value",
-                                                    ""
-                                                ); attribute("size", "15"); attribute(
-                                                    "class",
-                                                    "login"
-                                                ); attribute(
-                                                    "maxlength",
-                                                    "255"
-                                                ); attribute("accesskey", "p")
-                                                }
-                                                }
-                                            }
-                                        }
-                                        input {
-                                            attribute(
-                                                "class",
-                                                "img img_arrowSubmit login_btn"
-                                            ); attribute("type", "submit"); attribute(
-                                            "id",
-                                            "logIn_btn"
-                                        ); attribute("value", "Anmelden"); attribute(
-                                            "onclick",
-                                            "return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','000000000000001');"
-                                        )
-                                        }
-                                        input {
-                                            attribute("name", "APPNAME"); attribute(
-                                            "type",
-                                            "hidden"
-                                        ); attribute("value", "CampusNet")
-                                        }
-                                        input {
-                                            attribute("name", "PRGNAME"); attribute(
-                                            "type",
-                                            "hidden"
-                                        ); attribute("value", "LOGINCHECK")
-                                        }
-                                        input {
-                                            attribute("name", "ARGUMENTS"); attribute(
-                                            "type",
-                                            "hidden"
-                                        ); attribute(
-                                            "value",
-                                            "clino,usrname,pass,menuno,menu_type,browser,platform"
-                                        )
-                                        }
-                                        input {
-                                            attribute("name", "clino"); attribute(
-                                            "type",
-                                            "hidden"
-                                        ); attribute("value", "000000000000001")
-                                        }
-                                        input {
-                                            attribute("name", "menuno"); attribute(
-                                            "type",
-                                            "hidden"
-                                        ); attribute("value", "000000")
-                                        }
-                                        input {
-                                            attribute("name", "menu_type"); attribute(
-                                            "type",
-                                            "hidden"
-                                        ); attribute("value", "classic")
-                                        }
-                                        input {
-                                            attribute("name", "browser"); attribute(
-                                            "type",
-                                            "hidden"
-                                        ); attribute("value", "")
-                                        }
-                                        input {
-                                            attribute("name", "platform"); attribute(
-                                            "type",
-                                            "hidden"
-                                        ); attribute("value", "")
+                                        a {
+                                            attribute("id", "logIn_btn")
+                                            attribute("class", "img img_arrowSubmit")
+                                            attribute("title", "Anmelden")
+                                            attribute("href", "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&amp;scope=openid%20DSF%20email&amp;response_mode=query&amp;response_type=code&amp;ui_locales=de&amp;redirect_uri=https%3a%2f%2fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY")
+                                            text("Anmelden")
                                         }
                                     }
                                 }
