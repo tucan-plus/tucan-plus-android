@@ -9,7 +9,7 @@ plugins {
     id("androidx.room") version "2.8.4" apply false
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.baselineprofile) apply false
-    id("com.teamscale")
+    id("com.teamscale") version "36.3.0"
 }
 allprojects {
     tasks.withType<Test>().configureEach {
