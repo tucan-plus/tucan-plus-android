@@ -177,7 +177,7 @@ object Common {
 
                 script {
                     attribute("type", "text/javascript")
-                    dataHash("ef6753960a6d7e3cd692df61de9af62c6bac7a1f1b00cccb3c602fd3b11f33b7")
+                    val _unused = extractData()
                 }
 
                 div {

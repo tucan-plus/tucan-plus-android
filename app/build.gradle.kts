@@ -63,19 +63,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
     buildFeatures {
         compose = true
     }
     sourceSets {
         getByName("debug").assets.directories.add("$projectDir/schemas") // Room
-    }
-    baselineProfile {
-        dexLayoutOptimization = true
     }
     testOptions {
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
@@ -89,6 +81,16 @@ android {
                 }
             }
         }
+    }
+}
+
+baselineProfile {
+    dexLayoutOptimization = true
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
     }
 }
 
