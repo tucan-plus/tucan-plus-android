@@ -5,7 +5,7 @@ plugins {
     id("java-library")
     kotlin("jvm")
     alias(libs.plugins.jetbrains.kotlin.serialization)
-    id("com.teamscale") version "36.3.0"
+    id("com.teamscale") version "36.2.0"
 }
 
 dependencies {

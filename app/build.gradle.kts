@@ -1,7 +1,4 @@
 import com.teamscale.TeamscaleUpload
-import com.teamscale.extension.TeamscaleTaskExtension
-import com.teamscale.reporting.testwise.TestwiseCoverageReport
-import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -12,9 +9,6 @@ plugins {
     id("com.google.devtools.ksp")
     alias(libs.plugins.baselineprofile)
     //id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
-    id("de.mannodermaus.android-junit5") version "1.14.0.0"
-    //id("com.teamscale")
-    //jacoco
 }
 /*
 stacktraceDecoroutinator {
@@ -89,7 +83,7 @@ android {
             localDevices {
                 create("mediumPhone") {
                     device = "Medium Phone"
-                    apiLevel = 34
+                    apiLevel = 36
                     systemImageSource = "google_apis"
                     testedAbi = "x86_64"
                 }
@@ -122,47 +116,42 @@ dependencies {
     implementation(project(":connector"))
     implementation(libs.androidx.profileinstaller)
 
-    testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.junit.jupiter.api)
-    testImplementation(libs.junit.jupiter.params)
-    testRuntimeOnly(libs.junit.jupiter.engine)
-    testRuntimeOnly(libs.junit.platform.launcher)
-
+    testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-
-    androidTestImplementation(platform(libs.junit.bom))
-    androidTestImplementation(libs.junit.jupiter.api)
-    androidTestImplementation(libs.junit.jupiter.params)
-    androidTestRuntimeOnly(libs.junit.jupiter.engine)
-    androidTestRuntimeOnly(libs.junit.platform.launcher)
-
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    //androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     "baselineProfile"(project(":baselineprofile"))
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     androidTestImplementation(libs.androidx.runner)
     androidTestUtil(libs.androidx.orchestrator)
-    androidTestImplementation(libs.android.test.compose)
-    androidTestImplementation(libs.androidx.compose.ui.test.android)
-    debugImplementation(libs.androidx.ui.test.manifest)
 }
-/*
-project.tasks.withType<Test> {
-    configure<TeamscaleTaskExtension> {
-        collectTestwiseCoverage = true
+
+val execFiles = fileTree(layout.buildDirectory.dir("outputs/managed_device_code_coverage/debug/mediumPhone/")) {
+    include("*.ec")
+}
+
+execFiles.forEach { execFile ->
+    println(execFile)
+    val namePart = execFile.name.removeSuffix(".ec")
+
+    tasks.register("jacocoReport_$namePart", JacocoReport::class) {
+        executionData.setFrom(execFile)
+
+        sourceDirectories.setFrom(files("src/main/java"))
+        classDirectories.setFrom(fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {  })
+
+        reports {
+            xml.required.set(true)
+            xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/$namePart/JACOCO/coverage.xml"))
+
+            html.required.set(false)
+            csv.required.set(false)
+        }
     }
 }
 
-tasks.register<TestwiseCoverageReport>("testwiseCoverageReport") {
-    executionData(tasks.withType<Test>())
+tasks.register("jacocoReportAll") {
+    dependsOn(tasks.withType(JacocoReport::class))
 }
-
-junitPlatform {
-    jacocoOptions {
-
-    }
-}
-*/
