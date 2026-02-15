@@ -1,4 +1,7 @@
 import com.teamscale.TeamscaleUpload
+import com.teamscale.extension.TeamscaleTaskExtension
+import com.teamscale.reporting.testwise.TestwiseCoverageReport
+import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -10,6 +13,8 @@ plugins {
     alias(libs.plugins.baselineprofile)
     //id("dev.reformator.stacktracedecoroutinator") version "2.5.7"
     id("de.mannodermaus.android-junit5") version "1.14.0.0"
+    //id("com.teamscale")
+    //jacoco
 }
 /*
 stacktraceDecoroutinator {
@@ -144,31 +149,20 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.android)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
-
-val execFiles = fileTree(layout.buildDirectory.dir("outputs/managed_device_code_coverage/debug/mediumPhone/")) {
-    include("*.ec")
-}
-
-execFiles.forEach { execFile ->
-    println(execFile)
-    val namePart = execFile.name.removeSuffix(".ec")
-
-    tasks.register("jacocoReport_$namePart", JacocoReport::class) {
-        executionData.setFrom(execFile)
-
-        sourceDirectories.setFrom(files("src/main/java"))
-        classDirectories.setFrom(fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {  })
-
-        reports {
-            xml.required.set(true)
-            xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/$namePart/JACOCO/coverage.xml"))
-
-            html.required.set(false)
-            csv.required.set(false)
-        }
+/*
+project.tasks.withType<Test> {
+    configure<TeamscaleTaskExtension> {
+        collectTestwiseCoverage = true
     }
 }
 
-tasks.register("jacocoReportAll") {
-    dependsOn(tasks.withType(JacocoReport::class))
+tasks.register<TestwiseCoverageReport>("testwiseCoverageReport") {
+    executionData(tasks.withType<Test>())
 }
+
+junitPlatform {
+    jacocoOptions {
+
+    }
+}
+*/
