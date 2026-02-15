@@ -18,6 +18,8 @@ https://github.com/android/android-test/blob/main/runner/android_test_orchestrat
 
 // maybe we could fork it?
 
+https://developer.android.com/build/extend-agp#variant-api-artifacts-tasks
+
 // but it documents there how the format of the test coverage files is so probably easier to just create the teamscale structure by hand?
 
 https://github.com/android/android-test/blob/5b83cd99b2f6df8a7ce910f7b34917b30d73f0ad/runner/android_test_orchestrator/java/androidx/test/orchestrator/AndroidTestOrchestrator.java#L270
