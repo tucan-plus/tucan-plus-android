@@ -84,6 +84,7 @@ class LoginTest {
     fun newLogin() {
         assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         val client = HttpClient() {
+            followRedirects = false
             install(HttpCookies)
         }
         runBlocking {
