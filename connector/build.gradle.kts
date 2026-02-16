@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.ktor.client.java)
+    testImplementation(libs.ktor.client.cio)
     implementation(project(":common"))
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
