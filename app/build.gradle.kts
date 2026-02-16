@@ -1,4 +1,3 @@
-import com.teamscale.TeamscaleUpload
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -130,7 +129,7 @@ dependencies {
     androidTestImplementation(libs.androidx.runner)
     androidTestUtil(libs.androidx.orchestrator)
 }
-
+/*
 val execFiles = fileTree(layout.buildDirectory.dir("outputs/managed_device_code_coverage/debug/mediumPhone/")) {
     include("*.ec")
 }
@@ -158,3 +157,4 @@ execFiles.forEach { execFile ->
 tasks.register("jacocoReportAll") {
     dependsOn(tasks.withType(JacocoReport::class))
 }
+*/
