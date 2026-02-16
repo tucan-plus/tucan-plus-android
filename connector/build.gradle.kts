@@ -15,6 +15,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.ktor.client.java)
+    testImplementation(libs.ktor.client.apache5)
+    testImplementation(libs.ktor.client.logging)
+    testImplementation(libs.ktor.client.jetty.jakarta)
     testImplementation(libs.ktor.client.cio)
     implementation(project(":common"))
     testImplementation(platform(libs.junit.bom))
@@ -27,6 +30,7 @@ tasks.register<TestwiseCoverageReport>("testwiseCoverageReport") {
 }
 // https://docs.teamscale.com/tutorial/tia-java/
 tasks.test {
+    jvmArgs = listOf("-javaagent:/home/moritz/Downloads/jSSLKeyLog-1.4/jSSLKeyLog.jar==test.log");
     inputs.property("TUCAN_USERNAME", System.getenv("TUCAN_USERNAME"))
     inputs.property("TUCAN_PASSWORD", System.getenv("TUCAN_PASSWORD"))
     useJUnitPlatform()
