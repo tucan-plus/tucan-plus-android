@@ -196,6 +196,12 @@ object TucanLogin {
         println(response)
         responseText = response.bodyAsText()
         println(responseText)
+        val url = "https://dsf.tucan.tu-darmstadt.de" + response.headers["Location"]!!
+        println(url)
+        response = client.get(url)
+        println(response)
+        responseText = response.bodyAsText()
+        println(responseText)
     }
 
     fun Root.parseLoginFailure(): LoginResponse {
