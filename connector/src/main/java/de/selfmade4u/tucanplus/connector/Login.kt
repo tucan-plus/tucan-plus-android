@@ -280,6 +280,7 @@ object TucanLogin {
             println(response.headers["Location"])
             responseText = response.bodyAsText()
             println(responseText)
+            assert(responseText.contains("Eingegangene Nachrichten:"))
             delay(10.minutes)
         }
     }
