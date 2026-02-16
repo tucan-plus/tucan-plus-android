@@ -129,10 +129,10 @@ object TucanLogin {
         // TODO later manually handle cookies
         var response = client.get("https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/login/dfnshib?ReturnUrl=/IdentityServer/connect/authorize/callback?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001,ids_mode%26ids_mode%3DY")
         println(response)
-        val responseText = response.bodyAsText()
-        val regex = """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
-        val matchResult = regex.find(responseText)!!
-        val csrfToken = matchResult.groups["csrfToken"]?.value!!
+        var responseText = response.bodyAsText()
+        var regex = """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+        var matchResult = regex.find(responseText)!!
+        var csrfToken = matchResult.groups["csrfToken"]?.value!!
         println(csrfToken)
         response = client.submitForm(response.request.url.toString(), formParameters = parameters {
             append("csrf_token", csrfToken)
@@ -141,6 +141,39 @@ object TucanLogin {
             append("_eventId_proceed", "")
         })
         println(response)
+        responseText = response.bodyAsText()
+        println(responseText)
+        response = client.get("https://login.tu-darmstadt.de" + response.headers["Location"]!!)
+        println(response)
+        responseText = response.bodyAsText()
+        println(responseText)
+        regex = """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+        matchResult = regex.find(responseText)!!
+        csrfToken = matchResult.groups["csrfToken"]?.value!!
+        println(csrfToken)
+        response = client.submitForm(response.request.url.toString(), formParameters = parameters {
+            append("csrf_token", csrfToken)
+            append("fudis_selected_token_ids_input", "TOTP21665900")
+            append("_eventId_proceed", "")
+        })
+        println(response)
+        responseText = response.bodyAsText()
+        println(responseText)
+        response = client.get("https://login.tu-darmstadt.de" + response.headers["Location"]!!)
+        println(response)
+        responseText = response.bodyAsText()
+        println(responseText)
+        regex = """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+        matchResult = regex.find(responseText)!!
+        csrfToken = matchResult.groups["csrfToken"]?.value!!
+        println(csrfToken)
+        response = client.submitForm(response.request.url.toString(), formParameters = parameters {
+            append("csrf_token", csrfToken)
+            append("fudis_otp_input", readln())
+            append("_eventId_proceed", "")
+        })
+        println(response)
+        // response contains a javascript submitted form
     }
 
     fun Root.parseLoginFailure(): LoginResponse {
