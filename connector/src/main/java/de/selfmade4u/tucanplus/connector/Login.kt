@@ -135,7 +135,7 @@ object TucanLogin {
         println(response.headers)
         var responseText = response.bodyAsText()
         println(responseText)
-        url = "\thttps://dsf.tucan.tu-darmstadt.de/IdentityServer/Account/Login?ReturnUrl=/IdentityServer/connect/authorize/callback?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001,ids_mode%26ids_mode%3DY"
+        url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/Account/Login?ReturnUrl=/IdentityServer/connect/authorize/callback?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001,ids_mode%26ids_mode%3DY"
         println(url)
         response = client.get(url)
         println(response)
@@ -164,6 +164,7 @@ object TucanLogin {
         responseText = response.bodyAsText()
         println(responseText)
         url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+        println(url)
         response = client.get(url)
         println(response)
         responseText = response.bodyAsText()
