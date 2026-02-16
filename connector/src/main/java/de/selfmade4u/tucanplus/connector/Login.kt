@@ -1,5 +1,7 @@
 package de.selfmade4u.tucanplus.connector
 
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.nodes.Entities
 import com.fleeksoft.ksoup.nodes.TextNode
 import de.selfmade4u.tucanplus.EnglishLocalizer
 import de.selfmade4u.tucanplus.GermanLocalizer
@@ -169,11 +171,31 @@ object TucanLogin {
         println(csrfToken)
         response = client.submitForm(response.request.url.toString(), formParameters = parameters {
             append("csrf_token", csrfToken)
-            append("fudis_otp_input", readln())
+            append("fudis_otp_input", System.getenv("TUCAN_TOTP")!!)
             append("_eventId_proceed", "")
         })
         println(response)
-        // response contains a javascript submitted form
+        responseText = response.bodyAsText()
+        println(responseText)
+        regex = """<input type="hidden" name="RelayState" value="(?<RelayState>[^"]+)"/>""".toRegex()
+        matchResult = regex.find(responseText)!!
+        var RelayState = matchResult.groups["RelayState"]?.value!!
+        println(RelayState)
+        RelayState = Entities.unescape(RelayState)
+        println(RelayState)
+        regex = """<input type="hidden" name="SAMLResponse" value="(?<SAMLResponse>[^"]+)"/>""".toRegex()
+        matchResult = regex.find(responseText)!!
+        var SAMLResponse = matchResult.groups["SAMLResponse"]?.value!!
+        println(SAMLResponse)
+        SAMLResponse = Entities.unescape(SAMLResponse)
+        println(SAMLResponse)
+        response = client.submitForm("https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/acs/dfnshib", formParameters = parameters {
+            append("RelayState", RelayState)
+            append("SAMLResponse", SAMLResponse)
+        })
+        println(response)
+        responseText = response.bodyAsText()
+        println(responseText)
     }
 
     fun Root.parseLoginFailure(): LoginResponse {
