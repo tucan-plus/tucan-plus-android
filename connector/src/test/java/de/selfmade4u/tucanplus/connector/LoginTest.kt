@@ -94,7 +94,9 @@ class LoginTest {
         assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         val client = HttpClient(Java) {
             followRedirects = false
-            install(HttpCookies)
+            install(HttpCookies) {
+                storage = PersistentCookiesStorage()
+            }
             install(Logging) {
                 logger = Logger.SIMPLE
                 level = LogLevel.ALL
