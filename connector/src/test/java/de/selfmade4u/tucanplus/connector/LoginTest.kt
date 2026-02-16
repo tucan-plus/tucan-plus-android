@@ -7,6 +7,7 @@ import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginFailure
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginSuccess
 import de.selfmade4u.tucanplus.root
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.cookies.HttpCookies
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Disabled
@@ -74,6 +75,17 @@ class LoginTest {
         assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         runBlocking {
             LoginSingleton.getCredentials()
+        }
+    }
+
+    @Tag("AccessesTucan")
+    @Test
+    fun newLogin() {
+        val client = HttpClient() {
+            install(HttpCookies)
+        }
+        runBlocking {
+            TucanLogin.doNewLogin(client, "wrongusername", "wrongpassword")
         }
     }
 }
