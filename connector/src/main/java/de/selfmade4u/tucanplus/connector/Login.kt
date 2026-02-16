@@ -27,7 +27,11 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
+import kotlinx.coroutines.delay
+import java.time.LocalDateTime
 import java.util.logging.Level
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 object TucanLogin {
 
@@ -262,6 +266,22 @@ object TucanLogin {
         println(response.headers["Location"])
         responseText = response.bodyAsText()
         println(responseText)
+        val id = Regex("""0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?<id>\d+),-N000(019|350),-N000000000000000""").matchEntire(
+            response.headers["refresh"]!!
+        )!!.groups["id"]?.value!!
+        println(id)
+        url = "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id}%2C-N000019%2C"
+        while (true) {
+            val current = LocalDateTime.now()
+            println(current)
+            response = client.get(url)
+            println(response)
+            println(response.headers)
+            println(response.headers["Location"])
+            responseText = response.bodyAsText()
+            println(responseText)
+            delay(10.minutes)
+        }
     }
 
     fun Root.parseLoginFailure(): LoginResponse {
