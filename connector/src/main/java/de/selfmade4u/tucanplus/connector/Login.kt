@@ -254,6 +254,14 @@ object TucanLogin {
         println(response.headers["Location"])
         responseText = response.bodyAsText()
         println(responseText)
+        url = response.headers["Location"]!!
+        println(url)
+        response = client.get(url)
+        println(response)
+        println(response.headers)
+        println(response.headers["Location"])
+        responseText = response.bodyAsText()
+        println(responseText)
     }
 
     fun Root.parseLoginFailure(): LoginResponse {
