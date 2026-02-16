@@ -156,73 +156,75 @@ object TucanLogin {
         println(response.headers)
         responseText = response.bodyAsText()
         //  println(responseText)
-        url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
-        println(url)
-        response = client.get(url)
-        println(response)
-        responseText = response.bodyAsText()
-        //println(responseText)
+        if (response.status == HttpStatusCode.Found) {
+            url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+            println(url)
+            response = client.get(url)
+            println(response)
+            responseText = response.bodyAsText()
+            //println(responseText)
+            var regex =
+                """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+            var matchResult = regex.find(responseText)!!
+            var csrfToken = matchResult.groups["csrfToken"]?.value!!
+            println(csrfToken)
+            url = response.request.url.toString()
+            println(url)
+            response = client.submitForm(url, formParameters = parameters {
+                append("csrf_token", csrfToken)
+                append("j_username", username)
+                append("j_password", password)
+                append("_eventId_proceed", "")
+            })
+            println(response)
+            responseText = response.bodyAsText()
+            // println(responseText)
+            url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+            println(url)
+            response = client.get(url)
+            println(response)
+            responseText = response.bodyAsText()
+            // println(responseText)
+            regex =
+                """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+            matchResult = regex.find(responseText)!!
+            csrfToken = matchResult.groups["csrfToken"]?.value!!
+            println(csrfToken)
+            url = response.request.url.toString()
+            println(url)
+            response = client.submitForm(url, formParameters = parameters {
+                append("csrf_token", csrfToken)
+                append("fudis_selected_token_ids_input", "TOTP21665900")
+                append("_eventId_proceed", "")
+            })
+            println(response)
+            responseText = response.bodyAsText()
+            // println(responseText)
+            url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+            println(url)
+            response = client.get(url)
+            println(response)
+            responseText = response.bodyAsText()
+            //  println(responseText)
+            regex =
+                """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+            matchResult = regex.find(responseText)!!
+            csrfToken = matchResult.groups["csrfToken"]?.value!!
+            println(csrfToken)
+            url = response.request.url.toString()
+            println(url)
+            response = client.submitForm(url, formParameters = parameters {
+                append("csrf_token", csrfToken)
+                append("fudis_otp_input", System.getenv("TUCAN_TOTP")!!)
+                append("_eventId_proceed", "")
+            })
+            println(response)
+            responseText = response.bodyAsText()
+            //  println(responseText)
+        }
         var regex =
-            """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
-        var matchResult = regex.find(responseText)!!
-        var csrfToken = matchResult.groups["csrfToken"]?.value!!
-        println(csrfToken)
-        url = response.request.url.toString()
-        println(url)
-        response = client.submitForm(url, formParameters = parameters {
-            append("csrf_token", csrfToken)
-            append("j_username", username)
-            append("j_password", password)
-            append("_eventId_proceed", "")
-        })
-        println(response)
-        responseText = response.bodyAsText()
-        // println(responseText)
-        url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
-        println(url)
-        response = client.get(url)
-        println(response)
-        responseText = response.bodyAsText()
-        // println(responseText)
-        regex =
-            """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
-        matchResult = regex.find(responseText)!!
-        csrfToken = matchResult.groups["csrfToken"]?.value!!
-        println(csrfToken)
-        url = response.request.url.toString()
-        println(url)
-        response = client.submitForm(url, formParameters = parameters {
-            append("csrf_token", csrfToken)
-            append("fudis_selected_token_ids_input", "TOTP21665900")
-            append("_eventId_proceed", "")
-        })
-        println(response)
-        responseText = response.bodyAsText()
-        // println(responseText)
-        url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
-        println(url)
-        response = client.get(url)
-        println(response)
-        responseText = response.bodyAsText()
-        //  println(responseText)
-        regex =
-            """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
-        matchResult = regex.find(responseText)!!
-        csrfToken = matchResult.groups["csrfToken"]?.value!!
-        println(csrfToken)
-        url = response.request.url.toString()
-        println(url)
-        response = client.submitForm(url, formParameters = parameters {
-            append("csrf_token", csrfToken)
-            append("fudis_otp_input", System.getenv("TUCAN_TOTP")!!)
-            append("_eventId_proceed", "")
-        })
-        println(response)
-        responseText = response.bodyAsText()
-        //  println(responseText)
-        regex =
             """<input type="hidden" name="RelayState" value="(?<RelayState>[^"]+)"/>""".toRegex()
-        matchResult = regex.find(responseText)!!
+        var matchResult = regex.find(responseText)!!
         var RelayState = matchResult.groups["RelayState"]?.value!!
         println(RelayState)
         RelayState = Entities.unescape(RelayState)
