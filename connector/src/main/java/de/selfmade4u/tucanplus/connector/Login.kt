@@ -128,14 +128,21 @@ object TucanLogin {
                            username: String,
                            password: String) {
         // TODO later manually handle cookies
-        var url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid DSF email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&ARGUMENTS=-N000000000000001,ids_mode&ids_mode=Y"
+        var url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&ARGUMENTS=-N000000000000001,ids_mode&ids_mode=Y"
         println(url)
         var response = client.get(url)
         println(response)
         println(response.headers)
         var responseText = response.bodyAsText()
         println(responseText)
-        url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/Account/Login?ReturnUrl=/IdentityServer/connect/authorize/callback?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001,ids_mode%26ids_mode%3DY"
+        url = "\thttps://dsf.tucan.tu-darmstadt.de/IdentityServer/Account/Login?ReturnUrl=/IdentityServer/connect/authorize/callback?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001,ids_mode%26ids_mode%3DY"
+        println(url)
+        response = client.get(url)
+        println(response)
+        println(response.headers)
+        responseText = response.bodyAsText()
+        println(responseText)
+        url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/External/Challenge?provider=dfnshib&returnUrl=/IdentityServer/connect/authorize/callback?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001,ids_mode%26ids_mode%3DY"
         println(url)
         response = client.get(url)
         println(response)
