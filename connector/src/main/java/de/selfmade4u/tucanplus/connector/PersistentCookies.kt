@@ -25,9 +25,14 @@ public class PersistentCookiesStorage(private val clock: () -> Long = { getTimeM
     private data class CookieWithTimestamp(val cookie: Cookie, val createdAt: Long)
 
     private val container: MutableList<CookieWithTimestamp> = let {
-        val text = File("cookies.log").readText()
-        val value: MutableList<CookieWithTimestamp> = Json.decodeFromString(text)
-        value
+        try {
+            val text = File("cookies.log").readText()
+            val value: MutableList<CookieWithTimestamp> = Json.decodeFromString(text)
+            value
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mutableListOf()
+        }
     }
     private val oldestCookie: AtomicLong = AtomicLong(0L)
     private val mutex = Mutex()
@@ -38,6 +43,10 @@ public class PersistentCookiesStorage(private val clock: () -> Long = { getTimeM
 
         val cookies = container.filter { it.cookie.matches(requestUrl) }.map { it.cookie }
         return@withLock cookies
+    }
+
+    private val json1 = Json {
+        prettyPrint = true
     }
 
     override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
@@ -52,7 +61,7 @@ public class PersistentCookiesStorage(private val clock: () -> Long = { getTimeM
             val createdAt = clock()
             container.add(CookieWithTimestamp(cookie.fillDefaults(requestUrl), createdAt))
 
-            val json = Json.encodeToString(container)
+            val json = json1.encodeToString(container)
             File("cookies.log").writeText(json)
 
             cookie.maxAgeOrExpires(createdAt)?.let {

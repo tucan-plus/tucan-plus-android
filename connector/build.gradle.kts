@@ -33,7 +33,7 @@ tasks.test {
    // jvmArgs = listOf("-javaagent:/home/moritz/Downloads/jSSLKeyLog-1.4/jSSLKeyLog.jar==test.log");
     inputs.property("TUCAN_USERNAME", System.getenv("TUCAN_USERNAME"))
     inputs.property("TUCAN_PASSWORD", System.getenv("TUCAN_PASSWORD"))
-    //useJUnitPlatform()
+    useJUnitPlatform()
     //maxParallelForks = 1
     //configure<JacocoTaskExtension> {
      //   includes = listOf("de.selfmade4u.*")
