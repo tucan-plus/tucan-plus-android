@@ -141,8 +141,8 @@ object TucanLogin {
         username: String,
         password: String
     ) {
-        var url =
-            "https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/login/dfnshib?ReturnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001%2Cids_mode%2526ids_mode%253DY"
+        // this url does not require asking login.tu-darmstadt.de
+        var url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY"
         println(url)
         var response = client.get(url)
         println(response)
@@ -150,113 +150,125 @@ object TucanLogin {
         var responseText = response.bodyAsText()
         // println(responseText)
         url = response.headers["Location"]!!
-        println(url)
-        response = client.get(url)
-        println(response)
-        println(response.headers)
-        responseText = response.bodyAsText()
-        //  println(responseText)
-        if (response.status == HttpStatusCode.Found) {
-            url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+        if (!url.startsWith("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK")) {
+            // this url always goes over the login.tu-darmstadt.de
+            url =
+                "https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/login/dfnshib?ReturnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001%2Cids_mode%2526ids_mode%253DY"
             println(url)
             response = client.get(url)
             println(response)
+            println(response.headers)
             responseText = response.bodyAsText()
-            //println(responseText)
+            // println(responseText)
+            url = response.headers["Location"]!!
+            println(url)
+            response = client.get(url) // login.tu-darmstadt.de
+            println(response)
+            println(response.headers)
+            responseText = response.bodyAsText()
+            //  println(responseText)
+            if (response.status == HttpStatusCode.Found) {
+                url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+                println(url)
+                response = client.get(url)
+                println(response)
+                responseText = response.bodyAsText()
+                //println(responseText)
+                var regex =
+                    """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+                var matchResult = regex.find(responseText)!!
+                var csrfToken = matchResult.groups["csrfToken"]?.value!!
+                println(csrfToken)
+                url = response.request.url.toString()
+                println(url)
+                response = client.submitForm(url, formParameters = parameters {
+                    append("csrf_token", csrfToken)
+                    append("j_username", username)
+                    append("j_password", password)
+                    append("_eventId_proceed", "")
+                })
+                println(response)
+                responseText = response.bodyAsText()
+                // println(responseText)
+                url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+                println(url)
+                response = client.get(url)
+                println(response)
+                responseText = response.bodyAsText()
+                // println(responseText)
+                regex =
+                    """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+                matchResult = regex.find(responseText)!!
+                csrfToken = matchResult.groups["csrfToken"]?.value!!
+                println(csrfToken)
+                url = response.request.url.toString()
+                println(url)
+                response = client.submitForm(url, formParameters = parameters {
+                    append("csrf_token", csrfToken)
+                    append("fudis_selected_token_ids_input", "TOTP21665900")
+                    append("_eventId_proceed", "")
+                })
+                println(response)
+                responseText = response.bodyAsText()
+                // println(responseText)
+                url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+                println(url)
+                response = client.get(url)
+                println(response)
+                responseText = response.bodyAsText()
+                //  println(responseText)
+                regex =
+                    """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+                matchResult = regex.find(responseText)!!
+                csrfToken = matchResult.groups["csrfToken"]?.value!!
+                println(csrfToken)
+                url = response.request.url.toString()
+                println(url)
+                response = client.submitForm(url, formParameters = parameters {
+                    append("csrf_token", csrfToken)
+                    append("fudis_otp_input", System.getenv("TUCAN_TOTP")!!)
+                    append("_eventId_proceed", "")
+                })
+                println(response)
+                responseText = response.bodyAsText()
+                //  println(responseText)
+            }
             var regex =
-                """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+                """<input type="hidden" name="RelayState" value="(?<RelayState>[^"]+)"/>""".toRegex()
             var matchResult = regex.find(responseText)!!
-            var csrfToken = matchResult.groups["csrfToken"]?.value!!
-            println(csrfToken)
-            url = response.request.url.toString()
-            println(url)
-            response = client.submitForm(url, formParameters = parameters {
-                append("csrf_token", csrfToken)
-                append("j_username", username)
-                append("j_password", password)
-                append("_eventId_proceed", "")
-            })
-            println(response)
-            responseText = response.bodyAsText()
-            // println(responseText)
-            url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
-            println(url)
-            response = client.get(url)
-            println(response)
-            responseText = response.bodyAsText()
-            // println(responseText)
+            var RelayState = matchResult.groups["RelayState"]?.value!!
+            println(RelayState)
+            RelayState = Entities.unescape(RelayState)
+            println(RelayState)
             regex =
-                """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+                """<input type="hidden" name="SAMLResponse" value="(?<SAMLResponse>[^"]+)"/>""".toRegex()
             matchResult = regex.find(responseText)!!
-            csrfToken = matchResult.groups["csrfToken"]?.value!!
-            println(csrfToken)
-            url = response.request.url.toString()
+            var SAMLResponse = matchResult.groups["SAMLResponse"]?.value!!
+            println(SAMLResponse)
+            SAMLResponse = Entities.unescape(SAMLResponse)
+            println(SAMLResponse)
+            url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/acs/dfnshib"
             println(url)
             response = client.submitForm(url, formParameters = parameters {
-                append("csrf_token", csrfToken)
-                append("fudis_selected_token_ids_input", "TOTP21665900")
-                append("_eventId_proceed", "")
-            })
-            println(response)
-            responseText = response.bodyAsText()
-            // println(responseText)
-            url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
-            println(url)
-            response = client.get(url)
-            println(response)
-            responseText = response.bodyAsText()
-            //  println(responseText)
-            regex =
-                """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
-            matchResult = regex.find(responseText)!!
-            csrfToken = matchResult.groups["csrfToken"]?.value!!
-            println(csrfToken)
-            url = response.request.url.toString()
-            println(url)
-            response = client.submitForm(url, formParameters = parameters {
-                append("csrf_token", csrfToken)
-                append("fudis_otp_input", System.getenv("TUCAN_TOTP")!!)
-                append("_eventId_proceed", "")
+                append("RelayState", RelayState)
+                append("SAMLResponse", SAMLResponse)
             })
             println(response)
             responseText = response.bodyAsText()
             //  println(responseText)
+            println(response.headers)
+            url = "https://dsf.tucan.tu-darmstadt.de" + response.headers["Location"]!!
+            println(url)
+            response = client.get(url)
+            println(response)
+            println(response.headers)
+            println(response.headers["Location"])
+            responseText = response.bodyAsText()
+            //  println(responseText)
+            url = response.headers["Location"]!!
         }
-        var regex =
-            """<input type="hidden" name="RelayState" value="(?<RelayState>[^"]+)"/>""".toRegex()
-        var matchResult = regex.find(responseText)!!
-        var RelayState = matchResult.groups["RelayState"]?.value!!
-        println(RelayState)
-        RelayState = Entities.unescape(RelayState)
-        println(RelayState)
-        regex =
-            """<input type="hidden" name="SAMLResponse" value="(?<SAMLResponse>[^"]+)"/>""".toRegex()
-        matchResult = regex.find(responseText)!!
-        var SAMLResponse = matchResult.groups["SAMLResponse"]?.value!!
-        println(SAMLResponse)
-        SAMLResponse = Entities.unescape(SAMLResponse)
-        println(SAMLResponse)
-        url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/acs/dfnshib"
         println(url)
-        response = client.submitForm(url, formParameters = parameters {
-            append("RelayState", RelayState)
-            append("SAMLResponse", SAMLResponse)
-        })
-        println(response)
-        responseText = response.bodyAsText()
-        //  println(responseText)
-        println(response.headers)
-        url = "https://dsf.tucan.tu-darmstadt.de" + response.headers["Location"]!!
-        println(url)
-        response = client.get(url)
-        println(response)
-        println(response.headers)
-        println(response.headers["Location"])
-        responseText = response.bodyAsText()
-        //  println(responseText)
-        url = response.headers["Location"]!!
-        println(url)
-        response = client.get(url)
+        response = client.get(url) // logincheck
         println(response)
         println(response.headers)
         println(response.headers["Location"])
