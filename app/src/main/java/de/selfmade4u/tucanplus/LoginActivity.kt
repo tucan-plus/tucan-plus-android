@@ -47,6 +47,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
@@ -89,11 +90,18 @@ class KeepTucanSessionAliveWorker(val context: Context, params: WorkerParameters
                     "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${tucanId}%2C-N000019%2C"
                 val current = LocalDateTime.now()
                 it.appendLine(current.toString())
-                var response = client.get(url)
-                it.appendLine(response.toString())
-                it.appendLine(response.headers.toString())
-                var responseText = response.bodyAsText()
-                it.appendLine(responseText)
+                var response: HttpResponse;
+                var responseText: String;
+                try {
+                    response = client.get(url)
+                    it.appendLine(response.toString())
+                    it.appendLine(response.headers.toString())
+                     responseText = response.bodyAsText()
+                    it.appendLine(responseText)
+                } catch (e: java.io.IOException) {
+                    e.printStackTrace()
+                    return@use Result.retry()
+                }
                 assert(responseText.contains("Eingegangene Nachrichten:"))
 
                 it.appendLine("${LocalDateTime.now()} KeepTucanSessionAliveWorker is stopping....")
@@ -121,11 +129,18 @@ class KeepTucanDsfSessionAliveWorker(val context: Context, params: WorkerParamet
 
                 var url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY"
                 it.appendLine(url)
-                var response = client.get(url)
-                it.appendLine(response.toString())
-                it.appendLine(response.headers.toString())
-                var responseText = response.bodyAsText()
-                it.appendLine(responseText)
+                var response: HttpResponse;
+                var responseText: String;
+                try {
+                    response = client.get(url)
+                    it.appendLine(response.toString())
+                    it.appendLine(response.headers.toString())
+                    responseText = response.bodyAsText()
+                    it.appendLine(responseText)
+                } catch (e: java.io.IOException) {
+                    e.printStackTrace()
+                    return@use Result.retry()
+                }
                 url = response.headers["Location"]!!
                 assert(url.startsWith("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK"))
 
@@ -155,18 +170,30 @@ class KeepTucanSsoSessionAliveWorker(val context: Context, params: WorkerParamet
                 var url =
                     "https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/login/dfnshib?ReturnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001%2Cids_mode%2526ids_mode%253DY"
                 it.appendLine(url)
-                var response = client.get(url)
-                it.appendLine(response.toString())
-                it.appendLine(response.headers.toString())
-                var responseText = response.bodyAsText()
-                it.appendLine(responseText)
-                url = response.headers["Location"]!!
+                var response: HttpResponse;
+                var responseText: String;
+                try {
+                    response = client.get(url)
+                    it.appendLine(response.toString())
+                    it.appendLine(response.headers.toString())
+                    responseText = response.bodyAsText()
+                    it.appendLine(responseText)
+                } catch (e: java.io.IOException) {
+                    e.printStackTrace()
+                    return@use Result.retry()
+                }
+                url = response.headers["Location"]!! // login.tu-darmstadt.de
                 it.appendLine(url)
-                response = client.get(url) // login.tu-darmstadt.de
-                it.appendLine(response.toString())
-                it.appendLine(response.headers.toString())
-                responseText = response.bodyAsText()
-                it.appendLine(responseText)
+                try {
+                    response = client.get(url)
+                    it.appendLine(response.toString())
+                    it.appendLine(response.headers.toString())
+                    responseText = response.bodyAsText()
+                    it.appendLine(responseText)
+                } catch (e: java.io.IOException) {
+                    e.printStackTrace()
+                    return@use Result.retry()
+                }
                 assert(response.status != HttpStatusCode.Found)
                 var regex =
                     """<input type="hidden" name="RelayState" value="(?<RelayState>[^"]+)"/>""".toRegex()
