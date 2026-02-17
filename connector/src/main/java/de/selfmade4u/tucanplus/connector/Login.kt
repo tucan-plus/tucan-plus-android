@@ -1,5 +1,7 @@
 package de.selfmade4u.tucanplus.connector
 
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.nodes.Entities
 import com.fleeksoft.ksoup.nodes.TextNode
 import de.selfmade4u.tucanplus.EnglishLocalizer
 import de.selfmade4u.tucanplus.GermanLocalizer
@@ -19,15 +21,27 @@ import de.selfmade4u.tucanplus.script
 import io.ktor.client.HttpClient
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
+import kotlinx.coroutines.delay
+import java.time.LocalDateTime
 import java.util.logging.Level
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 object TucanLogin {
 
     sealed class LoginResponse {
-        data class Success(val sessionId: String, val sessionCookie: String, val menuLocalizer: Localizer) : LoginResponse()
+        data class Success(
+            val sessionId: String,
+            val sessionCookie: String,
+            val menuLocalizer: Localizer
+        ) : LoginResponse()
+
         data object InvalidCredentials : LoginResponse()
         data object TooManyAttempts : LoginResponse()
     }
@@ -77,7 +91,7 @@ object TucanLogin {
             status(HttpStatusCode.OK)
             header(
                 "Content-Security-Policy",
-                "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+                "frame-src https://dsf.tucan.tu-darmstadt.de; frame-ancestors 'self' https://dsf.tucan.tu-darmstadt.de;"
             )
             header("Content-Type", "text/html")
             header("X-Content-Type-Options", "nosniff")
@@ -87,8 +101,9 @@ object TucanLogin {
             maybeHeader("X-Powered-By", listOf("ASP.NET"))
             header("Server", "Microsoft-IIS/10.0")
             header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-            ignoreHeader("MgMiddlewareWaitTime") // 0 or 16
+            ignoreHeader("mgxpamiddlewarewaittime") // 0 or 16
             ignoreHeader("Date")
+            maybeIgnoreHeader("dl-served-by") // Srv3
             maybeIgnoreHeader("vary")
             maybeIgnoreHeader("x-android-received-millis")
             maybeIgnoreHeader("x-android-response-source")
@@ -98,24 +113,174 @@ object TucanLogin {
             if (hasHeader("Set-cookie")) {
                 val cookie = extractHeader("Set-cookie")[0].removePrefix("cnsc =")
                 val refreshHeader = extractHeader("REFRESH")[0]
-                val a = Regex("""0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\d+),-N000(019|350),-N000000000000000""").matchEntire(
-                    refreshHeader
-                )
+                val a =
+                    Regex("""0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\d+),-N000(019|350),-N000000000000000""").matchEntire(
+                        refreshHeader
+                    )
                 val sessionIdMatch = a ?: throw NullPointerException(refreshHeader)
                 root {
                     parseLoginSuccess()
                 }
-                LoginResponse.Success(sessionIdMatch.groupValues[1], cookie, when (sessionIdMatch.groupValues[2]) {
-                    "019" -> GermanLocalizer
-                    "350" -> EnglishLocalizer
-                    else -> throw IllegalStateException("Unknown language ${sessionIdMatch.groupValues[2]}")
-                })
+                LoginResponse.Success(
+                    sessionIdMatch.groupValues[1], cookie, when (sessionIdMatch.groupValues[2]) {
+                        "019" -> GermanLocalizer
+                        "350" -> EnglishLocalizer
+                        else -> throw IllegalStateException("Unknown language ${sessionIdMatch.groupValues[2]}")
+                    }
+                )
             } else {
                 root {
                     parseLoginFailure()
                 }
             }
         }
+    }
+
+    suspend fun doNewLogin(
+        client: HttpClient,
+        username: String,
+        password: String,
+        totp: String
+    ): String {
+        // this url does not require asking login.tu-darmstadt.de
+        var url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY"
+        println(url)
+        var response = client.get(url)
+        println(response)
+        println(response.headers)
+        var responseText = response.bodyAsText()
+        // println(responseText)
+        url = response.headers["Location"]!!
+        if (!url.startsWith("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK")) {
+            // this url always goes over the login.tu-darmstadt.de
+            url =
+                "https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/login/dfnshib?ReturnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001%2Cids_mode%2526ids_mode%253DY"
+            println(url)
+            response = client.get(url)
+            println(response)
+            println(response.headers)
+            responseText = response.bodyAsText()
+            // println(responseText)
+            url = response.headers["Location"]!!
+            println(url)
+            response = client.get(url) // login.tu-darmstadt.de
+            println(response)
+            println(response.headers)
+            responseText = response.bodyAsText()
+            //  println(responseText)
+            if (response.status == HttpStatusCode.Found) {
+                url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+                println(url)
+                response = client.get(url)
+                println(response)
+                responseText = response.bodyAsText()
+                //println(responseText)
+                var regex =
+                    """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+                var matchResult = regex.find(responseText)!!
+                var csrfToken = matchResult.groups["csrfToken"]?.value!!
+                println(csrfToken)
+                url = response.request.url.toString()
+                println(url)
+                response = client.submitForm(url, formParameters = parameters {
+                    append("csrf_token", csrfToken)
+                    append("j_username", username)
+                    append("j_password", password)
+                    append("_eventId_proceed", "")
+                })
+                println(response)
+                responseText = response.bodyAsText()
+                // println(responseText)
+                url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+                println(url)
+                response = client.get(url)
+                println(response)
+                responseText = response.bodyAsText()
+                // println(responseText)
+                regex =
+                    """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+                matchResult = regex.find(responseText)!!
+                csrfToken = matchResult.groups["csrfToken"]?.value!!
+                println(csrfToken)
+                url = response.request.url.toString()
+                println(url)
+                response = client.submitForm(url, formParameters = parameters {
+                    append("csrf_token", csrfToken)
+                    append("fudis_selected_token_ids_input", "TOTP21665900")
+                    append("_eventId_proceed", "")
+                })
+                println(response)
+                responseText = response.bodyAsText()
+                // println(responseText)
+                url = "https://login.tu-darmstadt.de" + response.headers["Location"]!!
+                println(url)
+                response = client.get(url)
+                println(response)
+                responseText = response.bodyAsText()
+                //  println(responseText)
+                regex =
+                    """<input type="hidden" name="csrf_token" value="(?<csrfToken>_[a-f0-9]+)" />""".toRegex()
+                matchResult = regex.find(responseText)!!
+                csrfToken = matchResult.groups["csrfToken"]?.value!!
+                println(csrfToken)
+                url = response.request.url.toString()
+                println(url)
+                response = client.submitForm(url, formParameters = parameters {
+                    append("csrf_token", csrfToken)
+                    append("fudis_otp_input", totp)
+                    append("_eventId_proceed", "")
+                })
+                println(response)
+                responseText = response.bodyAsText()
+                //  println(responseText)
+            }
+            var regex =
+                """<input type="hidden" name="RelayState" value="(?<RelayState>[^"]+)"/>""".toRegex()
+            var matchResult = regex.find(responseText)!!
+            var RelayState = matchResult.groups["RelayState"]?.value!!
+            println(RelayState)
+            RelayState = Entities.unescape(RelayState)
+            println(RelayState)
+            regex =
+                """<input type="hidden" name="SAMLResponse" value="(?<SAMLResponse>[^"]+)"/>""".toRegex()
+            matchResult = regex.find(responseText)!!
+            var SAMLResponse = matchResult.groups["SAMLResponse"]?.value!!
+            println(SAMLResponse)
+            SAMLResponse = Entities.unescape(SAMLResponse)
+            println(SAMLResponse)
+            url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/acs/dfnshib"
+            println(url)
+            response = client.submitForm(url, formParameters = parameters {
+                append("RelayState", RelayState)
+                append("SAMLResponse", SAMLResponse)
+            })
+            println(response)
+            responseText = response.bodyAsText()
+            //  println(responseText)
+            println(response.headers)
+            url = "https://dsf.tucan.tu-darmstadt.de" + response.headers["Location"]!!
+            println(url)
+            response = client.get(url)
+            println(response)
+            println(response.headers)
+            println(response.headers["Location"])
+            responseText = response.bodyAsText()
+            //  println(responseText)
+            url = response.headers["Location"]!!
+        }
+        println(url)
+        response = client.get(url) // logincheck
+        println(response)
+        println(response.headers)
+        println(response.headers["Location"])
+        responseText = response.bodyAsText()
+        // println(responseText)
+        val id =
+            Regex("""0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?<id>\d+),-N000(019|350),-N000000000000000""").matchEntire(
+                response.headers["refresh"]!!
+            )!!.groups["id"]?.value!!
+        println(id)
+        return id
     }
 
     fun Root.parseLoginFailure(): LoginResponse {

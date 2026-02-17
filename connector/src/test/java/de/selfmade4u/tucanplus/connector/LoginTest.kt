@@ -7,11 +7,22 @@ import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginFailure
 import de.selfmade4u.tucanplus.connector.TucanLogin.parseLoginSuccess
 import de.selfmade4u.tucanplus.root
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache5.Apache5
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.java.Java
+import io.ktor.client.engine.jetty.jakarta.Jetty
+import io.ktor.client.plugins.HttpRedirect
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.logging.SIMPLE
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class LoginTest {
     @Tag("DoesNotAccessTucan")
@@ -74,6 +85,26 @@ class LoginTest {
         assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
         runBlocking {
             LoginSingleton.getCredentials()
+        }
+    }
+
+    @Tag("AccessesTucan")
+    @Test
+    fun newLogin() {
+        println(System.getProperty("java.version"))
+        assumeTrue(System.getenv("TUCAN_USERNAME") != null && System.getenv("TUCAN_PASSWORD") != null, "Credentials provided")
+        val client = HttpClient(Java) {
+            followRedirects = false
+            install(HttpCookies) {
+                storage = PersistentCookiesStorage(File("cookies.log"))
+            }
+            install(Logging) {
+                logger = Logger.SIMPLE
+                level = LogLevel.ALL
+            }
+        }
+        runBlocking {
+            TucanLogin.doNewLogin(client, System.getenv("TUCAN_USERNAME")!!, System.getenv("TUCAN_PASSWORD")!!, System.getenv("TUCAN_TOTP")!!)
         }
     }
 }

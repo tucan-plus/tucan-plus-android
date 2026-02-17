@@ -1,4 +1,3 @@
-import com.teamscale.TeamscaleUpload
 import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -23,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "de.selfmade4u.tucanplus"
-        minSdk = 29
+        minSdk = 35
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -117,6 +116,8 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":connector"))
     implementation(libs.androidx.profileinstaller)
+    implementation(libs.androidx.browser)
+    implementation(libs.androidx.autofill)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -129,7 +130,7 @@ dependencies {
     androidTestImplementation(libs.androidx.runner)
     androidTestUtil(libs.androidx.orchestrator)
 }
-
+/*
 val execFiles = fileTree(layout.buildDirectory.dir("outputs/managed_device_code_coverage/debug/mediumPhone/")) {
     include("*.ec")
 }
@@ -157,3 +158,4 @@ execFiles.forEach { execFile ->
 tasks.register("jacocoReportAll") {
     dependsOn(tasks.withType(JacocoReport::class))
 }
+*/

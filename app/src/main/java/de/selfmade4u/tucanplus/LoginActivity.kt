@@ -1,6 +1,7 @@
 package de.selfmade4u.tucanplus
 
-import android.util.Log
+import android.content.Context
+import androidx.autofill.HintConstants
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,16 +22,45 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
+import androidx.work.workDataOf
+import de.selfmade4u.tucanplus.connector.PersistentCookiesStorage
 import de.selfmade4u.tucanplus.connector.TucanLogin
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
+
 
 // https://developer.android.com/jetpack/androidx/releases/compose-material3
 // https://developer.android.com/develop/ui/compose/designsystems/material3
@@ -39,11 +69,156 @@ class NavBackStackPreviewParameterProvider : PreviewParameterProvider<NavBackSta
     override val values: Sequence<NavBackStack<NavKey>> = sequenceOf(NavBackStack())
 }
 
+class KeepTucanSessionAliveWorker(val context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result = coroutineScope {
+        withContext(Dispatchers.IO) {
+            val appSpecificExternalFile = File(context.getExternalFilesDir(null), "tucan-session.log")
+            FileOutputStream(appSpecificExternalFile, true).bufferedWriter().use {
+                it.appendLine("${LocalDateTime.now()} KeepTucanSessionAliveWorker is starting....")
+
+                val client = HttpClient(Android) {
+                    followRedirects = false
+                    install(HttpCookies) {
+                        storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null),"tucan-cookies.log"))
+                    }
+                }
+
+                val tucanId: String = inputData.getString("tucanId")!!
+                var url =
+                    "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${tucanId}%2C-N000019%2C"
+                val current = LocalDateTime.now()
+                it.appendLine(current.toString())
+                var response: HttpResponse;
+                var responseText: String;
+                try {
+                    response = client.get(url)
+                    it.appendLine(response.toString())
+                    it.appendLine(response.headers.toString())
+                     responseText = response.bodyAsText()
+                    it.appendLine(responseText)
+                } catch (e: java.io.IOException) {
+                    e.printStackTrace()
+                    return@use Result.retry()
+                }
+                assert(responseText.contains("Eingegangene Nachrichten:"))
+
+                it.appendLine("${LocalDateTime.now()} KeepTucanSessionAliveWorker is stopping....")
+            }
+            Result.success()
+        }
+    }
+}
+
+class KeepTucanDsfSessionAliveWorker(val context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result = coroutineScope {
+        withContext(Dispatchers.IO) {
+            val appSpecificExternalFile = File(context.getExternalFilesDir(null), "tucan-dsf-session.log")
+            FileOutputStream(appSpecificExternalFile, true).bufferedWriter().use {
+                it.appendLine("${LocalDateTime.now()} KeepTucanDsfSessionAliveWorker is starting....")
+
+                val client = HttpClient(Android) {
+                    followRedirects = false
+                    install(HttpCookies) {
+                        storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null),"tucan-dsf-cookies.log"))
+                    }
+                }
+
+                var url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY"
+                it.appendLine(url)
+                var response: HttpResponse;
+                var responseText: String;
+                try {
+                    response = client.get(url)
+                    it.appendLine(response.toString())
+                    it.appendLine(response.headers.toString())
+                    responseText = response.bodyAsText()
+                    it.appendLine(responseText)
+                } catch (e: java.io.IOException) {
+                    e.printStackTrace()
+                    return@use Result.retry()
+                }
+                url = response.headers["Location"]!!
+                assert(url.startsWith("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK"))
+
+                it.appendLine("${LocalDateTime.now()} KeepTucanDsfSessionAliveWorker is stopping....")
+            }
+            Result.success()
+        }
+    }
+}
+
+class KeepTucanSsoSessionAliveWorker(val context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result = coroutineScope {
+        withContext(Dispatchers.IO) {
+            val appSpecificExternalFile = File(context.getExternalFilesDir(null), "tucan-sso-session.log")
+            FileOutputStream(appSpecificExternalFile, true).bufferedWriter().use {
+                it.appendLine("${LocalDateTime.now()} KeepTucanSsoSessionAliveWorker is starting....")
+
+                val client = HttpClient(Android) {
+                    followRedirects = false
+                    install(HttpCookies) {
+                        storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null),"tucan-sso-cookies.log"))
+                    }
+                }
+
+                var url =
+                    "https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/login/dfnshib?ReturnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001%2Cids_mode%2526ids_mode%253DY"
+                it.appendLine(url)
+                var response: HttpResponse;
+                var responseText: String;
+                try {
+                    response = client.get(url)
+                    it.appendLine(response.toString())
+                    it.appendLine(response.headers.toString())
+                    responseText = response.bodyAsText()
+                    it.appendLine(responseText)
+                } catch (e: java.io.IOException) {
+                    e.printStackTrace()
+                    return@use Result.retry()
+                }
+                url = response.headers["Location"]!! // login.tu-darmstadt.de
+                it.appendLine(url)
+                try {
+                    response = client.get(url)
+                    it.appendLine(response.toString())
+                    it.appendLine(response.headers.toString())
+                    responseText = response.bodyAsText()
+                    it.appendLine(responseText)
+                } catch (e: java.io.IOException) {
+                    e.printStackTrace()
+                    return@use Result.retry()
+                }
+                assert(response.status != HttpStatusCode.Found)
+                var regex =
+                    """<input type="hidden" name="RelayState" value="(?<RelayState>[^"]+)"/>""".toRegex()
+                var matchResult = regex.find(responseText)!!
+                var RelayState = matchResult.groups["RelayState"]?.value!!
+                it.appendLine(RelayState)
+                regex =
+                    """<input type="hidden" name="SAMLResponse" value="(?<SAMLResponse>[^"]+)"/>""".toRegex()
+                matchResult = regex.find(responseText)!!
+                var SAMLResponse = matchResult.groups["SAMLResponse"]?.value!!
+                it.appendLine(SAMLResponse)
+
+                it.appendLine("${LocalDateTime.now()} KeepTucanSsoSessionAliveWorker is stopping....")
+            }
+            Result.success()
+        }
+    }
+}
+
 @Composable
 @Preview
 fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) backStack: NavBackStack<NavKey>) {
     val usernameState = rememberTextFieldState()
     val passwordState = rememberTextFieldState()
+    val totpState = rememberTextFieldState()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var loading by remember { mutableStateOf(false) }
@@ -70,58 +245,136 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
             //WifiDirectBonjour()
             TextField(
                 state = usernameState,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.Username },
                 label = { Text("Username") })
             SecureTextField(
                 state = passwordState,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.Password },
                 label = { Text("Password") })
+            SecureTextField(
+                state = totpState,
+                modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType(HintConstants.AUTOFILL_HINT_2FA_APP_OTP) },
+                label = { Text("TOTP") })
             Button(onClick = {
                 loading = true
+                /*val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/External/Challenge?provider=dfnshib&returnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001,ids_mode%2526ids_mode%253DY"
+                val intent = CustomTabsIntent.Builder()
+                    .build()
+                intent.launchUrl(context, url.toUri())*/
                 coroutineScope.launch {
-                    // https://ktor.io/docs/client-create-new-application.html
-                    // https://ktor.io/docs/client-requests.html#body
-                    val client = HttpClient()
-                    val response = TucanLogin.doLogin(
+                    val client = HttpClient(Android) {
+                        followRedirects = false
+                        install(HttpCookies) {
+                            storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null), "tucan-cookies.log"))
+                        }
+                    }
+                    val tucanId = TucanLogin.doNewLogin(
                         client,
                         usernameState.text.toString(),
                         passwordState.text.toString(),
+                        totpState.text.toString()
                     )
-                    when (response) {
-                        is TucanLogin.LoginResponse.InvalidCredentials -> launch {
-                            snackbarHostState.showSnackbar(
-                                "Falscher Nutzername oder Passwort"
-                            )
-                        }
 
-                        is TucanLogin.LoginResponse.Success -> {
-                            context.credentialSettingsDataStore.updateData { currentSettings ->
-                                OptionalCredentialSettings(
-                                    CredentialSettings(
-                                        username = usernameState.text.toString(),
-                                        password = passwordState.text.toString(),
-                                        sessionId = response.sessionId,
-                                        sessionCookie = response.sessionCookie,
-                                        lastRequestTime = System.currentTimeMillis(),
-                                        menuLocalizer = response.menuLocalizer
-                                    )
-                                )
-                            }
-                            setupBackgroundTasks(context)
-                            backStack[backStack.size - 1] = MainNavKey
-                            backStack.add(MyExamsNavKey)
-                        }
-
-                        is TucanLogin.LoginResponse.TooManyAttempts -> launch {
-                            snackbarHostState.showSnackbar(
-                                "Zu viele Anmeldeversuche"
+                    val keepTucanSessionAlive =
+                        PeriodicWorkRequestBuilder<KeepTucanSessionAliveWorker>(15, TimeUnit.MINUTES)
+                            .setInputData(workDataOf(
+                                "tucanId" to tucanId
+                            ))
+                            .setConstraints(
+                                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
                             )
-                        }
-                    }
+                            .build()
+
+                    WorkManager
+                        .getInstance(context)
+                        .enqueueUniquePeriodicWork(
+                            "keepTucanSessionAlive",
+                            ExistingPeriodicWorkPolicy.UPDATE,
+                            keepTucanSessionAlive
+                        )
+                    snackbarHostState.showSnackbar(
+                        "Scheduled for id $tucanId"
+                    )
                     loading = false
                 }
             }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
-                Text("Login")
+                Text("TUCaN Background Session")
+            }
+            Button(onClick = {
+                loading = true
+                coroutineScope.launch {
+                    val client = HttpClient(Android) {
+                        followRedirects = false
+                        install(HttpCookies) {
+                            storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null), "tucan-dsf-cookies.log"))
+                        }
+                    }
+                    val tucanId = TucanLogin.doNewLogin(
+                        client,
+                        usernameState.text.toString(),
+                        passwordState.text.toString(),
+                        totpState.text.toString()
+                    )
+
+                    val keepTucanDsfSessionAlive =
+                        PeriodicWorkRequestBuilder<KeepTucanDsfSessionAliveWorker>(15, TimeUnit.MINUTES)
+                            .setConstraints(
+                                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                            )
+                            .build()
+
+                    WorkManager
+                        .getInstance(context)
+                        .enqueueUniquePeriodicWork(
+                            "keepTucanDsfSessionAlive",
+                            ExistingPeriodicWorkPolicy.UPDATE,
+                            keepTucanDsfSessionAlive
+                        )
+                    snackbarHostState.showSnackbar(
+                        "Scheduled for id $tucanId"
+                    )
+                    loading = false
+                }
+            }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
+                Text("TUCaN DSF Background Session")
+            }
+            Button(onClick = {
+                loading = true
+                coroutineScope.launch {
+                    val client = HttpClient(Android) {
+                        followRedirects = false
+                        install(HttpCookies) {
+                            storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null), "tucan-sso-cookies.log"))
+                        }
+                    }
+                    val tucanId = TucanLogin.doNewLogin(
+                        client,
+                        usernameState.text.toString(),
+                        passwordState.text.toString(),
+                        totpState.text.toString()
+                    )
+
+                    val keepTucanSsoSessionAlive =
+                        PeriodicWorkRequestBuilder<KeepTucanSsoSessionAliveWorker>(15, TimeUnit.MINUTES)
+                            .setConstraints(
+                                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                            )
+                            .build()
+
+                    WorkManager
+                        .getInstance(context)
+                        .enqueueUniquePeriodicWork(
+                            "keepTucanSsoSessionAlive",
+                            ExistingPeriodicWorkPolicy.UPDATE,
+                            keepTucanSsoSessionAlive
+                        )
+                    snackbarHostState.showSnackbar(
+                        "Scheduled for id $tucanId"
+                    )
+                    loading = false
+                }
+            }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
+                Text("SSO Background Session")
             }
         }
     }

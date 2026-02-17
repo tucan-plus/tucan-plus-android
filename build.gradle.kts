@@ -1,4 +1,3 @@
-import com.teamscale.TeamscaleUpload
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
@@ -9,8 +8,9 @@ plugins {
     id("androidx.room") version "2.8.4" apply false
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.baselineprofile) apply false
-    id("com.teamscale") version "36.3.0"
+    //id("com.teamscale") version "36.3.0"
 }
+/*
 allprojects {
     tasks.withType<Test>().configureEach {
         testLogging {
@@ -30,13 +30,14 @@ evaluationDependsOn(":app")
 tasks.register<TeamscaleUpload>("teamscaleTestUpload") {
     partition = "Unit Tests"
     from(project(":connector").tasks.named("testwiseCoverageReport"))
-}
+}*/
 /*
 tasks.register<TeamscaleUpload>("teamscaleIntegrationTestsReportUpload") {
     partition = "Integration Tests"
     from(project(":app").tasks.named("testwiseCoverageReport"))
 }
 */
+/*
 teamscale {
     server {
         url = "https://teamscale.selfmade4u.de"
@@ -45,3 +46,4 @@ teamscale {
         userAccessToken = System.getenv("THE_TEAMSCALE_ACCESS_TOKEN")
     }
 }
+ */

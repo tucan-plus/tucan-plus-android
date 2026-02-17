@@ -36,10 +36,28 @@
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false"
             tools:node="merge">
-            <meta-data android:name="androidx.work.WorkManagerInitializer"
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
+
+        <activity android:name=".SSOActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.TUCaNPlus">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="www.tucan.tu-darmstadt.de" />
+                <data android:pathPrefix="/scripts/mgrqispi.dll" />
+                <data android:queryPrefix="APPNAME=CampusNet&amp;PRGNAME=LOGINCHECK" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".MainActivity"
