@@ -280,21 +280,7 @@ object TucanLogin {
                 response.headers["refresh"]!!
             )!!.groups["id"]?.value!!
         println(id)
-        url =
-            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id}%2C-N000019%2C"
-        while (false) {
-            val current = LocalDateTime.now()
-            println(current)
-            response = client.get(url)
-            println(response)
-            println(response.headers)
-            println(response.headers["Location"])
-            responseText = response.bodyAsText()
-            println(responseText)
-            assert(responseText.contains("Eingegangene Nachrichten:"))
-            delay(10.minutes)
-        }
-        id
+        return id
     }
 
     fun Root.parseLoginFailure(): LoginResponse {

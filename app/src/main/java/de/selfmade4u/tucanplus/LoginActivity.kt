@@ -30,10 +30,13 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import de.selfmade4u.tucanplus.connector.PersistentCookiesStorage
 import de.selfmade4u.tucanplus.connector.TucanLogin
 import io.ktor.client.HttpClient
@@ -76,8 +79,9 @@ class KeepTucanSessionAliveWorker(val context: Context, params: WorkerParameters
                     }
                 }
 
+                val tucanId: String = inputData.getString("tucanId")!!
                 var url =
-                    "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id}%2C-N000019%2C"
+                    "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${tucanId}%2C-N000019%2C"
                 val current = LocalDateTime.now()
                 it.appendLine(current.toString())
                 var response = client.get(url)
@@ -149,7 +153,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                             storage = PersistentCookiesStorage(File("tucan-cookies.log"))
                         }
                     }
-                    TucanLogin.doNewLogin(
+                    val tucanId = TucanLogin.doNewLogin(
                         client,
                         usernameState.text.toString(),
                         passwordState.text.toString(),
@@ -157,9 +161,12 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                     )
 
                     val keepTucanSessionAlive =
-                        PeriodicWorkRequestBuilder<KeepTucanSessionAliveWorker>(1, TimeUnit.HOURS)
+                        PeriodicWorkRequestBuilder<KeepTucanSessionAliveWorker>(15, TimeUnit.MINUTES)
+                            .setInputData(workDataOf(
+                                "tucanId" to tucanId
+                            ))
                             .setConstraints(
-                                Constraints.Builder().setRequiresBatteryNotLow(true).build()
+                                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
                             )
                             .build()
 
@@ -170,6 +177,9 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                             ExistingPeriodicWorkPolicy.KEEP,
                             keepTucanSessionAlive
                         )
+                    snackbarHostState.showSnackbar(
+                        "Scheduled for id $tucanId"
+                    )
                     loading = false
                 }
             }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
