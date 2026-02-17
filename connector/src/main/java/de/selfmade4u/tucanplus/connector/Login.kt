@@ -139,8 +139,9 @@ object TucanLogin {
     suspend fun doNewLogin(
         client: HttpClient,
         username: String,
-        password: String
-    ) {
+        password: String,
+        totp: String
+    ): String {
         // this url does not require asking login.tu-darmstadt.de
         var url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY"
         println(url)
@@ -226,7 +227,7 @@ object TucanLogin {
                 println(url)
                 response = client.submitForm(url, formParameters = parameters {
                     append("csrf_token", csrfToken)
-                    append("fudis_otp_input", System.getenv("TUCAN_TOTP")!!)
+                    append("fudis_otp_input", totp)
                     append("_eventId_proceed", "")
                 })
                 println(response)
@@ -293,6 +294,7 @@ object TucanLogin {
             assert(responseText.contains("Eingegangene Nachrichten:"))
             delay(10.minutes)
         }
+        id
     }
 
     fun Root.parseLoginFailure(): LoginResponse {

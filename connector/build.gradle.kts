@@ -12,7 +12,7 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
-    testImplementation(libs.ktor.client.java)
+    implementation(libs.ktor.client.java)
     testImplementation(libs.ktor.client.apache5)
     testImplementation(libs.ktor.client.logging)
     testImplementation(libs.ktor.client.jetty.jakarta)

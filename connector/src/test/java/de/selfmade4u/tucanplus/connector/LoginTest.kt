@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class LoginTest {
     @Tag("DoesNotAccessTucan")
@@ -95,7 +96,7 @@ class LoginTest {
         val client = HttpClient(Java) {
             followRedirects = false
             install(HttpCookies) {
-                storage = PersistentCookiesStorage()
+                storage = PersistentCookiesStorage(File("cookies.log"))
             }
             install(Logging) {
                 logger = Logger.SIMPLE
@@ -103,7 +104,7 @@ class LoginTest {
             }
         }
         runBlocking {
-            TucanLogin.doNewLogin(client, System.getenv("TUCAN_USERNAME")!!, System.getenv("TUCAN_PASSWORD")!!)
+            TucanLogin.doNewLogin(client, System.getenv("TUCAN_USERNAME")!!, System.getenv("TUCAN_PASSWORD")!!, System.getenv("TUCAN_TOTP")!!)
         }
     }
 }

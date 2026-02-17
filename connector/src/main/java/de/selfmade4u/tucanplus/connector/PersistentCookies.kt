@@ -18,7 +18,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.min
 
 @OptIn(ExperimentalAtomicApi::class)
-public class PersistentCookiesStorage(private val clock: () -> Long = { getTimeMillis() }) :
+public class PersistentCookiesStorage(file: File, private val clock: () -> Long = { getTimeMillis() }) :
     CookiesStorage {
 
     @Serializable
@@ -26,7 +26,7 @@ public class PersistentCookiesStorage(private val clock: () -> Long = { getTimeM
 
     private val container: MutableList<CookieWithTimestamp> = let {
         try {
-            val text = File("cookies.log").readText()
+            val text = file.readText()
             val value: MutableList<CookieWithTimestamp> = Json.decodeFromString(text)
             value
         } catch (e: Exception) {

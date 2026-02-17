@@ -1,7 +1,6 @@
 package de.selfmade4u.tucanplus
 
-import android.net.Uri
-import androidx.browser.customtabs.CustomTabsIntent
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,9 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,7 +28,29 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import androidx.core.net.toUri
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
+import de.selfmade4u.tucanplus.connector.PersistentCookiesStorage
+import de.selfmade4u.tucanplus.connector.TucanLogin
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
 
 
 // https://developer.android.com/jetpack/androidx/releases/compose-material3
@@ -37,11 +60,46 @@ class NavBackStackPreviewParameterProvider : PreviewParameterProvider<NavBackSta
     override val values: Sequence<NavBackStack<NavKey>> = sequenceOf(NavBackStack())
 }
 
+class KeepTucanSessionAliveWorker(val context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result = coroutineScope {
+        withContext(Dispatchers.IO) {
+            val appSpecificExternalFile = File(context.getExternalFilesDir(null), "tucan-session.log")
+            FileOutputStream(appSpecificExternalFile, true).bufferedWriter().use {
+                it.appendLine("${LocalDateTime.now()} KeepTucanSessionAliveWorker is starting....")
+
+                val client = HttpClient(Android) {
+                    followRedirects = false
+                    install(HttpCookies) {
+                        storage = PersistentCookiesStorage(File("tucan-cookies.log"))
+                    }
+                }
+
+                var url =
+                    "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id}%2C-N000019%2C"
+                val current = LocalDateTime.now()
+                it.appendLine(current.toString())
+                var response = client.get(url)
+                it.appendLine(response.toString())
+                it.appendLine(response.headers.toString())
+                var responseText = response.bodyAsText()
+                it.appendLine(responseText)
+                assert(responseText.contains("Eingegangene Nachrichten:"))
+
+                it.appendLine("${LocalDateTime.now()} KeepTucanSessionAliveWorker is stopping....")
+            }
+            Result.success()
+        }
+    }
+}
+
 @Composable
 @Preview
 fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) backStack: NavBackStack<NavKey>) {
     val usernameState = rememberTextFieldState()
     val passwordState = rememberTextFieldState()
+    val totpState = rememberTextFieldState()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var loading by remember { mutableStateOf(false) }
@@ -66,11 +124,54 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
             //ShowLocalServices()
             //WifiDirect()
             //WifiDirectBonjour()
+            TextField(
+                state = usernameState,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Username") })
+            SecureTextField(
+                state = passwordState,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Password") })
+            SecureTextField(
+                state = totpState,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("TOTP") })
             Button(onClick = {
-                val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/External/Challenge?provider=dfnshib&returnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001,ids_mode%2526ids_mode%253DY"
+                loading = true
+                /*val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/External/Challenge?provider=dfnshib&returnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001,ids_mode%2526ids_mode%253DY"
                 val intent = CustomTabsIntent.Builder()
                     .build()
-                intent.launchUrl(context, url.toUri())
+                intent.launchUrl(context, url.toUri())*/
+                coroutineScope.launch {
+                    val client = HttpClient(Android) {
+                        followRedirects = false
+                        install(HttpCookies) {
+                            storage = PersistentCookiesStorage(File("tucan-cookies.log"))
+                        }
+                    }
+                    TucanLogin.doNewLogin(
+                        client,
+                        usernameState.text.toString(),
+                        passwordState.text.toString(),
+                        totpState.text.toString()
+                    )
+
+                    val keepTucanSessionAlive =
+                        PeriodicWorkRequestBuilder<KeepTucanSessionAliveWorker>(1, TimeUnit.HOURS)
+                            .setConstraints(
+                                Constraints.Builder().setRequiresBatteryNotLow(true).build()
+                            )
+                            .build()
+
+                    WorkManager
+                        .getInstance(context)
+                        .enqueueUniquePeriodicWork(
+                            "keepTucanSessionAlive",
+                            ExistingPeriodicWorkPolicy.KEEP,
+                            keepTucanSessionAlive
+                        )
+                    loading = false
+                }
             }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
                 Text("Login")
             }
