@@ -75,7 +75,7 @@ class KeepTucanSessionAliveWorker(val context: Context, params: WorkerParameters
                 val client = HttpClient(Android) {
                     followRedirects = false
                     install(HttpCookies) {
-                        storage = PersistentCookiesStorage(File("tucan-cookies.log"))
+                        storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null),"tucan-cookies.log"))
                     }
                 }
 
@@ -150,7 +150,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                     val client = HttpClient(Android) {
                         followRedirects = false
                         install(HttpCookies) {
-                            storage = PersistentCookiesStorage(File("tucan-cookies.log"))
+                            storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null), "tucan-cookies.log"))
                         }
                     }
                     val tucanId = TucanLogin.doNewLogin(

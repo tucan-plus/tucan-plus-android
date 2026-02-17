@@ -18,7 +18,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.min
 
 @OptIn(ExperimentalAtomicApi::class)
-public class PersistentCookiesStorage(file: File, private val clock: () -> Long = { getTimeMillis() }) :
+public class PersistentCookiesStorage(val file: File, private val clock: () -> Long = { getTimeMillis() }) :
     CookiesStorage {
 
     @Serializable
@@ -62,7 +62,7 @@ public class PersistentCookiesStorage(file: File, private val clock: () -> Long 
             container.add(CookieWithTimestamp(cookie.fillDefaults(requestUrl), createdAt))
 
             val json = json1.encodeToString(container)
-            File("cookies.log").writeText(json)
+            file.writeText(json)
 
             cookie.maxAgeOrExpires(createdAt)?.let {
                 if (oldestCookie.load() > it) {
