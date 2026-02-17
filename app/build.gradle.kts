@@ -117,6 +117,7 @@ dependencies {
     implementation(project(":connector"))
     implementation(libs.androidx.profileinstaller)
     implementation(libs.androidx.browser)
+    implementation(libs.androidx.autofill)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

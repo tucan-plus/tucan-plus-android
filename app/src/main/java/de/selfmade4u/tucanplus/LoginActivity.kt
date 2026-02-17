@@ -1,6 +1,7 @@
 package de.selfmade4u.tucanplus
 
 import android.content.Context
+import androidx.autofill.HintConstants
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -141,7 +142,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                 label = { Text("Password") })
             SecureTextField(
                 state = totpState,
-                modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType.SmsOtpCode },
+                modifier = Modifier.fillMaxWidth().semantics { contentType = ContentType(HintConstants.AUTOFILL_HINT_2FA_APP_OTP) },
                 label = { Text("TOTP") })
             Button(onClick = {
                 loading = true
