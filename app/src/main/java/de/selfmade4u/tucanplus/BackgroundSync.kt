@@ -26,7 +26,7 @@ fun setupBackgroundTasks(context: Context) {
 
     WorkManager
         .getInstance(context)
-        .enqueueUniquePeriodicWork("updateGrades", ExistingPeriodicWorkPolicy.KEEP, updateGrades)
+        .enqueueUniquePeriodicWork("updateGrades", ExistingPeriodicWorkPolicy.UPDATE, updateGrades)
 }
 
 class UpdateGradesWorker(context: Context, params: WorkerParameters) :

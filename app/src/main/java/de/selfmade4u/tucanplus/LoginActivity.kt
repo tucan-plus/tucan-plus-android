@@ -48,6 +48,7 @@ import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -135,6 +136,56 @@ class KeepTucanDsfSessionAliveWorker(val context: Context, params: WorkerParamet
     }
 }
 
+class KeepTucanSsoSessionAliveWorker(val context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result = coroutineScope {
+        withContext(Dispatchers.IO) {
+            val appSpecificExternalFile = File(context.getExternalFilesDir(null), "tucan-sso-session.log")
+            FileOutputStream(appSpecificExternalFile, true).bufferedWriter().use {
+                it.appendLine("${LocalDateTime.now()} KeepTucanSsoSessionAliveWorker is starting....")
+
+                val client = HttpClient(Android) {
+                    followRedirects = false
+                    install(HttpCookies) {
+                        storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null),"tucan-sso-cookies.log"))
+                    }
+                }
+
+                var url =
+                    "https://dsf.tucan.tu-darmstadt.de/IdentityServer/external/saml/login/dfnshib?ReturnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001%2Cids_mode%2526ids_mode%253DY"
+                it.appendLine(url)
+                var response = client.get(url)
+                it.appendLine(response.toString())
+                it.appendLine(response.headers.toString())
+                var responseText = response.bodyAsText()
+                it.appendLine(responseText)
+                url = response.headers["Location"]!!
+                it.appendLine(url)
+                response = client.get(url) // login.tu-darmstadt.de
+                it.appendLine(response.toString())
+                it.appendLine(response.headers.toString())
+                responseText = response.bodyAsText()
+                it.appendLine(responseText)
+                assert(response.status != HttpStatusCode.Found)
+                var regex =
+                    """<input type="hidden" name="RelayState" value="(?<RelayState>[^"]+)"/>""".toRegex()
+                var matchResult = regex.find(responseText)!!
+                var RelayState = matchResult.groups["RelayState"]?.value!!
+                it.appendLine(RelayState)
+                regex =
+                    """<input type="hidden" name="SAMLResponse" value="(?<SAMLResponse>[^"]+)"/>""".toRegex()
+                matchResult = regex.find(responseText)!!
+                var SAMLResponse = matchResult.groups["SAMLResponse"]?.value!!
+                it.appendLine(SAMLResponse)
+
+                it.appendLine("${LocalDateTime.now()} KeepTucanSsoSessionAliveWorker is stopping....")
+            }
+            Result.success()
+        }
+    }
+}
+
 @Composable
 @Preview
 fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) backStack: NavBackStack<NavKey>) {
@@ -211,7 +262,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                         .getInstance(context)
                         .enqueueUniquePeriodicWork(
                             "keepTucanSessionAlive",
-                            ExistingPeriodicWorkPolicy.KEEP,
+                            ExistingPeriodicWorkPolicy.UPDATE,
                             keepTucanSessionAlive
                         )
                     snackbarHostState.showSnackbar(
@@ -240,9 +291,6 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
 
                     val keepTucanDsfSessionAlive =
                         PeriodicWorkRequestBuilder<KeepTucanDsfSessionAliveWorker>(15, TimeUnit.MINUTES)
-                            .setInputData(workDataOf(
-                                "tucanId" to tucanId
-                            ))
                             .setConstraints(
                                 Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
                             )
@@ -252,7 +300,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                         .getInstance(context)
                         .enqueueUniquePeriodicWork(
                             "keepTucanDsfSessionAlive",
-                            ExistingPeriodicWorkPolicy.KEEP,
+                            ExistingPeriodicWorkPolicy.UPDATE,
                             keepTucanDsfSessionAlive
                         )
                     snackbarHostState.showSnackbar(
@@ -262,6 +310,44 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                 }
             }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
                 Text("TUCaN DSF Background Session")
+            }
+            Button(onClick = {
+                loading = true
+                coroutineScope.launch {
+                    val client = HttpClient(Android) {
+                        followRedirects = false
+                        install(HttpCookies) {
+                            storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null), "tucan-sso-cookies.log"))
+                        }
+                    }
+                    val tucanId = TucanLogin.doNewLogin(
+                        client,
+                        usernameState.text.toString(),
+                        passwordState.text.toString(),
+                        totpState.text.toString()
+                    )
+
+                    val keepTucanSsoSessionAlive =
+                        PeriodicWorkRequestBuilder<KeepTucanSsoSessionAliveWorker>(15, TimeUnit.MINUTES)
+                            .setConstraints(
+                                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                            )
+                            .build()
+
+                    WorkManager
+                        .getInstance(context)
+                        .enqueueUniquePeriodicWork(
+                            "keepTucanSsoSessionAlive",
+                            ExistingPeriodicWorkPolicy.UPDATE,
+                            keepTucanSsoSessionAlive
+                        )
+                    snackbarHostState.showSnackbar(
+                        "Scheduled for id $tucanId"
+                    )
+                    loading = false
+                }
+            }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
+                Text("SSO Background Session")
             }
         }
     }
