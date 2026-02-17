@@ -102,6 +102,39 @@ class KeepTucanSessionAliveWorker(val context: Context, params: WorkerParameters
     }
 }
 
+class KeepTucanDsfSessionAliveWorker(val context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result = coroutineScope {
+        withContext(Dispatchers.IO) {
+            val appSpecificExternalFile = File(context.getExternalFilesDir(null), "tucan-dsf-session.log")
+            FileOutputStream(appSpecificExternalFile, true).bufferedWriter().use {
+                it.appendLine("${LocalDateTime.now()} KeepTucanDsfSessionAliveWorker is starting....")
+
+                val client = HttpClient(Android) {
+                    followRedirects = false
+                    install(HttpCookies) {
+                        storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null),"tucan-dsf-cookies.log"))
+                    }
+                }
+
+                var url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY"
+                it.appendLine(url)
+                var response = client.get(url)
+                it.appendLine(response.toString())
+                it.appendLine(response.headers.toString())
+                var responseText = response.bodyAsText()
+                it.appendLine(responseText)
+                url = response.headers["Location"]!!
+                assert(url.startsWith("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK"))
+
+                it.appendLine("${LocalDateTime.now()} KeepTucanDsfSessionAliveWorker is stopping....")
+            }
+            Result.success()
+        }
+    }
+}
+
 @Composable
 @Preview
 fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) backStack: NavBackStack<NavKey>) {
@@ -187,7 +220,48 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                     loading = false
                 }
             }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
-                Text("Login")
+                Text("TUCaN Background Session")
+            }
+            Button(onClick = {
+                loading = true
+                coroutineScope.launch {
+                    val client = HttpClient(Android) {
+                        followRedirects = false
+                        install(HttpCookies) {
+                            storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null), "tucan-dsf-cookies.log"))
+                        }
+                    }
+                    val tucanId = TucanLogin.doNewLogin(
+                        client,
+                        usernameState.text.toString(),
+                        passwordState.text.toString(),
+                        totpState.text.toString()
+                    )
+
+                    val keepTucanDsfSessionAlive =
+                        PeriodicWorkRequestBuilder<KeepTucanDsfSessionAliveWorker>(15, TimeUnit.MINUTES)
+                            .setInputData(workDataOf(
+                                "tucanId" to tucanId
+                            ))
+                            .setConstraints(
+                                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                            )
+                            .build()
+
+                    WorkManager
+                        .getInstance(context)
+                        .enqueueUniquePeriodicWork(
+                            "keepTucanDsfSessionAlive",
+                            ExistingPeriodicWorkPolicy.KEEP,
+                            keepTucanDsfSessionAlive
+                        )
+                    snackbarHostState.showSnackbar(
+                        "Scheduled for id $tucanId"
+                    )
+                    loading = false
+                }
+            }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
+                Text("TUCaN DSF Background Session")
             }
         }
     }
