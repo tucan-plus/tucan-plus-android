@@ -72,16 +72,23 @@ class NavBackStackPreviewParameterProvider : PreviewParameterProvider<NavBackSta
 class KeepTucanSessionAliveWorker(val context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result = coroutineScope {
+    override suspend fun doWork(): Result {
         withContext(Dispatchers.IO) {
-            val appSpecificExternalFile = File(context.getExternalFilesDir(null), "tucan-session.log")
+
+            val appSpecificExternalFile =
+                File(context.getExternalFilesDir(null), "tucan-session.log")
             FileOutputStream(appSpecificExternalFile, true).bufferedWriter().use {
                 it.appendLine("${LocalDateTime.now()} KeepTucanSessionAliveWorker is starting....")
 
                 val client = HttpClient(Android) {
                     followRedirects = false
                     install(HttpCookies) {
-                        storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null),"tucan-cookies.log"))
+                        storage = PersistentCookiesStorage(
+                            File(
+                                context.getExternalFilesDir(null),
+                                "tucan-cookies.log"
+                            )
+                        )
                     }
                 }
 
@@ -96,40 +103,47 @@ class KeepTucanSessionAliveWorker(val context: Context, params: WorkerParameters
                     response = client.get(url)
                     it.appendLine(response.toString())
                     it.appendLine(response.headers.toString())
-                     responseText = response.bodyAsText()
+                    responseText = response.bodyAsText()
                     it.appendLine(responseText)
                 } catch (e: java.io.IOException) {
                     e.printStackTrace()
                     return@use Result.retry()
                 }
                 if (!(responseText.contains("Eingegangene Nachrichten:"))) {
-                    return@use Result.failure()
+                    throw Exception("Not logged in any more")
                 }
 
                 it.appendLine("${LocalDateTime.now()} KeepTucanSessionAliveWorker is stopping....")
             }
-            Result.success()
         }
+            return Result.success()
     }
 }
 
 class KeepTucanDsfSessionAliveWorker(val context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result = coroutineScope {
+    override suspend fun doWork(): Result {
         withContext(Dispatchers.IO) {
-            val appSpecificExternalFile = File(context.getExternalFilesDir(null), "tucan-dsf-session.log")
+            val appSpecificExternalFile =
+                File(context.getExternalFilesDir(null), "tucan-dsf-session.log")
             FileOutputStream(appSpecificExternalFile, true).bufferedWriter().use {
                 it.appendLine("${LocalDateTime.now()} KeepTucanDsfSessionAliveWorker is starting....")
 
                 val client = HttpClient(Android) {
                     followRedirects = false
                     install(HttpCookies) {
-                        storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null),"tucan-dsf-cookies.log"))
+                        storage = PersistentCookiesStorage(
+                            File(
+                                context.getExternalFilesDir(null),
+                                "tucan-dsf-cookies.log"
+                            )
+                        )
                     }
                 }
 
-                var url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY"
+                var url =
+                    "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY"
                 it.appendLine(url)
                 var response: HttpResponse;
                 var responseText: String;
@@ -148,24 +162,30 @@ class KeepTucanDsfSessionAliveWorker(val context: Context, params: WorkerParamet
 
                 it.appendLine("${LocalDateTime.now()} KeepTucanDsfSessionAliveWorker is stopping....")
             }
-            Result.success()
         }
+            return Result.success()
     }
 }
 
 class KeepTucanSsoSessionAliveWorker(val context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result = coroutineScope {
+    override suspend fun doWork(): Result {
         withContext(Dispatchers.IO) {
-            val appSpecificExternalFile = File(context.getExternalFilesDir(null), "tucan-sso-session.log")
+            val appSpecificExternalFile =
+                File(context.getExternalFilesDir(null), "tucan-sso-session.log")
             FileOutputStream(appSpecificExternalFile, true).bufferedWriter().use {
                 it.appendLine("${LocalDateTime.now()} KeepTucanSsoSessionAliveWorker is starting....")
 
                 val client = HttpClient(Android) {
                     followRedirects = false
                     install(HttpCookies) {
-                        storage = PersistentCookiesStorage(File(context.getExternalFilesDir(null),"tucan-sso-cookies.log"))
+                        storage = PersistentCookiesStorage(
+                            File(
+                                context.getExternalFilesDir(null),
+                                "tucan-sso-cookies.log"
+                            )
+                        )
                     }
                 }
 
@@ -210,8 +230,8 @@ class KeepTucanSsoSessionAliveWorker(val context: Context, params: WorkerParamet
 
                 it.appendLine("${LocalDateTime.now()} KeepTucanSsoSessionAliveWorker is stopping....")
             }
-            Result.success()
         }
+        return Result.success()
     }
 }
 
