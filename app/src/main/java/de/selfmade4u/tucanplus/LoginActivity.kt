@@ -102,7 +102,9 @@ class KeepTucanSessionAliveWorker(val context: Context, params: WorkerParameters
                     e.printStackTrace()
                     return@use Result.retry()
                 }
-                assert(responseText.contains("Eingegangene Nachrichten:"))
+                if (!(responseText.contains("Eingegangene Nachrichten:"))) {
+                    return@use Result.failure()
+                }
 
                 it.appendLine("${LocalDateTime.now()} KeepTucanSessionAliveWorker is stopping....")
             }
@@ -289,7 +291,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                         .getInstance(context)
                         .enqueueUniquePeriodicWork(
                             "keepTucanSessionAlive",
-                            ExistingPeriodicWorkPolicy.UPDATE,
+                            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
                             keepTucanSessionAlive
                         )
                     snackbarHostState.showSnackbar(
@@ -327,7 +329,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                         .getInstance(context)
                         .enqueueUniquePeriodicWork(
                             "keepTucanDsfSessionAlive",
-                            ExistingPeriodicWorkPolicy.UPDATE,
+                            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
                             keepTucanDsfSessionAlive
                         )
                     snackbarHostState.showSnackbar(
@@ -365,7 +367,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                         .getInstance(context)
                         .enqueueUniquePeriodicWork(
                             "keepTucanSsoSessionAlive",
-                            ExistingPeriodicWorkPolicy.UPDATE,
+                            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
                             keepTucanSsoSessionAlive
                         )
                     snackbarHostState.showSnackbar(
@@ -375,6 +377,28 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                 }
             }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
                 Text("SSO Background Session")
+            }
+            Button(onClick = {
+                var tucanId = "538012142339150";
+                val keepTucanSessionAlive =
+                    PeriodicWorkRequestBuilder<KeepTucanSessionAliveWorker>(15, TimeUnit.MINUTES)
+                        .setInputData(workDataOf(
+                            "tucanId" to tucanId
+                        ))
+                        .setConstraints(
+                            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                        )
+                        .build()
+
+                WorkManager
+                    .getInstance(context)
+                    .enqueueUniquePeriodicWork(
+                        "keepTucanSessionAlive",
+                        ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                        keepTucanSessionAlive
+                    )
+            }, modifier = Modifier.fillMaxWidth()) {
+                Text("Test")
             }
         }
     }

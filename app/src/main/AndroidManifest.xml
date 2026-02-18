@@ -29,7 +29,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.TUCaNPlus"
-        android:manageSpaceActivity=".MainActivity">
+        >
+        <!-- android:manageSpaceActivity=".MainActivity" -->
 
         <provider
             android:name="androidx.startup.InitializationProvider"
