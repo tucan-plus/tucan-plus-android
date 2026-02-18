@@ -26,7 +26,7 @@ uiTestAndroid = "1.10.3"
 # 2.10.0-alpha04 broken
 # 2.10.0-alpha03 broken
 # 2.10.0-alpha02 broken
-workRuntimeKtx = "2.10.0-alpha01"
+workRuntimeKtx = "2.10.0-alpha02"
 splashscreen = "1.2.0"
 uiautomator = "2.3.0"
 baselineprofile = "1.5.0-alpha03"
