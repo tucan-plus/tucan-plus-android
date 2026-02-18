@@ -30,8 +30,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["useTestStorageService"] = "true"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
-        testInstrumentationRunnerArguments["TUCAN_USERNAME"] = System.getenv("TUCAN_USERNAME")
-        testInstrumentationRunnerArguments["TUCAN_PASSWORD"] = System.getenv("TUCAN_PASSWORD")
+        //testInstrumentationRunnerArguments["TUCAN_USERNAME"] = System.getenv("TUCAN_USERNAME")
+        //testInstrumentationRunnerArguments["TUCAN_PASSWORD"] = System.getenv("TUCAN_PASSWORD")
     }
 
     dependenciesInfo {

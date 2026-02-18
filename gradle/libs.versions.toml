@@ -20,6 +20,12 @@ orchestrator = "1.6.1"
 room = "2.8.4"
 runner = "1.7.0"
 uiTestAndroid = "1.10.3"
+# 2.10.0-alpha01 works
+# 2.10.0 broken
+# 2.10.0-rc01 broken
+# 2.10.0-alpha04 broken
+# 2.10.0-alpha03 broken
+# 2.10.0-alpha02 broken
 workRuntimeKtx = "2.10.0-alpha01"
 splashscreen = "1.2.0"
 uiautomator = "2.3.0"
