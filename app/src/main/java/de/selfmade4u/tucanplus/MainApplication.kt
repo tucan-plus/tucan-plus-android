@@ -5,5 +5,7 @@ import androidx.work.Configuration
 
 class MainApplication : Application(), Configuration.Provider {
     override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder().build()
+        get() = Configuration.Builder()
+             .setMinimumLoggingLevel(android.util.Log.DEBUG)
+            .build()
 }

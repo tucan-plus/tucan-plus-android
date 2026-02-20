@@ -30,8 +30,9 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["useTestStorageService"] = "true"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
-        testInstrumentationRunnerArguments["TUCAN_USERNAME"] = System.getenv("TUCAN_USERNAME")
-        testInstrumentationRunnerArguments["TUCAN_PASSWORD"] = System.getenv("TUCAN_PASSWORD")
+        //testInstrumentationRunnerArguments["TUCAN_USERNAME"] = System.getenv("TUCAN_USERNAME")
+        //testInstrumentationRunnerArguments["TUCAN_PASSWORD"] = System.getenv("TUCAN_PASSWORD")
+        manifestPlaceholders["appAuthRedirectScheme"] = "de.datenlotsen.campusnet.tuda"
     }
 
     dependenciesInfo {
@@ -118,6 +119,7 @@ dependencies {
     implementation(libs.androidx.profileinstaller)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.autofill)
+    implementation(libs.appauth)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
