@@ -74,18 +74,16 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
             coroutineScope.launch {
                 val token = authService.exchangeToken(resp)
                 Log.i(TAG, "Token ${token}")
-                context.credentialSettingsDataStore.updateData { currentSettings ->
+                /*context.credentialSettingsDataStore.updateData { currentSettings ->
                     OptionalCredentialSettings(
                         CredentialSettings(
-                            username = usernameState.text.toString(),
-                            password = passwordState.text.toString(),
                             sessionId = response.sessionId,
                             sessionCookie = response.sessionCookie,
                             lastRequestTime = System.currentTimeMillis(),
                             menuLocalizer = response.menuLocalizer
                         )
                     )
-                }
+                }*/
             }
         } else {
             // authorization failed, check ex for more details
