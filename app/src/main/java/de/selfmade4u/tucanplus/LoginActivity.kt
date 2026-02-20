@@ -2,6 +2,7 @@ package de.selfmade4u.tucanplus
 
 import android.content.Context
 import androidx.autofill.HintConstants
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.work.Constraints
@@ -142,6 +144,10 @@ class KeepTucanDsfSessionAliveWorker(val context: Context, params: WorkerParamet
                     }
                 }
 
+                // I could write a companion app to avoid this in my published apks
+                // Then also a second "more insecure" option where you input your password in my app.
+                // to do this we would need to use their package id.
+                // https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=MobileApp&scope=openid+DSF+profile+offline_access&response_mode=query&response_type=code&ui_locales=de&redirect_uri=de.datenlotsen.campusnet.tuda:/oauth2redirect
                 var url =
                     "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid+DSF+email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3A%2F%2Fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY"
                 it.appendLine(url)
@@ -279,10 +285,6 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                 label = { Text("TOTP") })
             Button(onClick = {
                 loading = true
-                /*val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/External/Challenge?provider=dfnshib&returnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001,ids_mode%2526ids_mode%253DY"
-                val intent = CustomTabsIntent.Builder()
-                    .build()
-                intent.launchUrl(context, url.toUri())*/
                 coroutineScope.launch {
                     val client = HttpClient(Android) {
                         followRedirects = false
@@ -399,24 +401,10 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                 Text("SSO Background Session")
             }
             Button(onClick = {
-                var tucanId = "538012142339150";
-                val keepTucanSessionAlive =
-                    PeriodicWorkRequestBuilder<KeepTucanSessionAliveWorker>(15, TimeUnit.MINUTES)
-                        .setInputData(workDataOf(
-                            "tucanId" to tucanId
-                        ))
-                        .setConstraints(
-                            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-                        )
-                        .build()
-
-                WorkManager
-                    .getInstance(context)
-                    .enqueueUniquePeriodicWork(
-                        "keepTucanSessionAlive",
-                        ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                        keepTucanSessionAlive
-                    )
+                val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=MobileApp&scope=openid+DSF+profile+offline_access&response_mode=query&response_type=code&ui_locales=de&redirect_uri=de.datenlotsen.campusnet.tuda:/oauth2redirect"
+                val intent = CustomTabsIntent.Builder()
+                    .build()
+                intent.launchUrl(context, url.toUri())
             }, modifier = Modifier.fillMaxWidth()) {
                 Text("Test")
             }

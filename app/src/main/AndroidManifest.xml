@@ -53,10 +53,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="https" />
-                <data android:host="www.tucan.tu-darmstadt.de" />
-                <data android:pathPrefix="/scripts/mgrqispi.dll" />
-                <data android:queryPrefix="APPNAME=CampusNet&amp;PRGNAME=LOGINCHECK" />
+                <data android:scheme="de.datenlotsen.campusnet.tuda" />
             </intent-filter>
         </activity>
 
