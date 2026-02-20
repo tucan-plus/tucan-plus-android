@@ -168,7 +168,7 @@ fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings, isLoading: Mu
         }
     }*/
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { intent ->
-        Log.e(TAG, "mainactivity intent ${intent.data}")
+        Log.e(TAG, "mainactivity intent ${intent.data?.data}")
         val resp = AuthorizationResponse.fromIntent(intent.data!!)
         val ex = AuthorizationException.fromIntent(intent.data!!)
         if (resp != null) {
