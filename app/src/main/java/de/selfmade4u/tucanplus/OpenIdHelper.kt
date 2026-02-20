@@ -8,10 +8,11 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import androidx.core.net.toUri
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 class OpenIdHelper {
 
-    suspend fun fetchServiceConfiguration() = suspendCoroutine { cont ->
+    suspend fun fetchServiceConfiguration() = suspendCancellableCoroutine { cont ->
         AuthorizationServiceConfiguration.fetchFromIssuer(
             "https://dsf.tucan.tu-darmstadt.de/IdentityServer/".toUri(),
             object : AuthorizationServiceConfiguration.RetrieveConfigurationCallback {

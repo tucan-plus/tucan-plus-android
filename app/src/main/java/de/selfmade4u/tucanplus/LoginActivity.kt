@@ -1,8 +1,7 @@
 package de.selfmade4u.tucanplus
 
-import android.net.Uri
-import android.util.Log
-import androidx.annotation.Nullable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,8 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationRequest
+import net.openid.appauth.AuthorizationService
 import net.openid.appauth.AuthorizationServiceConfiguration
+import net.openid.appauth.ResponseTypeValues
 
 
 // https://developer.android.com/jetpack/androidx/releases/compose-material3
@@ -55,6 +56,8 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
     LaunchedEffect(true) {
         launcher.launch(arrayOf(Manifest.permission.NEARBY_WIFI_DEVICES))
     }*/
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+    }
     Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
     }) { innerPadding ->
@@ -69,13 +72,27 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
             //WifiDirectBonjour()
             Button(onClick = {
                 // https://dsf.tucan.tu-darmstadt.de/IdentityServer/.well-known/openid-configuration
-
-
-
-                val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=MobileApp&scope=openid+DSF+profile+offline_access&response_mode=query&response_type=code&ui_locales=de&redirect_uri=de.datenlotsen.campusnet.tuda:/oauth2redirect"
+                val serviceConfig =
+                    AuthorizationServiceConfiguration(
+                        "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize".toUri(),  // authorization endpoint
+                        "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/token".toUri()
+                    ) // token endpoint
+                val authRequest =
+                    AuthorizationRequest.Builder(
+                        serviceConfig,  // the authorization service configuration
+                        "MobileApp",  // the client ID, typically pre-registered and static
+                        ResponseTypeValues.CODE,  // the response_type value: we want a code
+                        "de.datenlotsen.campusnet.tuda:/oauth2redirect".toUri() // maybe without the path or other path and it still works?
+                    ) // the redirect URI to which the auth response is sent
+                        .setScope("openid DSF profile offline_access")
+                        .build()
+                val authService = AuthorizationService(context)
+                val authIntent = authService.getAuthorizationRequestIntent(authRequest)
+                launcher.launch(authIntent)
+               /* val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=MobileApp&scope=openid+DSF+profile+offline_access&response_mode=query&response_type=code&ui_locales=de&redirect_uri=de.datenlotsen.campusnet.tuda:/oauth2redirect"
                 val intent = CustomTabsIntent.Builder()
                     .build()
-                intent.launchUrl(context, url.toUri())
+                intent.launchUrl(context, url.toUri())*/
             }, modifier = Modifier.fillMaxWidth()) {
                 Text("Login")
             }
