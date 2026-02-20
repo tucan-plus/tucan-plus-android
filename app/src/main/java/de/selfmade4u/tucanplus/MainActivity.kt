@@ -51,6 +51,18 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.core.net.toUri
+import de.selfmade4u.tucanplus.OpenIdHelper.exchangeToken
+import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationRequest
+import net.openid.appauth.AuthorizationResponse
+import net.openid.appauth.AuthorizationService
+import net.openid.appauth.AuthorizationServiceConfiguration
+import net.openid.appauth.ResponseTypeValues
 
 // main or login
 // https://proandroiddev.com/mastering-navigation-in-jetpack-compose-a-guide-to-using-the-inclusive-attribute-b66916a5f15c
@@ -107,8 +119,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val isLoading = mutableStateOf(true)
-        lifecycleScope.launch {
-            Log.e(TAG, intent.data.toString());
+        //lifecycleScope.launch {
+         /*   Log.e(TAG, intent.data.toString());
             Log.e(TAG, intent.action.toString());
             if (intent.data != null) {
                 // code
@@ -116,13 +128,13 @@ class MainActivity : ComponentActivity() {
             }
             val credentialSettingsFlow: OptionalCredentialSettings =
                 this@MainActivity.credentialSettingsDataStore.data.first()
-            val prepareDb = MyDatabaseProvider.getDatabase(this@MainActivity)
+            val prepareDb = MyDatabaseProvider.getDatabase(this@MainActivity)*/
             setContent {
                 TUCaNPlusTheme {
-                    Entrypoint(credentialSettingsFlow, isLoading)
+                    Entrypoint(OptionalCredentialSettings(null), isLoading)
                 }
             }
-        }
+       // }
         splashScreen.apply {
             this.setKeepOnScreenCondition {
                 isLoading.value
@@ -133,18 +145,61 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings, isLoading: MutableState<Boolean>) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val authService = remember {
+        AuthorizationService(context)
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            authService.dispose()
+        }
+    }
     val backStack = rememberNavBackStack(
         *(if (credentialSettingsFlow.inner == null) arrayOf(LoginNavKey) else arrayOf(
             MainNavKey,
             MyExamsNavKey
         ))
     )
-    val context = LocalContext.current
-    LaunchedEffect(true) {
+    /*LaunchedEffect(true) {
         if (credentialSettingsFlow.inner != null) {
             // TODO FIXME do this also after you log in, not only on app startup
             setupBackgroundTasks(context)
         }
+    }*/
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { intent ->
+        Log.e(TAG, "mainactivity intent ${intent.data}")
+        val resp = AuthorizationResponse.fromIntent(intent.data!!)
+        val ex = AuthorizationException.fromIntent(intent.data!!)
+        if (resp != null) {
+            Log.i(TAG, "Authorization success ${resp}")
+            // authorization completed
+            coroutineScope.launch {
+                val token = authService.exchangeToken(resp)
+                Log.i(TAG, "Token ${token}")
+            }
+        } else {
+            // authorization failed, check ex for more details
+            Log.e(TAG, "failed to authorize", ex)
+        }
+    }
+    LaunchedEffect(true) {
+        val serviceConfig =
+            AuthorizationServiceConfiguration(
+                "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize".toUri(),  // authorization endpoint
+                "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/token".toUri()
+            ) // token endpoint
+        val authRequest =
+            AuthorizationRequest.Builder(
+                serviceConfig,  // the authorization service configuration
+                "MobileApp",  // the client ID, typically pre-registered and static
+                ResponseTypeValues.CODE,  // the response_type value: we want a code
+                "de.datenlotsen.campusnet.tuda:/oauth2redirect".toUri() // maybe without the path or other path and it still works?
+            ) // the redirect URI to which the auth response is sent
+                .setScope("openid DSF profile offline_access")
+                .build()
+        val authIntent = authService.getAuthorizationRequestIntent(authRequest)
+        launcher.launch(authIntent)
     }
     val entryProvider = entryProvider {
         entry<MainNavKey> {

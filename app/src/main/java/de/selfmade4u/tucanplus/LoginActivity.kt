@@ -1,8 +1,8 @@
 package de.selfmade4u.tucanplus
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import de.selfmade4u.tucanplus.OpenIdHelper.exchangeToken
+import kotlinx.coroutines.launch
+import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationRequest
+import net.openid.appauth.AuthorizationResponse
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.ResponseTypeValues
@@ -48,15 +52,22 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
     val coroutineScope = rememberCoroutineScope()
     var loading by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
-    // https://developer.android.com/develop/ui/compose/libraries#requesting-runtime-permissions
-    /*val launcher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { value ->
-            Toast.makeText(context, "Permission response $value", Toast.LENGTH_SHORT).show()
-        }
-    LaunchedEffect(true) {
-        launcher.launch(arrayOf(Manifest.permission.NEARBY_WIFI_DEVICES))
-    }*/
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        // val authService = AuthorizationService(context)
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { intent ->
+        Log.e(TAG, "login form intent ${intent.toString()}")
+        /*val resp = AuthorizationResponse.fromIntent(intent.data!!)
+        val ex = AuthorizationException.fromIntent(intent.data!!)
+        if (resp != null) {
+            Log.i(TAG, "Authorization success")
+            // authorization completed
+            coroutineScope.launch {
+                val token = authService.exchangeToken(resp)
+                Log.i(TAG, "Token ${token}")
+            }
+        } else {
+            // authorization failed, check ex for more details
+            Log.e(TAG, "failed to authorize", ex)
+        }*/
     }
     Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
@@ -86,9 +97,8 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
                     ) // the redirect URI to which the auth response is sent
                         .setScope("openid DSF profile offline_access")
                         .build()
-                val authService = AuthorizationService(context)
-                val authIntent = authService.getAuthorizationRequestIntent(authRequest)
-                launcher.launch(authIntent)
+                //val authIntent = authService.getAuthorizationRequestIntent(authRequest)
+                //launcher.launch(authIntent)
                /* val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=MobileApp&scope=openid+DSF+profile+offline_access&response_mode=query&response_type=code&ui_locales=de&redirect_uri=de.datenlotsen.campusnet.tuda:/oauth2redirect"
                 val intent = CustomTabsIntent.Builder()
                     .build()
