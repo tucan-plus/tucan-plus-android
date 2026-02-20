@@ -22,6 +22,9 @@ data class CredentialSettings @OptIn(ExperimentalTime::class) constructor(
     val idToken: String,
     val accessToken: String,
     val refreshToken: String,
+    // still needed for short term session
+    val sessionId: String,
+    val sessionCookie: String,
     val menuLocalizer: Localizer,
     val lastRequestTime: Long
 )

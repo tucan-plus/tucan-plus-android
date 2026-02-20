@@ -17,6 +17,7 @@ import io.ktor.client.statement.HttpResponse
 import kotlinx.coroutines.flow.first
 import java.net.SocketException
 import java.util.logging.Level
+import java.util.logging.Logger
 
 sealed class AuthenticatedHttpResponse<T> {
     data class Success<T>(var response: T) :
@@ -78,11 +79,11 @@ suspend fun fetchAuthenticated(sessionCookie: String, url: String): Authenticate
         }
         return NetworkLikelyTooSlow()
     } catch (e: SocketException) {
-        java.util.logging.Logger.getLogger(TAG).log(Level.WARNING, "Request failed", e)
-        return AuthenticatedHttpResponse.NetworkLikelyTooSlow()
+        Logger.getLogger(TAG).log(Level.WARNING, "Request failed", e)
+        return NetworkLikelyTooSlow()
     } catch (e: Throwable) {
-        java.util.logging.Logger.getLogger(TAG).log(Level.WARNING, "Request failed", e)
-        return AuthenticatedHttpResponse.NetworkLikelyTooSlow()
+        Logger.getLogger(TAG).log(Level.WARNING, "Request failed", e)
+        return NetworkLikelyTooSlow()
     }
     return AuthenticatedHttpResponse.Success(r)
 }
@@ -132,12 +133,13 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(credentialSettingsDataSto
         }
         is TucanLogin.LoginResponse.Success -> {
             settings = CredentialSettings(
-                username = settings.username,
-                password = settings.password,
                 sessionId = loginResponse.sessionId,
                 sessionCookie = loginResponse.sessionCookie,
                 lastRequestTime = System.currentTimeMillis(),
-                menuLocalizer = loginResponse.menuLocalizer
+                menuLocalizer = loginResponse.menuLocalizer,
+                idToken = TODO(),
+                accessToken = TODO(),
+                refreshToken = TODO()
             )
             credentialSettingsDataStore.updateData { currentSettings ->
                 OptionalCredentialSettings(
