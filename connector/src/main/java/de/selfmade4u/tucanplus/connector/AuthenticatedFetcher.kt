@@ -114,11 +114,13 @@ suspend fun <T> fetchAuthenticatedWithReauthentication(credentialSettingsDataSto
     }
     val loginResponse: TucanLogin.LoginResponse
     try {
-        loginResponse = TucanLogin.doLogin(
+       /* loginResponse = TucanLogin.doLogin(
             client,
             settings.username,
             settings.password,
-        )
+        )*/
+        // TODO FIXME
+        loginResponse = TucanLogin.LoginResponse.TooManyAttempts
     } catch (e: Throwable) {
         return AuthenticatedResponse.NetworkLikelyTooSlow<T>()
     }

@@ -118,6 +118,7 @@ dependencies {
     implementation(libs.androidx.profileinstaller)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.autofill)
+    implementation(libs.appauth)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

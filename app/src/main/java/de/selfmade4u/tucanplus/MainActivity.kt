@@ -108,6 +108,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val isLoading = mutableStateOf(true)
         lifecycleScope.launch {
+            Log.e(TAG, intent.data.toString());
+            Log.e(TAG, intent.action.toString());
+            if (intent.data != null) {
+                // code
+                // session_state
+            }
             val credentialSettingsFlow: OptionalCredentialSettings =
                 this@MainActivity.credentialSettingsDataStore.data.first()
             val prepareDb = MyDatabaseProvider.getDatabase(this@MainActivity)
@@ -122,10 +128,6 @@ class MainActivity : ComponentActivity() {
                 isLoading.value
             }
         }
-        // ATTENTION: This was auto-generated to handle app links.
-        val appLinkIntent: Intent = intent
-        val appLinkAction: String? = appLinkIntent.action
-        val appLinkData: Uri? = appLinkIntent.data
     }
 }
 
