@@ -32,6 +32,7 @@ android {
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
         //testInstrumentationRunnerArguments["TUCAN_USERNAME"] = System.getenv("TUCAN_USERNAME")
         //testInstrumentationRunnerArguments["TUCAN_PASSWORD"] = System.getenv("TUCAN_PASSWORD")
+        manifestPlaceholders["appAuthRedirectScheme"] = "de.datenlotsen.campusnet.tuda"
     }
 
     dependenciesInfo {
