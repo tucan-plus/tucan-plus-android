@@ -14,6 +14,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberNavBackStack
 import de.selfmade4u.tucanplus.OpenIdHelper.exchangeToken
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
@@ -53,12 +56,20 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
     var loading by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
         // val authService = AuthorizationService(context)
+    val authService = remember {
+        AuthorizationService(context)
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            authService.dispose()
+        }
+    }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { intent ->
-        Log.e(TAG, "login form intent ${intent.toString()}")
-        /*val resp = AuthorizationResponse.fromIntent(intent.data!!)
+        Log.e(TAG, "mainactivity intent ${intent.data?.data}")
+        val resp = AuthorizationResponse.fromIntent(intent.data!!)
         val ex = AuthorizationException.fromIntent(intent.data!!)
         if (resp != null) {
-            Log.i(TAG, "Authorization success")
+            Log.i(TAG, "Authorization success ${resp}")
             // authorization completed
             coroutineScope.launch {
                 val token = authService.exchangeToken(resp)
@@ -67,7 +78,25 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
         } else {
             // authorization failed, check ex for more details
             Log.e(TAG, "failed to authorize", ex)
-        }*/
+        }
+    }
+    LaunchedEffect(true) {
+        val serviceConfig =
+            AuthorizationServiceConfiguration(
+                "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize".toUri(),  // authorization endpoint
+                "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/token".toUri()
+            ) // token endpoint
+        val authRequest =
+            AuthorizationRequest.Builder(
+                serviceConfig,  // the authorization service configuration
+                "MobileApp",  // the client ID, typically pre-registered and static
+                ResponseTypeValues.CODE,  // the response_type value: we want a code
+                "de.datenlotsen.campusnet.tuda:/oauth2redirect".toUri() // maybe without the path or other path and it still works?
+            ) // the redirect URI to which the auth response is sent
+                .setScope("openid DSF profile offline_access")
+                .build()
+        val authIntent = authService.getAuthorizationRequestIntent(authRequest)
+        launcher.launch(authIntent)
     }
     Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
@@ -81,31 +110,7 @@ fun LoginForm(@PreviewParameter(NavBackStackPreviewParameterProvider::class) bac
             //ShowLocalServices()
             //WifiDirect()
             //WifiDirectBonjour()
-            Button(onClick = {
-                // https://dsf.tucan.tu-darmstadt.de/IdentityServer/.well-known/openid-configuration
-                val serviceConfig =
-                    AuthorizationServiceConfiguration(
-                        "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize".toUri(),  // authorization endpoint
-                        "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/token".toUri()
-                    ) // token endpoint
-                val authRequest =
-                    AuthorizationRequest.Builder(
-                        serviceConfig,  // the authorization service configuration
-                        "MobileApp",  // the client ID, typically pre-registered and static
-                        ResponseTypeValues.CODE,  // the response_type value: we want a code
-                        "de.datenlotsen.campusnet.tuda:/oauth2redirect".toUri() // maybe without the path or other path and it still works?
-                    ) // the redirect URI to which the auth response is sent
-                        .setScope("openid DSF profile offline_access")
-                        .build()
-                //val authIntent = authService.getAuthorizationRequestIntent(authRequest)
-                //launcher.launch(authIntent)
-               /* val url = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=MobileApp&scope=openid+DSF+profile+offline_access&response_mode=query&response_type=code&ui_locales=de&redirect_uri=de.datenlotsen.campusnet.tuda:/oauth2redirect"
-                val intent = CustomTabsIntent.Builder()
-                    .build()
-                intent.launchUrl(context, url.toUri())*/
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("Login")
-            }
+            Text("Logging in...")
         }
     }
 }
