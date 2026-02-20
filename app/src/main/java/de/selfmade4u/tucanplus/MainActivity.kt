@@ -119,22 +119,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val isLoading = mutableStateOf(true)
-        //lifecycleScope.launch {
-         /*   Log.e(TAG, intent.data.toString());
-            Log.e(TAG, intent.action.toString());
-            if (intent.data != null) {
-                // code
-                // session_state
-            }
+        lifecycleScope.launch {
             val credentialSettingsFlow: OptionalCredentialSettings =
                 this@MainActivity.credentialSettingsDataStore.data.first()
-            val prepareDb = MyDatabaseProvider.getDatabase(this@MainActivity)*/
+            val prepareDb = MyDatabaseProvider.getDatabase(this@MainActivity)
             setContent {
                 TUCaNPlusTheme {
-                    Entrypoint(OptionalCredentialSettings(null), isLoading)
+                    Entrypoint(credentialSettingsFlow, isLoading)
                 }
             }
-       // }
+        }
         splashScreen.apply {
             this.setKeepOnScreenCondition {
                 isLoading.value

@@ -19,10 +19,9 @@ interface EncryptionHelper {
 
 @Serializable
 data class CredentialSettings @OptIn(ExperimentalTime::class) constructor(
-    val username: String,
-    val password: String,
-    val sessionId: String,
-    val sessionCookie: String,
+    val idToken: String,
+    val accessToken: String,
+    val refreshToken: String,
     val menuLocalizer: Localizer,
     val lastRequestTime: Long
 )
