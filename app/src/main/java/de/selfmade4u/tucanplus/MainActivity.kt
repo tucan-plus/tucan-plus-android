@@ -51,6 +51,18 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.core.net.toUri
+import de.selfmade4u.tucanplus.OpenIdHelper.exchangeToken
+import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationRequest
+import net.openid.appauth.AuthorizationResponse
+import net.openid.appauth.AuthorizationService
+import net.openid.appauth.AuthorizationServiceConfiguration
+import net.openid.appauth.ResponseTypeValues
 
 // main or login
 // https://proandroiddev.com/mastering-navigation-in-jetpack-compose-a-guide-to-using-the-inclusive-attribute-b66916a5f15c
@@ -122,28 +134,25 @@ class MainActivity : ComponentActivity() {
                 isLoading.value
             }
         }
-        // ATTENTION: This was auto-generated to handle app links.
-        val appLinkIntent: Intent = intent
-        val appLinkAction: String? = appLinkIntent.action
-        val appLinkData: Uri? = appLinkIntent.data
     }
 }
 
 @Composable
 fun Entrypoint(credentialSettingsFlow: OptionalCredentialSettings, isLoading: MutableState<Boolean>) {
+    /*LaunchedEffect(true) {
+       if (credentialSettingsFlow.inner != null) {
+           // TODO FIXME do this also after you log in, not only on app startup
+           setupBackgroundTasks(context)
+       }
+   }*/
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val backStack = rememberNavBackStack(
         *(if (credentialSettingsFlow.inner == null) arrayOf(LoginNavKey) else arrayOf(
             MainNavKey,
             MyExamsNavKey
         ))
     )
-    val context = LocalContext.current
-    LaunchedEffect(true) {
-        if (credentialSettingsFlow.inner != null) {
-            // TODO FIXME do this also after you log in, not only on app startup
-            setupBackgroundTasks(context)
-        }
-    }
     val entryProvider = entryProvider {
         entry<MainNavKey> {
             isLoading.value = false

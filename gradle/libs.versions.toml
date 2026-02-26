@@ -1,5 +1,6 @@
 [versions]
 agp = "9.0.1"
+appauth = "0.11.1"
 autofill = "1.3.0"
 coreKtx = "1.17.0"
 datastore = "1.2.0"
@@ -20,7 +21,13 @@ orchestrator = "1.6.1"
 room = "2.8.4"
 runner = "1.7.0"
 uiTestAndroid = "1.10.3"
-workRuntimeKtx = "2.11.1"
+# 2.10.0-alpha01 works
+# 2.10.0 broken
+# 2.10.0-rc01 broken
+# 2.10.0-alpha04 broken
+# 2.10.0-alpha03 broken
+# 2.10.0-alpha02 broken
+workRuntimeKtx = "2.10.0-alpha01"
 splashscreen = "1.2.0"
 uiautomator = "2.3.0"
 baselineprofile = "1.5.0-alpha03"
@@ -52,6 +59,7 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
+appauth = { module = "net.openid:appauth", version.ref = "appauth" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
